@@ -18,7 +18,7 @@ function draw() {
   ctx.fillStyle = "#224488";
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
   ctx.fillStyle = "black";
-  ctx.fillRect(WIDTH/4, HEIGHT/4, WIDTH/2, HEIGHT/2);
+  ctx.fillRect(WIDTH/3, HEIGHT / 14, WIDTH/1.69, HEIGHT/1.16);
 }
 
 draw();
