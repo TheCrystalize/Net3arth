@@ -7,3 +7,19 @@ body {
   height: 90%;
   background-color: #13170b;
 }
+
+.creator {
+  width: 50%;
+  height: 90%;
+  background-color: #13170b;
+}
+
+.selector {
+  width: 50%;
+  height: 90%;
+  background-color: #13170b;
+}
+
+.wrapper {
+  display: flex;
+}
