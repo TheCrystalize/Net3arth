@@ -3,21 +3,19 @@ body {
 }
 
 .creatorSelector {
-  width: 50%;
-  height: 90%;
-  background-color: #13170b;
+  width: 50vw;
+  height: 98vh;
+  background-color: red;
 }
 
 .creator {
-  width: 50%;
-  height: 90%;
-  background-color: #13170b;
+  height: 70%;
+  background-color: green;
 }
 
 .selector {
-  width: 50%;
-  height: 90%;
-  background-color: #13170b;
+  height: 30%;
+  background-color: blue;
 }
 
 .wrapper {
