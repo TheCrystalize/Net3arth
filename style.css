@@ -10,12 +10,12 @@ body {
 
 .creator {
   height: 70%;
-  background-color: green;
+  background-color: gray;
 }
 
 .selector {
   height: 30%;
-  background-color: blue;
+  background-color: darkGray;
 }
 
 .wrapper {
