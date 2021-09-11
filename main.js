@@ -29,29 +29,60 @@ function doStuff() {
     blue: 1
   };
 
-  val = mobius.function(
-    {re:-0.497297383621323782,im:-0.006511070947473171},
-    {re:1,im:0},
-    {re:-1,im:0},
-    {re:1.437216112833956923,im:0.018817344280739631}
-)(val);
+  //val = scale.function(0.25)(val);
 
+  for(let i=0; i<1000;i++){
+    let rand = Math.random();
 
-  val = mobius.function(
-  {re:-0.000000000000000000,im:-0.588229835383947423},
-  {re: 1.000000000000000000,im: 0.000000000000000000},
-  {re: 1.000000000000000000,im: 0.000000000000000000},
-  {re: 0.000000000000000000,im:-1.700015775886789767}
-)(val);
+    switch (true) {
+      case rand < 1 / 3:
+        val = mobius.function({
+          re: -0.497297383621323782,
+          im: -0.006511070947473171
+        }, {
+          re: 1,
+          im: 0
+        }, {
+          re: -1,
+          im: 0
+        }, {
+          re: 1.437216112833956923,
+          im: 0.018817344280739631
+        })(val);
+        break;
+      case rand < 2.3:
 
-  val = mobius.function(
-  {re: 1.000000000000000000,im: 0.000000000000000000},
-  {re: 0.000000000000000000,im:-0.588229835383947423},
-  {re: 0.000000000000000000,im:-1.700015775886789767},
-  {re: 1.000000000000000000,im: 0.000000000000000000}
-)(val);
+        val = mobius.function({
+          re: -0,
+          im: -0.588229835383947423
+        }, {
+          re: 1,
+          im: 0
+        }, {
+          re: 1,
+          im: 0
+        }, {
+          re: 0,
+          im: -1.700015775886789767
+        })(val);
+        break;
+      default:
 
-  val = scale.function(0.5)(val);
+        val = mobius.function({
+          re: 1,
+          im: 0
+        }, {
+          re: 0,
+          im: -0.588229835383947423
+        }, {
+          re: 0,
+          im: -1.700015775886789767
+        }, {
+          re: 1,
+          im: 0
+        })(val);
+    }
+  }
 
   return val;
 }
@@ -97,12 +128,14 @@ function getBrightest() {
   return brightest;
 }
 
+let point = {re: 0, im: 0};
+
 function draw() {
   let start = Date.now();
   let count = 0;
   do {
     count++;
-    for(let i = 0; i < 10000; i++) {
+    for(let i = 0; i < 100; i++) {
       let val = doStuff();
       if(val.re > -0.5 && val.re < 0.5 && val.im > -0.5 && val.im < 0.5) {
         let index = ((val.re + 0.5) * WIDTH >> 0) + ((-val.im + 0.5) * WIDTH >> 0) * HEIGHT;
@@ -115,9 +148,9 @@ function draw() {
   let brightest = getBrightest();
 
   for(let i = 0; i < WIDTH * HEIGHT; i++) {
-    img.data[i * 4] = buffer[i][0] / brightest * 255;
-    img.data[i * 4 + 1] = buffer[i][1] / brightest * 255;
-    img.data[i * 4 + 2] = buffer[i][2] / brightest * 255;
+    img.data[i * 4] = buffer[i][0] / brightest * 2550;
+    img.data[i * 4 + 1] = buffer[i][1] / brightest * 2550;
+    img.data[i * 4 + 2] = buffer[i][2] / brightest * 2550;
   }
   ctx.putImageData(img, 0, 0);
 
