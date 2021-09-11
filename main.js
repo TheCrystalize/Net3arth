@@ -20,10 +20,10 @@ ctx.imageSmoothingQuality = "high";
  * Updates the canvas content
  */
 
-function doStuff(){
+function doStuff() {
   let val = {
-    re: Math.random()-0.5,
-    im: Math.random()-0.5,
+    re: Math.random() - 0.5,
+    im: Math.random() - 0.5,
     red: 1,
     green: 1,
     blue: 1
@@ -31,29 +31,49 @@ function doStuff(){
   return val;
 }
 
-let buffer = Array(WIDTH * HEIGHT).fill([0,0,0]);
+let buffer = Array(WIDTH * HEIGHT).fill([0, 0, 0]);
 let img = new ImageData(WIDTH, HEIGHT);
-for(let i=3;i<WIDTH*HEIGHT*4;i+=4){
-  img.data[i]=255;
+for(let i = 3; i < WIDTH * HEIGHT * 4; i += 4) {
+  img.data[i] = 255;
+}
+
+function getBrightest() {
+  let brightest = 0;
+  for(let i = 0; i < buffer.length; i++) {
+    if(buffer[i][0] > brightest) {
+      brightest = buffer[i][0];
+    }
+    if(buffer[i][1] > brightest) {
+      brightest = buffer[i][1];
+    }
+    if(buffer[i][2] > brightest) {
+      brightest = buffer[i][2];
+    }
+  }
+  return brightest;
 }
 
 function draw() {
   let start = Date.now();
-  do{
-    for(let i = 0; i < 100000; i++){
+  let count = 0;
+  do {
+    count++;
+    for(let i = 0; i < 10000; i++) {
       let val = doStuff();
-      if(val.re > -0.5 && val.re < 0.5 && val.im > -0.5 && val.im < 0.5){
-        let index = ((val.re+0.5)*WIDTH>>0) + ((-val.im+0.5)*WIDTH>>0)*HEIGHT;
+      if(val.re > -0.5 && val.re < 0.5 && val.im > -0.5 && val.im < 0.5) {
+        let index = ((val.re + 0.5) * WIDTH >> 0) + ((-val.im + 0.5) * WIDTH >> 0) * HEIGHT;
         let t = buffer[index];
-        buffer[index]=[t[0]+val.red,t[1]+val.green,t[2]+val.blue];
+        buffer[index] = [t[0] + val.red, t[1] + val.green, t[2] + val.blue];
       }
     }
-  } while(Date.now()-start < 12);
+  } while(Date.now() - start < 12);
 
-  for(let i=0;i<WIDTH*HEIGHT;i++){
-    img.data[i*4] = buffer[i][0];
-    img.data[i*4+1] = buffer[i][1];
-    img.data[i*4+2] = buffer[i][2];
+  let brightest = getBrightest();
+
+  for(let i = 0; i < WIDTH * HEIGHT; i++) {
+    img.data[i * 4] = buffer[i][0] / brightest * 255;
+    img.data[i * 4 + 1] = buffer[i][1] / brightest * 255;
+    img.data[i * 4 + 2] = buffer[i][2] / brightest * 255;
   }
   ctx.putImageData(img, 0, 0);
 
