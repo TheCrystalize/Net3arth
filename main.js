@@ -54,7 +54,7 @@ function doStuff(val) {
         im: 0
       }, {
         re: 0,
-        im: -1
+        im: 1
       })(val);
       break;
     default:

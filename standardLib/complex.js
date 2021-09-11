@@ -22,7 +22,7 @@ function compSub(z, c) {
 function compMult(z, c) {
   return {
     re: z.re * c.re - z.im * c.im,
-    im: z.re * c.im * 2
+    im: z.re * c.im + z.im * c.re
   }
 }
 
