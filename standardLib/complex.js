@@ -40,3 +40,26 @@ function compDiv(z, c) {
     im: (z.im * c.re - z.re * c.im) * s
   }
 }
+
+function compPow(z, p) {
+  const n = p * Math.atan2(z.im, z.re)
+  return {
+    re: Math.cos(n),
+    im: Math.sin(n) * Math.exp(p * Math.log(z.re * z.re + z.im * z.im))
+  }
+}
+
+function compLog(z) {
+  return {
+    re: 0.5 * Math.log(z.re * z.re + z.im * z.im),
+    im: Math.atan2(z.im, z.re)
+  }
+}
+
+function compExp(z) {
+  const e = exp(z.re)
+  return {
+    re: Math.cos(z.im) * e,
+    im: Math.sin(z.im) * e
+  }
+}
