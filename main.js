@@ -38,7 +38,7 @@ function doStuff(val) {
         re: 1,
         im: 0
       })({
-        ...val,re:-val.re,
+        ...val,
         red: val.red + (val.green / 2 + val.blue / 2),
         green: val.green / 2,
         blue: val.blue / 2
