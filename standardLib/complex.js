@@ -34,7 +34,7 @@ function compMultScalar(z, s) {
 }
 
 function compDiv(z, c) {
-  const s = 1 / (c.re * c.re + c.im * c.im)
+  const s = 1 / (c.re * c.re + c.im * c.im);
   return {
     re: (z.re * c.re + z.im * c.im) * s,
     im: (z.im * c.re - z.re * c.im) * s

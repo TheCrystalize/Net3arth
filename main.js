@@ -26,19 +26,19 @@ function doStuff(val) {
   switch (true) {
     case rand < 1 / 3:
       val = mobius.function({
-        re: -1,
-        im: 1
-      }, {
-        re: 0,
-        im: 0
-      }, {
         re: 0,
         im: 0
       }, {
         re: 1,
-        im: 1
+        im: 0
+      }, {
+        re: -1,
+        im: 0
+      }, {
+        re: 1,
+        im: 0
       })({
-        ...val,
+        ...val,re:-val.re,
         red: val.red + (val.green / 2 + val.blue / 2),
         green: val.green / 2,
         blue: val.blue / 2
@@ -47,16 +47,16 @@ function doStuff(val) {
     case rand < 2 / 3:
 
       val = mobius.function({
-        re: -1,
-        im: 1
-      }, {
         re: 0,
         im: 0
       }, {
-        re: 0,
-        im: 1
+        re: 1,
+        im: 0
       }, {
         re: 1,
+        im: 0
+      }, {
+        re: 0,
         im: 1
       })({
         ...val,
@@ -68,17 +68,17 @@ function doStuff(val) {
     default:
 
       val = mobius.function({
-        re: 1,
-        im: 0
-      }, {
-        re: 0,
-        im: 0
-      }, {
         re: 0,
         im: 0
       }, {
         re: 1,
-        im: 1
+        im: 0
+      }, {
+        re: -1,
+        im: 0
+      }, {
+        re: 0,
+        im: 0
       })({
         ...val,
         red: val.red / 2,
