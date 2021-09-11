@@ -23,13 +23,13 @@ ctx.imageSmoothingQuality = "high";
 function doStuff(val) {
   let rand = Math.random();
 
-  val = scale.function(0.25)(val);
+
 
   switch (true) {
     case rand < 1 / 3:
       val = mobius.function({
-        re: -0.497297383621323782,
-        im: -0.006511070947473171
+        re: 0,
+        im: 0
       }, {
         re: 1,
         im: 0
@@ -37,15 +37,15 @@ function doStuff(val) {
         re: -1,
         im: 0
       }, {
-        re: 1.437216112833956923,
-        im: 0.018817344280739631
+        re: 1,
+        im: 0
       })(val);
       break;
     case rand < 2 / 3:
 
       val = mobius.function({
-        re: -0,
-        im: -0.588229835383947423
+        re: 0,
+        im: 0
       }, {
         re: 1,
         im: 0
@@ -54,22 +54,22 @@ function doStuff(val) {
         im: 0
       }, {
         re: 0,
-        im: -1.700015775886789767
+        im: -1
       })(val);
       break;
     default:
 
       val = mobius.function({
+        re: 0,
+        im: 0
+      }, {
         re: 1,
         im: 0
       }, {
-        re: 0,
-        im: -0.588229835383947423
+        re: -1,
+        im: 0
       }, {
         re: 0,
-        im: -1.700015775886789767
-      }, {
-        re: 1,
         im: 0
       })(val);
   }
