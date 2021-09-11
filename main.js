@@ -23,55 +23,68 @@ ctx.imageSmoothingQuality = "high";
 function doStuff(val) {
   let rand = Math.random();
 
-
-
   switch (true) {
     case rand < 1 / 3:
       val = mobius.function({
+        re: -1,
+        im: 1
+      }, {
+        re: 0,
+        im: 0
+      }, {
         re: 0,
         im: 0
       }, {
         re: 1,
-        im: 0
-      }, {
-        re: -1,
-        im: 0
-      }, {
-        re: 1,
-        im: 0
-      })({re: val.re, im: -val.im});
+        im: 1
+      })({
+        ...val,
+        red: val.red + (val.green / 2 + val.blue / 2),
+        green: val.green / 2,
+        blue: val.blue / 2
+      });
       break;
     case rand < 2 / 3:
 
       val = mobius.function({
+        re: -1,
+        im: 1
+      }, {
         re: 0,
-        im: 0
-      }, {
-        re: 1,
-        im: 0
-      }, {
-        re: 1,
         im: 0
       }, {
         re: 0,
         im: 1
-      })(val);
+      }, {
+        re: 1,
+        im: 1
+      })({
+        ...val,
+        red: val.red / 2,
+        green: val.green + (val.red / 2 + val.blue / 2),
+        blue: val.blue / 2
+      });
       break;
     default:
 
       val = mobius.function({
+        re: 1,
+        im: 0
+      }, {
+        re: 0,
+        im: 0
+      }, {
         re: 0,
         im: 0
       }, {
         re: 1,
-        im: 0
-      }, {
-        re: -1,
-        im: 0
-      }, {
-        re: 0,
-        im: 0
-      })(val);
+        im: 1
+      })({
+        ...val,
+        red: val.red / 2,
+        green: val.green / 2,
+        blue: val.blue + (val.green / 2 + val.red / 2)
+      });
   }
 
   return val;
@@ -104,54 +117,68 @@ for(let i = 3; i < WIDTH * HEIGHT * 4; i += 4) {
 
 function getBrightest() {
   let brightest = 0;
-  for(let i = 0; i < buffer.length; i++) {
-    if(buffer[i][0] > brightest) {
-      brightest = buffer[i][0];
+  for(let b, i = 0; i < WIDTH * HEIGHT; i++) {
+    b = buffer[i];
+
+    if(b[0] > brightest) {
+      brightest = b[0];
     }
-    if(buffer[i][1] > brightest) {
-      brightest = buffer[i][1];
+    if(b[1] > brightest) {
+      brightest = b[1];
     }
-    if(buffer[i][2] > brightest) {
-      brightest = buffer[i][2];
+    if(b[2] > brightest) {
+      brightest = b[2];
     }
   }
   return brightest;
 }
 
+pointer = {
+  re: 0.0001,
+  im: 0.0001,
+  red: 1,
+  green: 1,
+  blue: 1
+};
+
 function draw() {
-  let start = Date.now();
+  const start = Date.now();
   let count = 0;
   do {
     count++;
 
-    let val = {
-      re: 0,
-      im: 0,
-      red: 1,
-      green: 1,
-      blue: 1
-    };
+    let val, index, t;
+
     for(let i = 0; i < 10000; i++) {
-      val = doStuff(val);
-      if(val.re > -0.5 && val.re < 0.5 && val.im > -0.5 && val.im < 0.5) {
-        let index = ((val.re + 0.5) * WIDTH >> 0) + ((-val.im + 0.5) * WIDTH >> 0) * HEIGHT;
-        let t = buffer[index];
+
+      /* STUFF */
+      pointer = doStuff(pointer);
+
+      /* POST-STUFF */
+      val = translate.function({
+        re: 0,
+        im: 0
+      })(pointer);
+      val = scale.function(0.4)(val);
+
+      /* DRAW STUFF */
+      if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
+        index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * WIDTH >> 0) * HEIGHT;
+        t = buffer[index];
         buffer[index] = [t[0] + val.red, t[1] + val.green, t[2] + val.blue];
       }
     }
-  } while(Date.now() - start < 12);
+  } while(Date.now() - start < 20);
 
-  let brightest = getBrightest();
+  const brightest = getBrightest();
 
-  for(let i = 0; i < WIDTH * HEIGHT; i++) {
-    img.data[i * 4] = buffer[i][0] * 10 // / brightest * 255;
-    img.data[i * 4 + 1] = buffer[i][1] * 10 // / brightest * 255;
-    img.data[i * 4 + 2] = buffer[i][2] * 10 // / brightest * 255;
+  for(let b, i = 0; i < WIDTH * HEIGHT; i++) {
+    b = buffer[i];
+    img.data[i * 4] = Math.log(b[0]) / Math.log(brightest) * 255 >> 0;
+    img.data[i * 4 + 1] = Math.log(b[1]) / Math.log(brightest) * 255 >> 0;
+    img.data[i * 4 + 2] = Math.log(b[2]) / Math.log(brightest) * 255 >> 0;
   }
   ctx.putImageData(img, 0, 0);
-
-  //ctx.fillStyle = 'red';
-  //ctx.fillRect(Math.random()*WIDTH, 0, WIDTH, HEIGHT);
 
   window.requestAnimationFrame(draw);
 }
