@@ -20,58 +20,87 @@ ctx.imageSmoothingQuality = "high";
  * Updates the canvas content
  */
 
-function doStuff(val) {
+const stuffToDo = {
+  main: [
+    [
+      3,
+      [1 / 3, mobius.function({
+        re: -0.497297383621323782,
+        im: -0.006511070947473171
+      }, {
+        re: 1,
+        im: 0
+      }, {
+        re: -1,
+        im: 0
+      }, {
+        re: 1.437216112833956923,
+        im: 0.018817344280739631
+      })],
+      [2 / 3, mobius.function({
+        re: -0,
+        im: -0.588229835383947423
+      }, {
+        re: 1,
+        im: 0
+      }, {
+        re: 1,
+        im: 0
+      }, {
+        re: 0,
+        im: -1.700015775886789767
+      })],
+      [1, mobius.function({
+        re: 1,
+        im: 0
+      }, {
+        re: 0,
+        im: -0.588229835383947423
+      }, {
+        re: 0,
+        im: -1.700015775886789767
+      }, {
+        re: 1,
+        im: 0
+      })]
+    ]
+  ],
+  post: [
+    mobius.function({
+      im: 1,
+      re: 0
+    }, {
+      im: -1,
+      re: 0
+    }, {
+      im: 1,
+      re: 0
+    }, {
+      im: 1,
+      re: 0
+    }),
+    scale.function(0.4)
+  ]
+};
+
+function switchStuff(stuff, val) {
   let rand = Math.random();
-
-  switch (true) {
-    case rand < 1 / 3:
-      val = mobius.function({
-        re: 0,
-        im: 0
-      }, {
-        re: 1,
-        im: 0
-      }, {
-        re: -1,
-        im: 0
-      }, {
-        re: 1,
-        im: 0
-      })(val);
-      break;
-    case rand < 2 / 3:
-
-      val = mobius.function({
-        re: 0,
-        im: 0
-      }, {
-        re: 1,
-        im: 0
-      }, {
-        re: 1,
-        im: 0
-      }, {
-        re: 0,
-        im: 1
-      })(val);
-      break;
-    default:
-
-      val = mobius.function({
-        re: 0,
-        im: 0
-      }, {
-        re: 1,
-        im: 0
-      }, {
-        re: -1,
-        im: 0
-      }, {
-        re: 0,
-        im: 0
-      })(val);
+  for(let i = 0; i < stuff[0];) {
+    if(rand < stuff[++i][0])
+      return loopStuff(stuff[i][1], val);
   }
+}
 
+function loopStuff(stuff, val) {
+  if(typeof stuff === 'function')
+    return stuff(val);
+
+  if(typeof stuff[0] === 'number')
+    return switchStuff(stuff, val);
+
+  for(let i = 0; i < stuff.length; i++) {
+    val = loopStuff(stuff[i], val);
+  }
   return val;
 }
 
@@ -118,7 +147,7 @@ function getBrightest() {
   return brightest;
 }
 
-pointer = {
+let pointer = {
   re: 0.0001,
   im: 0.0001,
   red: 1,
@@ -128,24 +157,19 @@ pointer = {
 
 function draw() {
   const start = Date.now();
-  let count = 0;
   do {
-    count++;
-
-    let val, index, t;
-
-    for(let i = 0; i < 10000; i++) {
+    for(let i = 0; i < 1000; i++) {
 
       /* STUFF */
-      pointer = doStuff(pointer);
+      pointer = loopStuff(stuffToDo.main, pointer);
 
       /* POST-STUFF */
-      val = scale.function(0.4)(pointer);
+      let val = loopStuff(stuffToDo.post, pointer);
 
       /* DRAW STUFF */
       if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
-        index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * WIDTH >> 0) * HEIGHT;
-        t = buffer[index];
+        let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * WIDTH >> 0) * HEIGHT;
+        let t = buffer[index];
         buffer[index] = [t[0] + val.red, t[1] + val.green, t[2] + val.blue];
       }
     }
