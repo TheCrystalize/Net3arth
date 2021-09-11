@@ -51,6 +51,8 @@ function doStuff() {
   {re: 1.000000000000000000,im: 0.000000000000000000}
 )(val);
 
+  val = scale.function(0.5)(val);
+
   return val;
 }
 
