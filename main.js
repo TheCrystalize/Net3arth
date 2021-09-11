@@ -39,7 +39,7 @@ function doStuff(val) {
       }, {
         re: 1,
         im: 0
-      })(val);
+      })({re: val.re, im: -val.im});
       break;
     case rand < 2 / 3:
 
