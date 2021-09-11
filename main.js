@@ -37,12 +37,7 @@ function doStuff(val) {
       }, {
         re: 1,
         im: 0
-      })({
-        ...val,
-        red: val.red + (val.green / 2 + val.blue / 2),
-        green: val.green / 2,
-        blue: val.blue / 2
-      });
+      })(val);
       break;
     case rand < 2 / 3:
 
@@ -58,12 +53,7 @@ function doStuff(val) {
       }, {
         re: 0,
         im: 1
-      })({
-        ...val,
-        red: val.red / 2,
-        green: val.green + (val.red / 2 + val.blue / 2),
-        blue: val.blue / 2
-      });
+      })(val);
       break;
     default:
 
@@ -79,12 +69,7 @@ function doStuff(val) {
       }, {
         re: 0,
         im: 0
-      })({
-        ...val,
-        red: val.red / 2,
-        green: val.green / 2,
-        blue: val.blue + (val.green / 2 + val.red / 2)
-      });
+      })(val);
   }
 
   return val;
@@ -155,11 +140,7 @@ function draw() {
       pointer = doStuff(pointer);
 
       /* POST-STUFF */
-      val = translate.function({
-        re: 0,
-        im: 0
-      })(pointer);
-      val = scale.function(0.4)(val);
+      val = scale.function(0.4)(pointer);
 
       /* DRAW STUFF */
       if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
