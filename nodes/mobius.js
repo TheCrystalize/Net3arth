@@ -1,3 +1,14 @@
+function mobius(a, b, c, d) {
+  return function(z) {
+    let ans = compDiv(compAdd(compMult(a, z), b), compAdd(compMult(c, z), d));
+    return {
+      ...z,
+      ...ans
+    }
+  }
+}
+
+
 const mobiusData = {
   name: "mobius",
   parameters: [
