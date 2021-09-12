@@ -124,7 +124,7 @@ function run() {
     pointer = loopStuff(stuffToDo.main, pointer);
 
       //console.log(`do post: ${stuffToDo.post}`);
-    let val = loopStuff(stuffToDo.post, pointer);
+    let val = loopStuff(stuffToDo.camera, pointer);
 
     if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
       let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * WIDTH >> 0) * HEIGHT;
@@ -132,9 +132,10 @@ function run() {
       buffer[index] = [t[0] + val.red, t[1] + val.green, t[2] + val.blue];
     }
   }
+
   postMessage([ID,buffer]);
 
-  stepsPerFrame *= 2;
+  stepsPerFrame = Math.min(stepsPerFrame*2, 1e7);
 }
 
 function initialize(id, job, spf, width, height){

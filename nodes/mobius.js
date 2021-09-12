@@ -4,7 +4,7 @@ function mobius(a, b, c, d) {
     return {
       ...z,
       ...ans
-    }
+    };
   }
 }
 
@@ -14,19 +14,23 @@ const mobiusData = {
   parameters: [
     {
       name: "a",
-      type: "complex"
+      type: "complex",
+      default: {re:1,im:0}
     },
     {
       name: "b",
-      type: "complex"
+      type: "complex",
+      default: {re:-1,im:0}
     },
     {
       name: "c",
-      type: "complex"
+      type: "complex",
+      default: {re:1,im:0}
     },
     {
       name: "d",
-      type: "complex"
+      type: "complex",
+      default: {re:1,im:0}
     }
   ]
 }

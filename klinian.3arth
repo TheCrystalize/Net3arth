@@ -1,0 +1,18 @@
+# the body of custom functions are normal JavaScript, but parameters' types must be specified
+plus_n(n: number){
+  let ans = compAdd(z, {re: n, im: 0});
+  return {...z,...ans};
+}
+
+main:
+choose{
+  1: mobius(-0.497-0.006i, 1, -1, 1.437+0.018i);
+  1: mobius(-0.588i, 1, 1, -1.7i);
+  1: mobius(1, -0.588i, -1.7i, 1);
+  0.1: blurCircle(), scale(0.303), mobius(1, 0.303i, -0.303i, 1), mobius(1, -1, 1, 1);
+};
+
+camera:
+mobius(1, -1, 1, 1),
+plus_n(0.5),
+scale(0.4);

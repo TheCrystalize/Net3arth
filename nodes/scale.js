@@ -4,7 +4,7 @@ function scale(s) {
     return {
       ...z,
       ...ans
-    }
+    };
   }
 }
 
@@ -13,7 +13,8 @@ const scaleData = {
   parameters: [
     {
       name: "s",
-      type: "float"
+      type: "float",
+      default: 0.4
     }
   ]
 }

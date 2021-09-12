@@ -1,6 +1,10 @@
 const WIDTH = 800;
 const HEIGHT = 800;
-const STEPS_PER_FRAME = WIDTH*HEIGHT/16;
+const THREADS = 6;
+const STEPS_PER_CALL = WIDTH * HEIGHT / 8;
+
+let shouldDraw = 0;
+let lastDraw = Date.now();
 
 //initialize canvas
 const c = document.getElementById("canvas");
@@ -19,64 +23,107 @@ ctx.imageSmoothingQuality = "high";
 
 const stuffToDo = {
   main: [
-    [
-      3,
-      [1 / 3, ["mobius", [{
-        re: -0.497297383621323782,
-        im: -0.006511070947473171
-      }, {
-        re: 1,
-        im: 0
-      }, {
-        re: -1,
-        im: 0
-      }, {
-        re: 1.437216112833956923,
-        im: 0.018817344280739631
-      }]]],
-      [2 / 3, ["mobius", [{
-        re: -0,
-        im: -0.588229835383947423
-      }, {
-        re: 1,
-        im: 0
-      }, {
-        re: 1,
-        im: 0
-      }, {
-        re: 0,
-        im: -1.700015775886789767
-      }]]],
-      [1, ["mobius", [{
-        re: 1,
-        im: 0
-      }, {
-        re: 0,
-        im: -0.588229835383947423
-      }, {
-        re: 0,
-        im: -1.700015775886789767
-      }, {
-        re: 1,
-        im: 0
-      }]]]
+    [1, ["mobius", [{
+      re: -0.497297383621323782,
+      im: -0.006511070947473171
+    }, {
+      re: 1,
+      im: 0
+    }, {
+      re: -1,
+      im: 0
+    }, {
+      re: 1.437216112833956923,
+      im: 0.018817344280739631
+    }]]],
+    [1, ["mobius", [{
+      re: -0,
+      im: -0.588229835383947423
+    }, {
+      re: 1,
+      im: 0
+    }, {
+      re: 1,
+      im: 0
+    }, {
+      re: 0,
+      im: -1.700015775886789767
+    }]]],
+    [1, ["mobius", [{
+      re: 1,
+      im: 0
+    }, {
+      re: 0,
+      im: -0.588229835383947423
+    }, {
+      re: 0,
+      im: -1.700015775886789767
+    }, {
+      re: 1,
+      im: 0
+    }]]],
+    [0.1,
+      [
+        ["blurCircle", []],
+        ["scale", [0.3035586587]],
+        ["mobius", [{
+            re: 1,
+            im: 0
+          },
+          {
+            re: 0,
+            im: 0.3035586587
+          },
+          {
+            re: 0,
+            im: -0.3035586587
+          },
+          {
+            re: 1,
+            im: 0
+          }
+        ]],
+        ["mobius", [{
+            re: 1,
+            im: 0
+          },
+          {
+            re: -1,
+            im: 0
+          },
+          {
+            re: 1,
+            im: 0
+          },
+          {
+            re: 1,
+            im: 0
+          }
+        ]]
+      ]
     ]
   ],
-  post: [
-    ["mobius", [{
-      im: 1,
-      re: 0
-    }, {
-      im: -1,
-      re: 0
-    }, {
-      im: 1,
-      re: 0
-    }, {
-      im: 1,
-      re: 0
-    }]],
-    ["scale", [0.4]]
+  camera: [
+    [
+      "mobius", [{
+          re: 1,
+          im: 0
+        },
+        {
+          re: -1,
+          im: 0
+        },
+        {
+          re: 1,
+          im: 0
+        },
+        {
+          re: 1,
+          im: 0
+        }
+      ],
+    ],
+    ["scale", [0.4]],
   ]
 };
 
@@ -107,65 +154,53 @@ function getBrightest() {
   return brightest;
 }
 
-/*run*/
-function switchStuff(stuff, val) {
-  let rand = Math.random();
-  for(let i = 0; i < stuff[0];) {
-    if(rand < stuff[++i][0])
-      return loopStuff(stuff[i][1], val);
+let threads = [];
+
+function refreshRender(){
+  for(let i=0;i<threads.length;i++){
+    threads[i].terminate();
+  }
+
+  let spc = STEPS_PER_CALL;
+
+  for(let i = 0; i < THREADS; i++) {
+    threads[i] = new Worker('worker.js');
+    threads[i].postMessage(["start", [i, stuffToDo, STEPS_PER_CALL, WIDTH, HEIGHT]]);
+    threads[i].onmessage = updateImage;
+    spc *= 2;
+    threads[i].postMessage(["data"]);
   }
 }
+refreshRender();
 
-function loopStuff(stuff, val) {
-  if(typeof stuff[0] === 'string') {
-    switch (stuff[0]) {
-      case ("mobius"):
-        return mobius(...stuff[1])(val);
-      case ("scale"):
-        return scale(...stuff[1])(val);
-    }
+function updateImage(msg) {
+  //console.log(`recieved ${msg.data[0]}`);
+  let m = msg.data[1];
+  if(m.length !== buffer.length) {
+    return;
   }
-
-  if(typeof stuff[0] === 'number')
-    return switchStuff(stuff, val);
-
-  for(let i = 0; i < stuff.length; i++) {
-    val = loopStuff(stuff[i], val);
+  for(let i = 0; i < buffer.length; i++) {
+    buffer[i][0] += m[i][0];
+    buffer[i][1] += m[i][1];
+    buffer[i][2] += m[i][2];
   }
-  return val;
-}
+  threads[msg.data[0]].postMessage(["data"]);
 
-let pointer = {
-  re: 0.001,
-  im: 0.001,
-  red: 1,
-  green: 1,
-  blue: 1
-};
+  let askAt = Date.now();
 
-function run() {
-  for(let i = 0; i < STEPS_PER_FRAME; i++) {
-    pointer = loopStuff(stuffToDo.main, pointer);
-
-    let val = loopStuff(stuffToDo.post, pointer);
-
-    if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
-      let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * WIDTH >> 0) * HEIGHT;
-      let t = buffer[index];
-      buffer[index] = [t[0] + val.red, t[1] + val.green, t[2] + val.blue];
-    }
+  shouldDraw++;
+  if(shouldDraw > 5){
+    draw();
+  }
+  else{
+    setTimeout(a=>{if(lastDraw < askAt){draw();}},1000);
   }
 }
-
-let lastFrame = Date.now();
-let currentFrame = Date.now();
 
 function draw() {
-  currentFrame = Date.now();
-  lastFrame = currentFrame;
-
-  run();
-
+  //console.log(`draw ${shouldDraw}`);
+  shouldDraw = 0;
+  lastDraw = Date.now();
   const brightest = getBrightest();
 
   for(let b, i = 0; i < WIDTH * HEIGHT; i++) {
@@ -175,8 +210,4 @@ function draw() {
     img.data[i * 4 + 2] = Math.log(b[2]) / Math.log(brightest) * 255 >> 0;
   }
   ctx.putImageData(img, 0, 0);
-
-  requestAnimationFrame(draw);
 }
-
-draw();
