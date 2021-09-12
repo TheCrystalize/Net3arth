@@ -1,7 +1,7 @@
 const WIDTH = 800;
 const HEIGHT = 800;
-const THREADS = 8;
-const STEPS_PER_CALL = WIDTH;
+const THREADS = 1;
+const STEPS_PER_CALL = WIDTH * HEIGHT / 8;
 
 //initialize canvas
 const c = document.getElementById("canvas");
@@ -21,8 +21,7 @@ ctx.imageSmoothingQuality = "high";
 const stuffToDo = {
   main: [
     [
-      3,
-      [1 / 3, ["mobius", [{
+      [1, ["mobius", [{
         re: -0.497297383621323782,
         im: -0.006511070947473171
       }, {
@@ -35,7 +34,7 @@ const stuffToDo = {
         re: 1.437216112833956923,
         im: 0.018817344280739631
       }]]],
-      [2 / 3, ["mobius", [{
+      [1, ["mobius", [{
         re: -0,
         im: -0.588229835383947423
       }, {
@@ -60,22 +59,61 @@ const stuffToDo = {
       }, {
         re: 1,
         im: 0
-      }]]]
-    ]
+      }]]],
+      [0.1,
+        ["blurCircle", []],
+        ["scale",0.3035586587],
+        ["mobius",
+          {
+            re: 1,
+            im: 0
+          },
+          {
+            re: 0,
+            im: 0.3035586587
+          },
+          {
+            re: 0,
+            im: -0.3035586587
+          },
+          {
+            re: 1,
+            im: 0
+          }
+        ],
+        ["mobius", [{
+            re: 1,
+            im: 0
+          },
+          {
+            re: -1,
+            im: 0
+          },
+          {
+            re: 1,
+            im: 0
+          },
+          {
+            re: 1,
+            im: 0
+          }
+        ]]
+      ]
+    ],
   ],
   post: [
     ["mobius", [{
-      im: 1,
-      re: 0
+      re: 0,
+      im: 1
     }, {
-      im: -1,
-      re: 0
+      re: 0,
+      im: -1
     }, {
-      im: 1,
-      re: 0
+      re: 0,
+      im: 1
     }, {
-      im: 1,
-      re: 0
+      re: 0,
+      im: 1
     }]],
     ["scale", [0.4]]
   ]

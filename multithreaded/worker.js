@@ -47,11 +47,30 @@ function scale(s) {
     }
   }
 }
+
+function blurCircle(z){
+  let a = Math.random() * Math.PI * 2,
+      r = Math.sqrt(Math.random());
+  let ans = {
+    re: Math.cos(a) * r,
+    im: Math.sin(a) * r
+  }
+  return {
+    ...z,
+    ...ans
+  }
+}
 /*IFS stuff*/
 function switchStuff(stuff, val) {
-  let rand = Math.random();
-  for(let i = 0; i < stuff[0];) {
-    if(rand < stuff[++i][0])
+  let total = 0;
+  for(let i=0;i<stuff.length;i++){
+    total+=stuff[i][0];
+  }
+  let rand = Math.random() * total;
+  let at = 0;
+  for(let i = 0; i < stuff.length;i++) {
+    at+=stuff[i][0];
+    if(rand < at)
       return loopStuff(stuff[i][1], val);
   }
 }
@@ -63,10 +82,12 @@ function loopStuff(stuff, val) {
         return mobius(...stuff[1])(val);
       case ("scale"):
         return scale(...stuff[1])(val);
+      case ("blurCircle"):
+        return blurCircle(val);
     }
   }
 
-  if(typeof stuff[0] === 'number')
+  if(typeof stuff[0][0] === 'number')
     return switchStuff(stuff, val);
 
   for(let i = 0; i < stuff.length; i++) {
