@@ -1,5 +1,7 @@
 const WIDTH = 800;
 const HEIGHT = 800;
+const THREADS = 8;
+const STEPS_PER_CALL = WIDTH;
 
 //initialize canvas
 const c = document.getElementById("canvas");
@@ -16,15 +18,11 @@ c.height = HEIGHT;
 
 ctx.imageSmoothingQuality = "high";
 
-/**
- * Updates the canvas content
- */
-
 const stuffToDo = {
   main: [
     [
       3,
-      [1 / 3, mobius.function({
+      [1 / 3, ["mobius", [{
         re: -0.497297383621323782,
         im: -0.006511070947473171
       }, {
@@ -36,8 +34,8 @@ const stuffToDo = {
       }, {
         re: 1.437216112833956923,
         im: 0.018817344280739631
-      })],
-      [2 / 3, mobius.function({
+      }]]],
+      [2 / 3, ["mobius", [{
         re: -0,
         im: -0.588229835383947423
       }, {
@@ -49,8 +47,8 @@ const stuffToDo = {
       }, {
         re: 0,
         im: -1.700015775886789767
-      })],
-      [1, mobius.function({
+      }]]],
+      [1, ["mobius", [{
         re: 1,
         im: 0
       }, {
@@ -62,11 +60,11 @@ const stuffToDo = {
       }, {
         re: 1,
         im: 0
-      })]
+      }]]]
     ]
   ],
   post: [
-    mobius.function({
+    ["mobius", [{
       im: 1,
       re: 0
     }, {
@@ -78,52 +76,15 @@ const stuffToDo = {
     }, {
       im: 1,
       re: 0
-    }),
-    scale.function(0.4)
+    }]],
+    ["scale", [0.4]]
   ]
 };
 
-function switchStuff(stuff, val) {
-  let rand = Math.random();
-  for(let i = 0; i < stuff[0];) {
-    if(rand < stuff[++i][0])
-      return loopStuff(stuff[i][1], val);
-  }
+let buffer = Array(WIDTH * HEIGHT);
+for(let i = 0; i < buffer.length; i++) {
+  buffer[i] = [0, 0, 0];
 }
-
-function loopStuff(stuff, val) {
-  if(typeof stuff === 'function')
-    return stuff(val);
-
-  if(typeof stuff[0] === 'number')
-    return switchStuff(stuff, val);
-
-  for(let i = 0; i < stuff.length; i++) {
-    val = loopStuff(stuff[i], val);
-  }
-  return val;
-}
-
-/*
-
-{re:-0.497297383621323782,im:-0.006511070947473171},
-{re: 1.000000000000000000,im:+0.000000000000000000},
-{re:-1.000000000000000000,im:-0.000000000000000000},
-{re: 1.437216112833956923,im:+0.018817344280739631},
-
-{re:-0.000000000000000000,im:-0.588229835383947423},
-{re: 1.000000000000000000,im:+0.000000000000000000},
-{re: 1.000000000000000000,im:+0.000000000000000000},
-{re: 0.000000000000000000,im:-1.700015775886789767}
-
-{re: 1.000000000000000000,im:+0.000000000000000000},
-{re: 0.000000000000000000,im:-0.588229835383947423},
-{re: 0.000000000000000000,im:-1.700015775886789767},
-{re: 1.000000000000000000,im:+0.000000000000000000}
-
- */
-
-let buffer = Array(WIDTH * HEIGHT).fill([0, 0, 0]);
 let img = new ImageData(WIDTH, HEIGHT);
 for(let i = 3; i < WIDTH * HEIGHT * 4; i += 4) {
   img.data[i] = 255;
@@ -147,34 +108,37 @@ function getBrightest() {
   return brightest;
 }
 
-let pointer = {
-  re: 0.0001,
-  im: 0.0001,
-  red: 1,
-  green: 1,
-  blue: 1
-};
+let threads = [];
+let activeThreads = [];
+
+let spc = STEPS_PER_CALL;
+for(let i = 0; i < THREADS; i++) {
+  threads[i] = new Worker('worker.js');
+  threads[i].postMessage(["start", [i, stuffToDo, STEPS_PER_CALL, WIDTH, HEIGHT]]);
+  threads[i].onmessage = updateImage;
+  activeThreads[i] = false;
+  spc *= 2;
+}
+
+function updateImage(msg) {
+  activeThreads[msg.data[0]] = false;
+  let m = msg.data[1];
+  if(m.length !== buffer.length) {
+    return;
+  }
+  for(let i = 0; i < buffer.length; i++) {
+    buffer[i][0] += m[i][0];
+    buffer[i][1] += m[i][1];
+    buffer[i][2] += m[i][2];
+  }
+}
+
+let lastFrame = Date.now();
+let currentFrame = Date.now();
 
 function draw() {
-  const start = Date.now();
-  do {
-    for(let i = 0; i < 1000; i++) {
-
-      /* STUFF */
-      pointer = loopStuff(stuffToDo.main, pointer);
-
-      /* POST-STUFF */
-      let val = loopStuff(stuffToDo.post, pointer);
-
-      /* DRAW STUFF */
-      if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
-        let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * WIDTH >> 0) * HEIGHT;
-        let t = buffer[index];
-        buffer[index] = [t[0] + val.red, t[1] + val.green, t[2] + val.blue];
-      }
-    }
-  } while(Date.now() - start < 20);
-
+  currentFrame = Date.now();
+  lastFrame = currentFrame;
   const brightest = getBrightest();
 
   for(let b, i = 0; i < WIDTH * HEIGHT; i++) {
@@ -185,7 +149,14 @@ function draw() {
   }
   ctx.putImageData(img, 0, 0);
 
-  window.requestAnimationFrame(draw);
+  for(let i = 0; i < activeThreads.length; i++) {
+    if(!activeThreads[i]) {
+      threads[i].postMessage(["data"]);
+      activeThreads[i] = true;
+    }
+  }
+
+  requestAnimationFrame(draw);
 }
 
 draw();
