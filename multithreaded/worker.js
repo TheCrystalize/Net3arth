@@ -62,6 +62,9 @@ function blurCircle(z){
 }
 /*IFS stuff*/
 function switchStuff(stuff, val) {
+  //console.log('switch');
+  //console.log(stuff);
+
   let total = 0;
   for(let i=0;i<stuff.length;i++){
     total+=stuff[i][0];
@@ -70,13 +73,19 @@ function switchStuff(stuff, val) {
   let at = 0;
   for(let i = 0; i < stuff.length;i++) {
     at+=stuff[i][0];
-    if(rand < at)
+    if(rand < at){
+      //console.log(`chose ${i}`);
       return loopStuff(stuff[i][1], val);
+    }
   }
+  //console.log(`didn't switch!`);
 }
 
 function loopStuff(stuff, val) {
+  //console.log(stuff);
+
   if(typeof stuff[0] === 'string') {
+    //console.log(`do ${stuff[0]}`);
     switch (stuff[0]) {
       case ("mobius"):
         return mobius(...stuff[1])(val);
@@ -85,12 +94,17 @@ function loopStuff(stuff, val) {
       case ("blurCircle"):
         return blurCircle(val);
     }
+    throw (`${stuff[0]} not supported`);
   }
+
+  if(!stuff[0]){return val;}
 
   if(typeof stuff[0][0] === 'number')
     return switchStuff(stuff, val);
 
   for(let i = 0; i < stuff.length; i++) {
+    //console.log('loop');
+    //console.log(stuff[i]);
     val = loopStuff(stuff[i], val);
   }
   return val;
@@ -106,8 +120,10 @@ let ID;
 function run() {
   let buffer = Array(WIDTH * HEIGHT).fill([0, 0, 0]);
   for(let i = 0; i < stepsPerFrame; i++) {
+    //console.log(`change pointer: ${stuffToDo.main}`);
     pointer = loopStuff(stuffToDo.main, pointer);
 
+      //console.log(`do post: ${stuffToDo.post}`);
     let val = loopStuff(stuffToDo.post, pointer);
 
     if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
@@ -145,7 +161,7 @@ self.onmessage = function(msg) {
       run();
       break;
     default:
-      console.log('bad request:');
-      console.log(msg.data);
+      //console.log('bad request:');
+      //console.log(msg.data);
   }
 }
