@@ -103,22 +103,24 @@ const stuffToDo = {
     ],
   ],
   post: [
-    "mobius", [{
-        re: 1,
-        im: 0
-      },
-      {
-        re: -1,
-        im: 0
-      },
-      {
-        re: 1,
-        im: 0
-      },
-      {
-        re: 1,
-        im: 0
-      }
+    [
+      "mobius", [{
+          re: 1,
+          im: 0
+        },
+        {
+          re: -1,
+          im: 0
+        },
+        {
+          re: 1,
+          im: 0
+        },
+        {
+          re: 1,
+          im: 0
+        }
+      ],
     ],
     ["scale", [0.4]],
   ]
