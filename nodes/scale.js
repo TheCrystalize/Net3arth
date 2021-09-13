@@ -14,7 +14,7 @@ const scaleData = {
     {
       name: "s",
       type: "float",
-      default: 0.4
+      default: 1
     }
   ]
 }

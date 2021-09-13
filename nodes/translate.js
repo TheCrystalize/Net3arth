@@ -15,8 +15,8 @@ const translateData = {
       name: "c",
       type: "complex",
       default: {
-        re: 1,
-        im: 1
+        re: 0,
+        im: 0
       }
     }
   ]

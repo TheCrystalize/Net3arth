@@ -20,12 +20,12 @@ const mobiusData = {
     {
       name: "b",
       type: "complex",
-      default: {re:-1,im:0}
+      default: {re:0,im:0}
     },
     {
       name: "c",
       type: "complex",
-      default: {re:1,im:0}
+      default: {re:0,im:0}
     },
     {
       name: "d",
