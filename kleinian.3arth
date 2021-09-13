@@ -1,4 +1,8 @@
-# the body of custom functions are normal JavaScript, but parameters' types must be specified
+/*
+
+the body of custom functions are normal JavaScript, but parameters' types must be specified
+
+*/
 plus_n(number n = 1){
   let ans = compAdd(z, {re: n, im: 0});
   return {...z,...ans};
