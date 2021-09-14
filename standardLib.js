@@ -31,7 +31,49 @@ function multScalar(z, s) {
     im: z.im * s
   }
 }
+
+function sqrt(z) {
+  const s = Math.sqrt(z.re * z.re + z.im * z.im),
+    sgn = z.im < 0.0 ? -1 : z.im > 0.0 ? 1 : 0;
+  return {
+    re: Math.sqrt(s * z.re),
+    im: (sgn * Math.sqrt(s - z.re)) * (0.5 * Math.SQRT2)
+  }
+}
+
+function log(z) {
+  return {
+    re: 0.5 * Math.log(z.re * z.re + z.im * z.im),
+    im: Math.atan2(z.im, z.re)
+  }
+}
+
 /*Transforms*/
+function arcsinh(){
+  return function(z){
+    let ans = (2 / Math.PI) * log(z + sqrt(z * z + 1.0));
+    return {
+      ...z,
+      ...ans
+    }
+  }
+}
+
+function splits(x, y) {
+  return function(z) {
+    let xoff = z.re >= 0 ? x : -x,
+      yoff = z.im >= 0 ? y : -y;
+    let ans = {
+      re: z.re + xoff,
+      im: z.im + yoff
+    }
+    return {
+      ...z,
+      ...ans
+    }
+  }
+}
+
 function mobius(a, b, c, d) {
   return function(z) {
     let ans = div(add(mult(a, z), b), add(mult(c, z), d));

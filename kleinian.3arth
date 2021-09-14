@@ -1,8 +1,8 @@
 body:
 choose{
-  1: mobius(0.5,1+1i,0,1);
-  1: mobius(0.5,-1+1i,0,1);
-  1: mobius(0.5,-1i,0,1);
+  1: scale(2)
+  -> splits(0, 1);
+  1: arcsinh();
 };
 
 camera:
