@@ -1,6 +1,6 @@
 function scale(s) {
   return function(z) {
-    let ans = compMultScalar(z, s);
+    let ans = multScalar(z, s);
     return {
       ...z,
       ...ans
