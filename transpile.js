@@ -447,8 +447,8 @@ function from3arthLang(code) {
   //}
 }
 
-getFile("kleinian.3arth", r => {
-  console.log(r);
-  console.log('-- compile --');
-  console.log(from3arthLang(r));
-});
+//getFile("kleinian.3arth", r => {
+//  console.log(r);
+//  console.log('-- compile --');
+//  console.log(from3arthLang(r));
+//});

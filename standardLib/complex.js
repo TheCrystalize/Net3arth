@@ -2,42 +2,42 @@ function C(real, imaginary){
   return {re:real, im: imaginary};
 }
 
-function compAdd(z, c) {
+function Add(z, c) {
   return {
     re: z.re + c.re,
     im: z.im + c.im
   }
 }
 
-function compAddScalar(z, s) {
+function AddScalar(z, s) {
   return {
     re: z.re + s,
     im: z.im
   }
 }
 
-function compSub(z, c) {
+function Sub(z, c) {
   return {
     re: z.re - c.re,
     im: z.im - c.im
   }
 }
 
-function compMult(z, c) {
+function Mult(z, c) {
   return {
     re: z.re * c.re - z.im * c.im,
     im: z.re * c.im + z.im * c.re
   }
 }
 
-function compMultScalar(z, s) {
+function MultScalar(z, s) {
   return {
     re: z.re * s,
     im: z.im * s
   }
 }
 
-function compDiv(z, c) {
+function Div(z, c) {
   const s = 1 / (c.re * c.re + c.im * c.im);
   return {
     re: (z.re * c.re + z.im * c.im) * s,
@@ -45,7 +45,7 @@ function compDiv(z, c) {
   }
 }
 
-function compPow(z, p) {
+function Pow(z, p) {
   const n = p * Math.atan2(z.im, z.re)
   return {
     re: Math.cos(n),
@@ -53,14 +53,14 @@ function compPow(z, p) {
   }
 }
 
-function compLog(z) {
+function Log(z) {
   return {
     re: 0.5 * Math.log(z.re * z.re + z.im * z.im),
     im: Math.atan2(z.im, z.re)
   }
 }
 
-function compExp(z) {
+function Exp(z) {
   const e = exp(z.re)
   return {
     re: Math.cos(z.im) * e,
