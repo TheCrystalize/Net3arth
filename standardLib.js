@@ -51,7 +51,7 @@ function log(z) {
 /*Transforms*/
 function arcsinh(){
   return function(z){
-    let ans = (2 / Math.PI) * log(z + sqrt(z * z + 1.0));
+    let ans = multScalar(log(add(z, sqrt(add(mult(z, z), 1.0)))), (2 / Math.PI));
     return {
       ...z,
       ...ans

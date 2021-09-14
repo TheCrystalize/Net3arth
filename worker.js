@@ -47,7 +47,7 @@ function log(z) {
 /*Transforms*/
 function arcsinh(){
   return function(z){
-    let ans = (2 / Math.PI) * log(z + sqrt(z * z + 1.0));
+    let ans =  multScalar(log(add(z, sqrt(add(mult(z, z), 1.0)))), (2 / Math.PI));
     return {
       ...z,
       ...ans
@@ -91,17 +91,15 @@ function scale(s) {
 }
 
 function blurCircle(z){
-  return function(z){
-    let a = Math.random() * Math.PI * 2,
-        r = Math.sqrt(Math.random());
-    let ans = {
-      re: Math.cos(a) * r,
-      im: Math.sin(a) * r
-    }
-    return {
-      ...z,
-      ...ans
-    }
+  let a = Math.random() * Math.PI * 2,
+      r = Math.sqrt(Math.random());
+  let ans = {
+    re: Math.cos(a) * r,
+    im: Math.sin(a) * r
+  }
+  return {
+    ...z,
+    ...ans
   }
 }
 /*IFS stuff*/
@@ -132,7 +130,7 @@ function loopStuff(stuff, val) {
     //console.log(`do ${stuff[0]}`);
     switch (stuff[0]) {
       case ("arcsinh"):
-        return arcsinh(...stuff[1])(val);
+        return arcsinh()(val);
       case ("splits"):
         return splits(...stuff[1])(val);
       case ("mobius"):
@@ -140,7 +138,7 @@ function loopStuff(stuff, val) {
       case ("scale"):
         return scale(...stuff[1])(val);
       case ("blurCircle"):
-        return blurCircle(...stuff[1])(val);
+        return blurCircle(val);
     }
     throw (`${stuff[0]} not supported`);
   }
