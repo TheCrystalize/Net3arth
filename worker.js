@@ -91,15 +91,17 @@ function scale(s) {
 }
 
 function blurCircle(z){
-  let a = Math.random() * Math.PI * 2,
-      r = Math.sqrt(Math.random());
-  let ans = {
-    re: Math.cos(a) * r,
-    im: Math.sin(a) * r
-  }
-  return {
-    ...z,
-    ...ans
+  return function(z){
+    let a = Math.random() * Math.PI * 2,
+        r = Math.sqrt(Math.random());
+    let ans = {
+      re: Math.cos(a) * r,
+      im: Math.sin(a) * r
+    }
+    return {
+      ...z,
+      ...ans
+    }
   }
 }
 /*IFS stuff*/
@@ -130,7 +132,7 @@ function loopStuff(stuff, val) {
     //console.log(`do ${stuff[0]}`);
     switch (stuff[0]) {
       case ("arcsinh"):
-        return arcsinh()(val);
+        return arcsinh(...stuff[1])(val);
       case ("splits"):
         return splits(...stuff[1])(val);
       case ("mobius"):
@@ -138,7 +140,7 @@ function loopStuff(stuff, val) {
       case ("scale"):
         return scale(...stuff[1])(val);
       case ("blurCircle"):
-        return blurCircle(val);
+        return blurCircle(...stuff[1])(val);
     }
     throw (`${stuff[0]} not supported`);
   }
