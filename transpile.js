@@ -740,8 +740,8 @@ function from3arthLang(code) {
 let stuffToDo;
 
 getFile("kleinian.3arth", r => {
-  console.log(r);
+  //console.log(r);
   stuffToDo = from3arthLang(r);
-  console.log(stuffToDo);
+  //console.log(stuffToDo);
   refreshRender();
 });

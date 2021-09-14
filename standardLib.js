@@ -34,11 +34,12 @@ function multScalar(z, s) {
 
 function sqrt(z) {
   const s = Math.sqrt(z.re * z.re + z.im * z.im),
-    sgn = z.im < 0 ? -1 : z.im > 0 ? 1 : 0;
-  return {
+    sgn = z.im < 0 ? -1 : 1;
+  console.log(s);
+  return multScalar({
     re: Math.sqrt(s + z.re),
-    im: (sgn * Math.sqrt(s - z.re)) * (0.5 * Math.SQRT2)
-  }
+    im: sgn * Math.sqrt(s - z.re)
+  }, 0.5 * Math.SQRT2 );
 }
 
 function log(z) {

@@ -1,9 +1,9 @@
 const WIDTH = 800;
 const HEIGHT = 800;
-const THREADS = 6;
+const THREADS = 0;
 const STEPS_PER_CALL = WIDTH * HEIGHT / 8;
 
-let shouldDraw = 0;
+let shouldDraw = 6;
 let lastDraw = Date.now();
 
 //initialize canvas
