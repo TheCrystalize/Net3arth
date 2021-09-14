@@ -3,7 +3,10 @@ function C(real, imaginary){
 }
 
 function compAdd(z, c) {
-  return C(z.re + c.re, im: z.im + c.im);
+  return {
+    re: z.re + c.re,
+    im: z.im + c.im
+  }
 }
 
 function compAddScalar(z, s) {
