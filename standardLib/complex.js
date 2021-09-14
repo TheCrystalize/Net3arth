@@ -52,7 +52,7 @@ function sqrt(z) {
   const s = Math.sqrt(z.re * z.re + z.im * z.im),
     sgn = z.im < 0.0 ? -1 : z.im > 0.0 ? 1 : 0;
   return {
-    re: Math.sqrt(s * z.re),
+    re: Math.sqrt(s + z.re),
     im: (sgn * Math.sqrt(s - z.re)) * (0.5 * Math.SQRT2)
   }
 }
