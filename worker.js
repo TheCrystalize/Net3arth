@@ -1,5 +1,5 @@
 /*helper functions*/
-function compDiv(z, c) {
+function div(z, c) {
   const s = 1 / (c.re * c.re + c.im * c.im);
   return {
     re: (z.re * c.re + z.im * c.im) * s,
@@ -7,21 +7,21 @@ function compDiv(z, c) {
   }
 }
 
-function compAdd(z, c) {
+function add(z, c) {
   return {
     re: z.re + c.re,
     im: z.im + c.im
   }
 }
 
-function compMult(z, c) {
+function mult(z, c) {
   return {
     re: z.re * c.re - z.im * c.im,
     im: z.re * c.im + z.im * c.re
   }
 }
 
-function compMultScalar(z, s) {
+function multScalar(z, s) {
   return {
     re: z.re * s,
     im: z.im * s
@@ -30,7 +30,7 @@ function compMultScalar(z, s) {
 /*Transforms*/
 function mobius(a, b, c, d) {
   return function(z) {
-    let ans = compDiv(compAdd(compMult(a, z), b), compAdd(compMult(c, z), d));
+    let ans = div(add(mult(a, z), b), add(mult(c, z), d));
     return {
       ...z,
       ...ans
@@ -40,7 +40,7 @@ function mobius(a, b, c, d) {
 
 function scale(s) {
   return function(z) {
-    let ans = compMultScalar(z, s);
+    let ans = multScalar(z, s);
     return {
       ...z,
       ...ans
