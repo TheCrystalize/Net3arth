@@ -1,3 +1,7 @@
+function gaussRnd() {
+  return (Math.random() + Math.random()) * 2.0 - 2.0;
+}
+
 function jacobiAm(u, x, k) {
   let a = new Array(31),
     g = new Array(31),
