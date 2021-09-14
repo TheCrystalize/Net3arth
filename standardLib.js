@@ -108,6 +108,19 @@ function blurCircle(z){
 }
 
 const BUILT_IN_TRANSFORMS = {
+  arcsinh: [],
+  splits: [
+    {
+      name: "x",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "y",
+      type: "number",
+      default: 0
+    }
+  ],
   mobius: [
     {
       name: "a",

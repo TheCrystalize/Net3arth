@@ -3,7 +3,7 @@ function murl2(c, pow) {
     let angle = Math.atan2(z.im, z.re) * pow,
         cosa = Math.cos(angle), sina = Math.sin(angle),
         r = c * Math.pow(z.re * z.re + z.im * z.im, 0.5 * pow),
-        real - r * cosa + 1, imag = r * sina,
+        real = r * cosa + 1, imag = r * sina,
         r1 = Math.pow(real * real + imag * imag, 1.0 / pow),
         angle1 = Math.atan2(imag, real) * 2 / pow,
         cosa1 = Math.cos(angle1), sina1 = Math.sin(angle1),

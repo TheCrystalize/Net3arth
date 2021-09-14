@@ -28,6 +28,31 @@ function multScalar(z, s) {
   }
 }
 /*Transforms*/
+function arcsinh(){
+  return function(z){
+    let ans = (2 / Math.PI) * log(z + sqrt(z * z + 1.0));
+    return {
+      ...z,
+      ...ans
+    }
+  }
+}
+
+function splits(x, y) {
+  return function(z) {
+    let xoff = z.re >= 0 ? x : -x,
+      yoff = z.im >= 0 ? y : -y;
+    let ans = {
+      re: z.re + xoff,
+      im: z.im + yoff
+    }
+    return {
+      ...z,
+      ...ans
+    }
+  }
+}
+
 function mobius(a, b, c, d) {
   return function(z) {
     let ans = div(add(mult(a, z), b), add(mult(c, z), d));
@@ -87,6 +112,10 @@ function loopStuff(stuff, val) {
   if(typeof stuff[0] === 'string') {
     //console.log(`do ${stuff[0]}`);
     switch (stuff[0]) {
+      case ("arcsinh"):
+        return arcsinh(val);
+      case ("splits"):
+        return splits(...stuff[1])(val);
       case ("mobius"):
         return mobius(...stuff[1])(val);
       case ("scale"):
