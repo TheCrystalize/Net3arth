@@ -418,7 +418,7 @@ function parseEverything(code) {
               parseState[0].params.push(val);
               parseState[0].on++;
               if(parseState[0].on >= parseState[0].paramTypes.length){
-                newError(')');
+                newError('")"');
               }
               parseState.unshift({is: parseState[0].paramTypes[parseState[0].on].type + ' param'});
             break;
@@ -431,7 +431,7 @@ function parseEverything(code) {
               parseState[0].params.push(val);
               parseState[0].on++;
               if(parseState[0].on < parseState[0].paramTypes.length){
-                newError(',');
+                newError('","');
               }
               parseState[1].transforms.push([parseState[0].transform, parseState[0].params]);
               parseState.shift();
@@ -497,7 +497,7 @@ function parseEverything(code) {
               parseState[0].params.push(val);
               parseState[0].on++;
               if(parseState[0].on >= parseState[0].paramTypes.length){
-                newError(')');
+                newError('")"');
               }
               parseState.unshift({is: parseState[0].paramTypes[parseState[0].on].type + ' param'});
             break;
@@ -507,7 +507,7 @@ function parseEverything(code) {
               parseState[0].params.push(val);
               parseState[0].on++;
               if(parseState[0].on < parseState[0].paramTypes.length){
-                newError(',');
+                newError('","');
               }
               parseState[1].transforms.push([parseState[0].transform, parseState[0].params]);
               parseState.shift();
