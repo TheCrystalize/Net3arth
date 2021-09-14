@@ -21,112 +21,6 @@ c.height = HEIGHT;
 
 ctx.imageSmoothingQuality = "high";
 
-const stuffToDo = {
-  main: [
-    [1, ["mobius", [{
-      re: -0.497297383621323782,
-      im: -0.006511070947473171
-    }, {
-      re: 1,
-      im: 0
-    }, {
-      re: -1,
-      im: 0
-    }, {
-      re: 1.437216112833956923,
-      im: 0.018817344280739631
-    }]]],
-    [1, ["mobius", [{
-      re: -0,
-      im: -0.588229835383947423
-    }, {
-      re: 1,
-      im: 0
-    }, {
-      re: 1,
-      im: 0
-    }, {
-      re: 0,
-      im: -1.700015775886789767
-    }]]],
-    [1, ["mobius", [{
-      re: 1,
-      im: 0
-    }, {
-      re: 0,
-      im: -0.588229835383947423
-    }, {
-      re: 0,
-      im: -1.700015775886789767
-    }, {
-      re: 1,
-      im: 0
-    }]]],
-    [0.1,
-      [
-        ["blurCircle", []],
-        ["scale", [0.3035586587]],
-        ["mobius", [{
-            re: 1,
-            im: 0
-          },
-          {
-            re: 0,
-            im: 0.3035586587
-          },
-          {
-            re: 0,
-            im: -0.3035586587
-          },
-          {
-            re: 1,
-            im: 0
-          }
-        ]],
-        ["mobius", [{
-            re: 1,
-            im: 0
-          },
-          {
-            re: -1,
-            im: 0
-          },
-          {
-            re: 1,
-            im: 0
-          },
-          {
-            re: 1,
-            im: 0
-          }
-        ]]
-      ]
-    ]
-  ],
-  camera: [
-    [
-      "mobius", [{
-          re: 1,
-          im: 0
-        },
-        {
-          re: -1,
-          im: 0
-        },
-        {
-          re: 1,
-          im: 0
-        },
-        {
-          re: 1,
-          im: 0
-        }
-      ],
-    ],
-    ["scale", [0.4]],
-  ]
-};
-
 let buffer = Array(WIDTH * HEIGHT);
 for(let i = 0; i < buffer.length; i++) {
   buffer[i] = [0, 0, 0];
@@ -171,7 +65,6 @@ function refreshRender(){
     threads[i].postMessage(["data"]);
   }
 }
-refreshRender();
 
 function updateImage(msg) {
   //console.log(`recieved ${msg.data[0]}`);

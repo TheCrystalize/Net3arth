@@ -120,8 +120,8 @@ let ID;
 function run() {
   let buffer = Array(WIDTH * HEIGHT).fill([0, 0, 0]);
   for(let i = 0; i < stepsPerFrame; i++) {
-    //console.log(`change pointer: ${stuffToDo.main}`);
-    pointer = loopStuff(stuffToDo.main, pointer);
+    //console.log(`change pointer: ${stuffToDo.body}`);
+    pointer = loopStuff(stuffToDo.body, pointer);
 
       //console.log(`do post: ${stuffToDo.post}`);
     let val = loopStuff(stuffToDo.camera, pointer);

@@ -1,25 +1,9 @@
-/*
-
-the body of custom functions are normal JavaScript, but parameters' types must be specified
-
-*/
-plus_n(number n = 1){let ans = compAdd(z, {re: n, im: 0});
-  return {...z,...ans};
-}
-
 body:
 choose{
-  1: mobius(-0.4972973836213238-0.006511070947473171i, 1, -1, 1.437216112833957+0.018817344280739633i);
-  1: mobius(-0.5882298353839475i, 1, 1, -1.7000157758867898i);
-  1: mobius(1, -0.5882298353839475i, -1.7000157758867898i, 1);
-  0.1:
-    blurCircle()
-    -> scale(0.3035586587)
-    -> mobius(1, 0.3035586587i, -0.3035586587i, 1)
-    -> mobius(1, -1, 1, 1);
+  1: mobius(0.5,1+1i,0,1);
+  1: mobius(0.5,-1+1i,0,1);
+  1: mobius(0.5,-1i,0,1);
 };
 
 camera:
-mobius(1, -1, 1, 1)
--> plus_n(0.5)
--> scale(0.4);
+scale(0.2);
