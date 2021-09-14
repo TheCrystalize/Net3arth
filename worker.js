@@ -27,6 +27,23 @@ function multScalar(z, s) {
     im: z.im * s
   }
 }
+
+function sqrt(z) {
+  const s = Math.sqrt(z.re * z.re + z.im * z.im),
+    sgn = z.im < 0.0 ? -1 : z.im > 0.0 ? 1 : 0;
+  return {
+    re: Math.sqrt(s * z.re),
+    im: (sgn * Math.sqrt(s - z.re)) * (0.5 * Math.SQRT2)
+  }
+}
+
+function log(z) {
+  return {
+    re: 0.5 * Math.log(z.re * z.re + z.im * z.im),
+    im: Math.atan2(z.im, z.re)
+  }
+}
+
 /*Transforms*/
 function arcsinh(){
   return function(z){
@@ -113,7 +130,7 @@ function loopStuff(stuff, val) {
     //console.log(`do ${stuff[0]}`);
     switch (stuff[0]) {
       case ("arcsinh"):
-        return arcsinh(val);
+        return arcsinh()(val);
       case ("splits"):
         return splits(...stuff[1])(val);
       case ("mobius"):
