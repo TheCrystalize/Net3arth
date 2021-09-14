@@ -1,9 +1,9 @@
 body:
 choose{
-  1: scale(1)
+  1: scale(2)
     -> splits(0, 1);
   1: arcsinh();
 };
 
 camera:
-scale(0.2);
+scale(0.5);

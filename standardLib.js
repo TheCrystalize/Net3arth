@@ -18,6 +18,13 @@ function add(z, c) {
   }
 }
 
+function addScalar(z, s) {
+  return {
+    re: z.re + s,
+    im: z.im
+  }
+}
+
 function mult(z, c) {
   return {
     re: z.re * c.re - z.im * c.im,
@@ -52,7 +59,16 @@ function log(z) {
 /*Transforms*/
 function arcsinh(){
   return function(z){
-    let ans = multScalar(log(add(z, sqrt(add(mult(z, z), 1.0)))), (2 / Math.PI));
+    let ans = multScalar(
+      log(
+        add(
+          z,
+          sqrt(
+            addScalar(mult(z, z), 1)
+          )
+        )
+      ),
+      2 / Math.PI);
     return {
       ...z,
       ...ans
