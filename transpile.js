@@ -274,13 +274,14 @@ function parseEverything(code) {
         case 'top':
           switch(wordType){
             case "body":
-              parseState.unshift({is : "body"});
+              parseState.unshift({is: 'body', transforms: []});
+              parseState.unshift({is: ':'});
             break;
             case "camera":
-              parseState.unshift({is : "camera"});
+              parseState.unshift({is: 'camera'});
             break;
             case "word":
-              parseState.unshift({is : "function", name : word});
+              parseState.unshift({is : 'function', name : word});
             break;
             default:
               newError('function, "world", or "camera"');
@@ -288,7 +289,7 @@ function parseEverything(code) {
         break;
         case 'function':
           if(wordType === '('){
-            parseState.unshift({is: "function params", params: []});
+            parseState.unshift({is: 'function params', params: []});
           }
           else{
             newError('function declaration');
@@ -296,9 +297,9 @@ function parseEverything(code) {
         break;
         case 'function params':
           if(wordType === 'type'){
-            parseState.unshift({is: "function param", type: word});
+            parseState.unshift({is: 'function param', type: word});
             parseState.unshift({is: word});
-            parseState.unshift({is: "function param name"});
+            parseState.unshift({is: 'function param name'});
           }
           else{
             newError('type definition');
@@ -421,6 +422,15 @@ function parseEverything(code) {
             newError('JavaScript function');
           }
         break;
+        case 'body':
+          switch(wordType){
+            case 'choose':
+              parseState.unshift({is: '{'});
+            break;
+            default:
+              newError('something');
+          }
+        break;
         default:
           throw [`Unhandeled state: ${parseState[0].is}`, parseState];
       }
@@ -437,8 +447,8 @@ function from3arthLang(code) {
   //}
 }
 
-//getFile("kleinian.3arth", r => {
-//  console.log(r);
-//  console.log('-- compile --');
-//  console.log(from3arthLang(r));
-//});
+getFile("kleinian.3arth", r => {
+  console.log(r);
+  console.log('-- compile --');
+  console.log(from3arthLang(r));
+});
