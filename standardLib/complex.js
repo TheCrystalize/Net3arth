@@ -1,8 +1,9 @@
+function C(real, imaginary){
+  return {re:real, im: imaginary};
+}
+
 function compAdd(z, c) {
-  return {
-    re: z.re + c.re,
-    im: z.im + c.im
-  }
+  return C(z.re + c.re, im: z.im + c.im);
 }
 
 function compAddScalar(z, s) {
