@@ -1,6 +1,6 @@
 function translate(c){
   return function(z){
-    let ans = compAdd(z, c);
+    let ans = add(z, c);
     return {
       ...z,
       ...ans

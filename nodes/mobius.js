@@ -1,6 +1,6 @@
 function mobius(a, b, c, d) {
   return function(z) {
-    let ans = compDiv(compAdd(compMult(a, z), b), compAdd(compMult(c, z), d));
+    let ans = div(add(mult(a, z), b), add(mult(c, z), d));
     return {
       ...z,
       ...ans
