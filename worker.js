@@ -38,7 +38,6 @@ function multScalar(z, s) {
 function sqrt(z) {
   const s = Math.sqrt(z.re * z.re + z.im * z.im),
     sgn = z.im < 0 ? -1 : 1;
-  console.log(s);
   return multScalar({
     re: Math.sqrt(s + z.re),
     im: sgn * Math.sqrt(s - z.re)
