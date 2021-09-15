@@ -142,6 +142,31 @@ function scale(s) {
   }
 }
 
+function tileHelp(width) {
+  return function(z) {
+    let x = z.re / width;
+    let var = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(x)) * Math.PI), fpx;
+    if (var < Math.random() * 2 - 1) {
+      fpx = x > 0 ? -width : width
+    } else {
+      fpx = 0
+    }
+    return {
+      ...z,
+      re: z.re + fpx
+    }
+  }
+}
+
+function tileLog(spread) {
+  return function(z) {
+    return {
+      ...z,
+      re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5)
+    }
+  }
+}
+
 function translate(real, imaginary) {
   return function(z) {
     return {
@@ -179,6 +204,16 @@ function blurCircle() {
   }
 }
 
+function blurSquare() {
+  return function(z) {
+    return {
+      ...z,
+      re: Math.random() - 0.5,
+      im: Math.random() - 0.5
+    }
+  }
+}
+
 function hypertile3(p, q, r, shift) {
   let rad = Math.PI / 180;
 
@@ -202,15 +237,15 @@ function hypertile3(p, q, r, shift) {
 
   return function(z) {
     let n, pfr, z0;
-    if(shift < 0.25) {
+    if (shift < 0.25) {
       n = 0;
       pfr = 0;
       z0 = z;
-    } else if(shift < 0.5) {
+    } else if (shift < 0.5) {
       n = p;
       pfr = rot1;
       z0 = div(add(z, c1), addScalar(mult(c1, z), 1));
-    } else if(shift < 0.75) {
+    } else if (shift < 0.75) {
       n = q;
       pfr = rot2;
       z0 = div(add(z, neg(c2)), addScalar(mult(c2, z), 1));
@@ -235,25 +270,25 @@ function hypertile3(p, q, r, shift) {
       rnd = Math.random(),
       f3, f0, f;
 
-    if(rnd < 1 / 3) {
+    if (rnd < 1 / 3) {
       f3 = m0f
-    } else if(rnd < 2 / 3) {
+    } else if (rnd < 2 / 3) {
       f3 = m1f
     } else {
       f3 = m2f
     }
 
-    if(shift < 0.25) {
+    if (shift < 0.25) {
       f0 = f3
-    } else if(shift < 0.5) {
+    } else if (shift < 0.5) {
       f0 = div(add(f3, neg(c1)), addScalar(mult(neg(c1), f3), 1))
-    } else if(shift < 0.75) {
+    } else if (shift < 0.75) {
       f0 = div(add(f3, c2), addScalar(mult(neg(c2), f3), 1))
     } else {
       f0 = div(add(f3, neg(c3)), addScalar(mult(c3, f3), 1))
     }
 
-    if(shift < 0.25) {
+    if (shift < 0.25) {
       f = f0
     } else {
       f = mult(C(Math.cos(fr), Math.sin(fr)), f0)
@@ -272,8 +307,11 @@ const BUILT_IN_TRANSFORMS = {
   mobius: mobius,
   scale: scale,
   translate: translate,
+  tileHelp: tileHelp,
+  tileLog: tileLog,
   rotate: rotate,
   blurCircle: blurCircle,
+  blurSquare: blurSquare,
   hypertile3: hypertile3
 };
 
@@ -325,6 +363,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   ],
   scale: [{
     name: "s",
+    type: "number",
+    default: 1
+  }],
+  tileHelp: [{
+    name: "width",
+    type: "number",
+    default: 1
+  }],
+  tileLog: [{
+    name: "spread",
     type: "number",
     default: 1
   }],
