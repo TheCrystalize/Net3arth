@@ -105,7 +105,8 @@ function populateFunctions(job) {
 
 function loadCustomFunctions(functions) {
   for(let f in functions) {
-    functions[f] = new Function(...functions[f].params.map(a=>a.name),functions[f].code);
+    globalThis[functions[f].name] = new Function(...functions[f].params.map(a=>a.name),functions[f].code);
+    functions[f] = globalThis[functions[f].name];
   }
 }
 
