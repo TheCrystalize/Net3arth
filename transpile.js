@@ -322,8 +322,13 @@ function parseEverything(code) {
             parseState.unshift({is: word});
             parseState.unshift({is: 'function param name'});
           }
+          else if(wordType === ')') {
+            parseState.shift();
+            parseState[0].params = [];
+            parseState.unshift({is: 'js'});
+          }
           else{
-            newError('type definition');
+            newError('type definition or ")"');
           }
         break;
         case 'function param name':
@@ -583,10 +588,10 @@ function parseEverything(code) {
               parseState.unshift({is: '{'});
             break;
             case 'word':
-              for(let transform in BUILT_IN_TRANSFORMS) {
+              for(let transform in BUILT_IN_TRANSFORMS_PARAMS) {
                 if(word === transform){
                   //console.log(`found ${transform}`);
-                  if(BUILT_IN_TRANSFORMS[word].length === 0){
+                  if(BUILT_IN_TRANSFORMS_PARAMS[word].length === 0){
                     parseState[0].transforms.push([word,[]]);
                     parseState.unshift({is: 'after transform'});
                     parseState.unshift({is: ')'});
@@ -598,7 +603,7 @@ function parseEverything(code) {
                     transform: word,
                     on: 0,
                     params: [],
-                    paramTypes: BUILT_IN_TRANSFORMS[word]
+                    paramTypes: BUILT_IN_TRANSFORMS_PARAMS[word]
                   });
                   parseState.unshift({
                     is: parseState[0].paramTypes[0].type + ' param'
@@ -609,8 +614,8 @@ function parseEverything(code) {
               }
               for(let transform in customFunctions) {
                 if(word === transform){
-                  console.log(`found ${transform}`);
-                  if(customFunctions[word].length === 0){
+                  //console.log(`found ${transform}`);
+                  if(customFunctions[word].params.length === 0){
                     parseState[0].transforms.push([word,[]]);
                     parseState.unshift({is: 'after transform'});
                     parseState.unshift({is: ')'});
@@ -728,10 +733,11 @@ function parseEverything(code) {
   General3arthError({at:code[code.length-2].length-1}, code.length-1, code[code.length-2])('unexpected end of input');
 }
 
-function from3arthLang(code) {
+function run3arthLang(code) {
 //console.log('-- compile --');
   try {
-    return parseEverything(code);
+    stuffToDo = parseEverything(code);
+    refreshRender();
   } catch (e) {
     console.error(e);
   }
@@ -740,8 +746,5 @@ function from3arthLang(code) {
 let stuffToDo;
 
 getFile("kleinian.3arth", r => {
-  //console.log(r);
-  stuffToDo = from3arthLang(r);
-  //console.log(stuffToDo);
-  refreshRender();
+  run3arthLang(r);
 });

@@ -1,136 +1,18 @@
-/*helper functions*/
-function div(z, c) {
-  const s = 1 / (c.re * c.re + c.im * c.im);
-  return {
-    re: (z.re * c.re + z.im * c.im) * s,
-    im: (z.im * c.re - z.re * c.im) * s
-  }
-}
-
-function add(z, c) {
-  return {
-    re: z.re + c.re,
-    im: z.im + c.im
-  }
-}
-
-function addScalar(z, s) {
-  return {
-    re: z.re + s,
-    im: z.im
-  }
-}
-
-function mult(z, c) {
-  return {
-    re: z.re * c.re - z.im * c.im,
-    im: z.re * c.im + z.im * c.re
-  }
-}
-
-function multScalar(z, s) {
-  return {
-    re: z.re * s,
-    im: z.im * s
-  }
-}
-
-function sqrt(z) {
-  const s = Math.sqrt(z.re * z.re + z.im * z.im),
-    sgn = z.im < 0 ? -1 : 1;
-  return multScalar({
-    re: Math.sqrt(s + z.re),
-    im: sgn * Math.sqrt(s - z.re)
-  }, 0.5 * Math.SQRT2 );
-}
-
-function log(z) {
-  return {
-    re: 0.5 * Math.log(z.re * z.re + z.im * z.im),
-    im: Math.atan2(z.im, z.re)
-  }
-}
-
-/*Transforms*/
-function arcsinh(){
-  return function(z){
-    let ans = multScalar(
-      log(
-        add(
-          z,
-          sqrt(
-            addScalar(mult(z, z), 1)
-          )
-        )
-      ),
-      2 / Math.PI);
-    return {
-      ...z,
-      ...ans
-    }
-  }
-}
-
-function splits(x, y) {
-  return function(z) {
-    let xoff = z.re >= 0 ? x : -x,
-      yoff = z.im >= 0 ? y : -y;
-    let ans = {
-      re: z.re + xoff,
-      im: z.im + yoff
-    }
-    return {
-      ...z,
-      ...ans
-    }
-  }
-}
-
-function mobius(a, b, c, d) {
-  return function(z) {
-    let ans = div(add(mult(a, z), b), add(mult(c, z), d));
-    return {
-      ...z,
-      ...ans
-    }
-  }
-}
-
-function scale(s) {
-  return function(z) {
-    let ans = multScalar(z, s);
-    return {
-      ...z,
-      ...ans
-    }
-  }
-}
-
-function blurCircle(z){
-  let a = Math.random() * Math.PI * 2,
-      r = Math.sqrt(Math.random());
-  let ans = {
-    re: Math.cos(a) * r,
-    im: Math.sin(a) * r
-  }
-  return {
-    ...z,
-    ...ans
-  }
-}
+'use strict';
+importScripts('standardLib.js');
 /*IFS stuff*/
 function switchStuff(stuff, val) {
   //console.log('switch');
   //console.log(stuff);
 
   let total = 0;
-  for(let i=0;i<stuff.length;i++){
-    total+=stuff[i][0];
+  for(let i = 0; i < stuff.length; i++){
+    total += stuff[i][0];
   }
   let rand = Math.random() * total;
   let at = 0;
-  for(let i = 0; i < stuff.length;i++) {
-    at+=stuff[i][0];
+  for(let i = 0; i < stuff.length; i++) {
+    at += stuff[i][0];
     if(rand < at){
       //console.log(`chose ${i}`);
       return loopStuff(stuff[i][1], val);
@@ -141,22 +23,12 @@ function switchStuff(stuff, val) {
 
 function loopStuff(stuff, val) {
   //console.log(stuff);
+  if(typeof stuff[0] === 'function') {
+    return stuff[0](val);
+  }
 
   if(typeof stuff[0] === 'string') {
-    //console.log(`do ${stuff[0]}`);
-    switch (stuff[0]) {
-      case ("arcsinh"):
-        return arcsinh()(val);
-      case ("splits"):
-        return splits(...stuff[1])(val);
-      case ("mobius"):
-        return mobius(...stuff[1])(val);
-      case ("scale"):
-        return scale(...stuff[1])(val);
-      case ("blurCircle"):
-        return blurCircle(val);
-    }
-    throw (`${stuff[0]} not supported`);
+    throw stuff;
   }
 
   if(!stuff[0]){return val;}
@@ -165,13 +37,12 @@ function loopStuff(stuff, val) {
     return switchStuff(stuff, val);
 
   for(let i = 0; i < stuff.length; i++) {
-    //console.log('loop');
-    //console.log(stuff[i]);
     val = loopStuff(stuff[i], val);
   }
   return val;
 }
 
+let customFunctions;
 let pointer;
 let stuffToDo;
 let stepsPerFrame;
@@ -200,6 +71,44 @@ function run() {
   stepsPerFrame = Math.min(stepsPerFrame*2, 1e7);
 }
 
+function populateFunctionsSwitch(job) {
+  for(let i = 0; i < job.length; i++) {
+    populateFunctions(job[i][1]);
+  }
+}
+
+function populateFunctions(job) {
+  if(typeof job[0] === 'string'){
+    if(BUILT_IN_TRANSFORMS.hasOwnProperty(job[0])) {
+      job[0] = BUILT_IN_TRANSFORMS[job[0]](...job[1]);
+      return;
+    }
+    else if(customFunctions.hasOwnProperty(job[0])) {
+      job[0] = customFunctions[job[0]](...job[1]);
+      return;
+    }
+    throw (`${job[0]} not supported`);
+  }
+
+  if(!job[0]){return;}
+
+  if(typeof job[0][0] === 'number') {
+    populateFunctionsSwitch(job);
+    return;
+  }
+
+  for(let i = 0; i < job.length; i++) {
+    populateFunctions(job[i]);
+  }
+  return;
+}
+
+function loadCustomFunctions(functions) {
+  for(let f in functions) {
+    functions[f] = new Function(...functions[f].params.map(a=>a.name),functions[f].code);
+  }
+}
+
 function initialize(id, job, spf, width, height){
   ID = id;
   WIDTH = width;
@@ -213,6 +122,10 @@ function initialize(id, job, spf, width, height){
   };
   stuffToDo = job;
   stepsPerFrame = spf;
+  customFunctions = stuffToDo.customFunctions;
+  loadCustomFunctions(customFunctions);
+  populateFunctions(stuffToDo.body);
+  populateFunctions(stuffToDo.camera);
 }
 
 self.onmessage = function(msg) {

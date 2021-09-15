@@ -1,10 +1,40 @@
+blurSquare() {
+  return function(z) {
+    return {
+      ...z,
+      red: 1,
+      green: 1,
+      blue: 0,
+      re: Math.random(),
+      im: Math.random()
+    }
+  }
+}
+
+greenish() {
+  return function(z) {
+    return {
+      ...z,
+      red: z.red - z.red/5,
+      green: z.green + z.red/5
+    }
+  }
+}
+
 body:
 choose{
-  1: mobius(-2, 0, 0, 1)
-    -> splits(0, 1);
-  1: mobius(0+1i, 0, 0, 1)
-    -> arcsinh();
+  1: blurSquare() -> translate(-0.5,-0.5);
+  1: scale(0.7)
+    -> rotate(-0.7853981633974483)
+    -> translate(-0.5, -1)
+    -> greenish();
+  1: scale(0.7)
+    -> rotate(0.7853981633974483)
+    -> translate(0.5, -1)
+    -> greenish();
 };
 
 camera:
-scale(0.125);
+mobius(1,-0.5+i,0,1)
+-> translate(0.5,0)
+-> scale(0.15);

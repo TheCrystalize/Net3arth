@@ -18,6 +18,13 @@ function add(z, c) {
   }
 }
 
+function sub(z, c) {
+  return {
+    re: z.re - c.re,
+    im: z.im - c.im
+  }
+}
+
 function addScalar(z, s) {
   return {
     re: z.re + s,
@@ -52,6 +59,22 @@ function log(z) {
   return {
     re: 0.5 * Math.log(z.re * z.re + z.im * z.im),
     im: Math.atan2(z.im, z.re)
+  }
+}
+
+function pow(z, p) {
+  const n = p * Math.atan2(z.im, z.re);
+  return {
+    re: Math.cos(n),
+    im: Math.sin(n) * Math.exp(p * Math.log(z.re * z.re + z.im * z.im))
+  }
+}
+
+function exp(z) {
+  const e = Math.exp(z.re);
+  return {
+    re: Math.cos(z.im) * e,
+    im: Math.sin(z.im) * e
   }
 }
 
@@ -110,20 +133,52 @@ function scale(s) {
   }
 }
 
-function blurCircle(z){
-  let a = Math.random() * Math.PI * 2,
-      r = Math.sqrt(Math.random());
-  let ans = {
-    re: Math.cos(a) * r,
-    im: Math.sin(a) * r
+function translate(real, imaginary) {
+  return function(z) {
+    return {
+      ...z,
+      re: z.re + real,
+      im: z.im + imaginary
+    }
   }
-  return {
-    ...z,
-    ...ans
+}
+
+function rotate(theta) {
+  return function(z) {
+    return {
+      ...z,
+      re: - Math.cos(theta) * z.re - Math.sin(theta) * z.im,
+      im: - Math.sin(theta) * z.re + Math.cos(theta) * z.im
+    }
+  }
+}
+
+function blurCircle(){
+  return function(z) {
+    let a = Math.random() * Math.PI * 2,
+        r = Math.sqrt(Math.random());
+    let ans = {
+      re: Math.cos(a) * r,
+      im: Math.sin(a) * r
+    }
+    return {
+      ...z,
+      ...ans
+    }
   }
 }
 
 const BUILT_IN_TRANSFORMS = {
+  arcsinh: arcsinh,
+  splits: splits,
+  mobius: mobius,
+  scale: scale,
+  translate: translate,
+  rotate: rotate,
+  blurCircle: blurCircle,
+};
+
+const BUILT_IN_TRANSFORMS_PARAMS = {
   arcsinh: [],
   splits: [
     {
@@ -164,6 +219,25 @@ const BUILT_IN_TRANSFORMS = {
       name: "s",
       type: "number",
       default: 1
+    }
+  ],
+  translate: [
+    {
+      name: "real",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "imaginary",
+      type: "number",
+      default: 0
+    }
+  ],
+  rotate: [
+    {
+      name: "theta",
+      type: "number",
+      default: 0
     }
   ],
   blurCircle: []
