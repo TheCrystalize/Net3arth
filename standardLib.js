@@ -81,54 +81,46 @@ function exp(z) {
 /*Transforms*/
 function arcsinh(){
   return function(z){
-    let ans = multScalar(
-      log(
-        add(
-          z,
-          sqrt(
-            addScalar(mult(z, z), 1)
-          )
-        )
-      ),
-      2 / Math.PI);
     return {
       ...z,
-      ...ans
+      ...multScalar(
+        log(
+          add(
+            z,
+            sqrt(addScalar(mult(z, z), 1))
+          )
+        ),
+        2 / Math.PI)
     }
   }
 }
 
 function splits(x, y) {
   return function(z) {
-    let xoff = z.re >= 0 ? x : -x,
-      yoff = z.im >= 0 ? y : -y;
-    let ans = {
-      re: z.re + xoff,
-      im: z.im + yoff
-    }
+    const xoff = z.re > 0 ? x : -x,
+      yoff = z.im > 0 ? y : -y;
     return {
       ...z,
-      ...ans
+      re: z.re + xoff,
+      im: z.im + yoff
     }
   }
 }
 
 function mobius(a, b, c, d) {
   return function(z) {
-    let ans = div(add(mult(a, z), b), add(mult(c, z), d));
     return {
       ...z,
-      ...ans
+      ...div(add(mult(a, z), b), add(mult(c, z), d))
     }
   }
 }
 
 function scale(s) {
   return function(z) {
-    let ans = multScalar(z, s);
     return {
       ...z,
-      ...ans
+      ...multScalar(z, s)
     }
   }
 }
@@ -144,11 +136,13 @@ function translate(real, imaginary) {
 }
 
 function rotate(theta) {
+  const sinTheta = -Math.sin(theta);
+  const cosTheta = -Math.cos(theta);
   return function(z) {
     return {
       ...z,
-      re: - Math.cos(theta) * z.re - Math.sin(theta) * z.im,
-      im: - Math.sin(theta) * z.re + Math.cos(theta) * z.im
+      re: cosTheta * z.re + sinTheta * z.im,
+      im: sinTheta * z.re - cosTheta * z.im
     }
   }
 }
