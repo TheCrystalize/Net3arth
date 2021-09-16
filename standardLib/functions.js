@@ -28,6 +28,7 @@ function jacobiAm(u, x, k) {
   for(let n = 30; n > 0; n--) {
     phi = 0.5 * (phi + Math.asin(c[n] * Math.sin(phi) / a[n]));
   }
+
   return phi;
 }
 
@@ -35,7 +36,7 @@ function jacobiAmA(u, x) {
   if(x == 0) {
     return u;
   }
-  jacobiAM(u, x, Math.abs(x));
+  return jacobiAM(u, x, Math.abs(x));
 }
 
 function jacobiAmM(u, x) {

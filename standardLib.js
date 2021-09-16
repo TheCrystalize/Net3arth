@@ -95,6 +95,10 @@ function exp(z) {
   }
 }
 
+function dot(z, c) {
+  return (z.re * c.re + z.im * c.im)
+}
+
 /*Transforms*/
 function arcsinh() {
   return function(z) {
@@ -128,87 +132,6 @@ function arctanh() {
   }
 }
 
-function circleInv() {
-  return mobius(0, 1, 1, 0);
-}
-
-function splits(x, y) {
-  return function(z) {
-    const xoff = z.re > 0 ? x : -x,
-      yoff = z.im > 0 ? y : -y;
-    return {
-      ...z,
-      re: z.re + xoff,
-      im: z.im + yoff
-    }
-  }
-}
-
-function mobius(a, b, c, d) {
-  return function(z) {
-    return {
-      ...z,
-      ...div(add(mult(a, z), b), add(mult(c, z), d))
-    }
-  }
-}
-
-function scale(s) {
-  return function(z) {
-    return {
-      ...z,
-      ...multScalar(z, s)
-    }
-  }
-}
-
-function tileHelp(width) {
-  return function(z) {
-    let x = z.re / width;
-    let val = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(x)) * Math.PI), fpx;
-    if (val < Math.random() * 2 - 1) {
-      fpx = x > 0 ? -width : width
-    } else {
-      fpx = 0
-    }
-    return {
-      ...z,
-      re: z.re + fpx
-    }
-  }
-}
-
-function tileLog(spread) {
-  return function(z) {
-    return {
-      ...z,
-      re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5)
-    }
-  }
-}
-
-function translate(real, imaginary) {
-  return function(z) {
-    return {
-      ...z,
-      re: z.re + real,
-      im: z.im + imaginary
-    }
-  }
-}
-
-function rotate(theta) {
-  const sinTheta = -Math.sin(theta);
-  const cosTheta = -Math.cos(theta);
-  return function(z) {
-    return {
-      ...z,
-      re: cosTheta * z.re + sinTheta * z.im,
-      im: sinTheta * z.re - cosTheta * z.im
-    }
-  }
-}
-
 function blurCircle() {
   return function(z) {
     let a = Math.random() * Math.PI * 2,
@@ -230,6 +153,17 @@ function blurSquare() {
       ...z,
       re: Math.random() - 0.5,
       im: Math.random() - 0.5
+    }
+  }
+}
+
+function circleInv() {
+  return function(z) {
+    let r = 1 / dot(z, z)
+    return {
+      ...z,
+      re: z.re * r,
+      im: -z.im * r
     }
   }
 }
@@ -321,35 +255,124 @@ function hypertile3(p, q, r, shift) {
   }
 }
 
+function mobius(a, b, c, d) {
+  return function(z) {
+    return {
+      ...z,
+      ...div(add(mult(a, z), b), add(mult(c, z), d))
+    }
+  }
+}
+
+function rotate(theta) {
+  const sinTheta = -Math.sin(theta);
+  const cosTheta = -Math.cos(theta);
+  return function(z) {
+    return {
+      ...z,
+      re: cosTheta * z.re + sinTheta * z.im,
+      im: sinTheta * z.re - cosTheta * z.im
+    }
+  }
+}
+
+function scale(s) {
+  return function(z) {
+    return {
+      ...z,
+      ...multScalar(z, s)
+    }
+  }
+}
+
+function splits(x, y) {
+  return function(z) {
+    const xoff = z.re > 0 ? x : -x,
+      yoff = z.im > 0 ? y : -y;
+    return {
+      ...z,
+      re: z.re + xoff,
+      im: z.im + yoff
+    }
+  }
+}
+
+function tileHelp(width) {
+  return function(z) {
+    let x = z.re / width;
+    let val = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(x)) * Math.PI), fpx;
+    if (val < Math.random() * 2 - 1) {
+      fpx = x > 0 ? -width : width
+    } else {
+      fpx = 0
+    }
+    return {
+      ...z,
+      re: z.re + fpx
+    }
+  }
+}
+
+function tileLog(spread) {
+  return function(z) {
+    return {
+      ...z,
+      re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5)
+    }
+  }
+}
+
+function translate(real, imaginary) {
+  return function(z) {
+    return {
+      ...z,
+      re: z.re + real,
+      im: z.im + imaginary
+    }
+  }
+}
+
 const BUILT_IN_TRANSFORMS = {
   arcsinh: arcsinh,
   arctanh: arctanh,
+  blurCircle: blurCircle,
+  blurSquare: blurSquare,
   circleInv: circleInv,
-  splits: splits,
+  hypertile3: hypertile3,
   mobius: mobius,
+  rotate: rotate,
   scale: scale,
-  translate: translate,
+  splits: splits,
   tileHelp: tileHelp,
   tileLog: tileLog,
-  rotate: rotate,
-  blurCircle: blurCircle,
-  hypertile3: hypertile3,
-  blurSquare: blurSquare,
-
+  translate: translate
 };
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
   arcsinh: [],
   arctanh: [],
-  splits: [{
-      name: "x",
+  blurCircle: [],
+  blurSquare: [],
+  circleInv: [],
+  hypertile3: [{
+      name: "p",
       type: "number",
-      default: 0
+      default: 3
     },
     {
-      name: "y",
+      name: "q",
       type: "number",
-      default: 0
+      default: 3
+    },
+    {
+      name: "r",
+      type: "number",
+      default: 4
+    },
+    {
+      name: "d",
+      type: "number",
+      default: 0.5
     }
   ],
   mobius: [{
@@ -385,11 +408,27 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       }
     }
   ],
+  rotate: [{
+    name: "theta",
+    type: "number",
+    default: 0
+  }],
   scale: [{
     name: "s",
     type: "number",
     default: 1
   }],
+  splits: [{
+      name: "x",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "y",
+      type: "number",
+      default: 0
+    }
+  ],
   tileHelp: [{
     name: "width",
     type: "number",
@@ -410,33 +449,5 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       type: "number",
       default: 0
     }
-  ],
-  rotate: [{
-    name: "theta",
-    type: "number",
-    default: 0
-  }],
-  blurCircle: [],
-  hypertile3: [{
-      name: "p",
-      type: "number",
-      default: 3
-    },
-    {
-      name: "q",
-      type: "number",
-      default: 3
-    },
-    {
-      name: "r",
-      type: "number",
-      default: 4
-    },
-    {
-      name: "d",
-      type: "number",
-      default: 0.5
-    }
-  ],
-  circleInv: []
+  ]
 };
