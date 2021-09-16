@@ -255,11 +255,63 @@ function hypertile3(p, q, r, shift) {
   }
 }
 
+function julian(pow, dist) {
+  return function(z) {
+    let a = Math.atan2(z.im, z.re) + Math.floor(pow * Math.random()) * Math.PI * 2.0 / pow,
+      r = Math.pow(z.re * z.re + z.im * z.im, dist / pow * 0.5);
+    return {
+      ...z,
+      re: Math.cos(a) * r,
+      im: Math.sin(a) * r
+    }
+  }
+}
+
 function mobius(a, b, c, d) {
   return function(z) {
     return {
       ...z,
       ...div(add(mult(a, z), b), add(mult(c, z), d))
+    }
+  }
+}
+
+function murl2(c, pow) {
+  return function(z) {
+    let angle = Math.atan2(z.im, z.re) * pow;
+    let cosa = Math.cos(angle), sina = Math.sin(angle),
+        r = c * Math.pow(z.re * z.re + z.im * z.im, 0.5 * pow);
+    let real = r * cosa + 1, imag = r * sina;
+    let r1 = Math.pow(real * real + imag * imag, 1.0 / pow),
+        angle1 = Math.atan2(imag, real) * 2 / pow;
+    let cosa1 = Math.cos(angle1), sina1 = Math.sin(angle1);
+    let re2 = r1 * cosa1, im2 = r1 * sina1,
+        vp = c!= -1.0 ? Math.pow(c + 1, 2.0 / pow) : 0.0;
+    let r2 = vp / (r1 * r1);
+    let ans = {
+      re: (z.re * re2 + z.im * im2) * r2,
+      im: (z.im * re2 - z.re * im2) * r2
+    };
+    return {
+      ...z,
+      ...ans
+    };
+  }
+}
+
+function pointSymmetry(centerX, centerY, order) {
+  return function(z) {
+    let idr = Math.floor(Math.random() * order),
+      dx = z.re - centerX, dy = z.im - centerY,
+      da = (2 * Math.PI) / order;
+    let angle = idr * da;
+    let cosa = Math.cos(angle),
+        sina = Math.sin(angle)
+    }
+    return {
+      ...z,
+      re: centerX + dx * cosa + dy * sina,
+      im: centerY + dy * cosa - dx * sina
     }
   }
 }
@@ -339,7 +391,10 @@ const BUILT_IN_TRANSFORMS = {
   blurSquare: blurSquare,
   circleInv: circleInv,
   hypertile3: hypertile3,
+  julian: julian,
   mobius: mobius,
+  murl2: murl2,
+  pointSymmetry: pointSymmetry,
   rotate: rotate,
   scale: scale,
   splits: splits,
@@ -375,6 +430,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0.5
     }
   ],
+  julian: [{
+    name: "pow",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "dist",
+    type: "number",
+    default: 1
+  }],
   mobius: [{
       name: "a",
       type: "complex",
@@ -408,6 +473,31 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       }
     }
   ],
+  murl2: [{
+    name: "c",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "pow",
+    type: "number",
+    default: 2
+  }],
+  pointSymmetry: [{
+    name: "centerX",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "centerY",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "order",
+    type: "number",
+    default: 1
+  }],
   rotate: [{
     name: "theta",
     type: "number",
