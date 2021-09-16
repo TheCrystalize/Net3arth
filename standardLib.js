@@ -112,6 +112,22 @@ function arcsinh() {
   }
 }
 
+function arctanh() {
+  return function(z) {
+    return {
+      ...z,
+      ...multScalar(
+        log(
+          div(
+            addScalar(z, 1),
+            addScalar(neg(z), 1)
+            )
+          ),
+        1 / Math.PI)
+    }
+  }
+}
+
 function splits(x, y) {
   return function(z) {
     const xoff = z.re > 0 ? x : -x,
@@ -303,6 +319,7 @@ function hypertile3(p, q, r, shift) {
 
 const BUILT_IN_TRANSFORMS = {
   arcsinh: arcsinh,
+  arctanh: arctanh,
   splits: splits,
   mobius: mobius,
   scale: scale,
@@ -319,6 +336,7 @@ const BUILT_IN_TRANSFORMS = {
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
   arcsinh: [],
+  arctanh: [],
   splits: [{
       name: "x",
       type: "number",
