@@ -6,6 +6,13 @@ function C(real, imaginary) {
   };
 }
 
+function conj(z) {
+  return {
+    re: z.re,
+    im: -z.im
+  }
+}
+
 function div(z, c) {
   const s = 1 / (c.re * c.re + c.im * c.im);
   return {
@@ -168,6 +175,19 @@ function circleInv() {
   }
 }
 
+function exp() {
+  return function(z) {
+    return {
+      ...z,
+      ...exp(z)
+    }
+  }
+}
+
+function hypershift(p) {
+  return mobius(1, p, conj(p), 1);
+}
+
 function hypertile3(p, q, r, shift) {
   let rad = Math.PI / 180;
 
@@ -263,6 +283,29 @@ function julian(pow, dist) {
       ...z,
       re: Math.cos(a) * r,
       im: Math.sin(a) * r
+    }
+  }
+}
+
+function juliaq(pow, div) {
+  let ip = div / pow, ip2p = (2 * Math.PI) / pow;
+  return function(z) {
+    let ang = Math.atan2(z.im, z.re) * ip + Math.floor(32767 * Math.random()) * ip2p;
+    let cosa = Math.cos(ang), sina = Math.sin(ang),
+      r = Math.pow(dot(z, z), 0.5 * ip);
+    return {
+      ...z,
+      re: cosa * r,
+      im: sina * r
+    }
+  }
+}
+
+function log() {
+  return function(z) {
+    return {
+      ...z,
+      ...log(z)
     }
   }
 }
@@ -390,8 +433,11 @@ const BUILT_IN_TRANSFORMS = {
   blurCircle: blurCircle,
   blurSquare: blurSquare,
   circleInv: circleInv,
+  exp: exp,
+  hypershift: hypershift,
   hypertile3: hypertile3,
   julian: julian,
+  log: log,
   mobius: mobius,
   murl2: murl2,
   pointSymmetry: pointSymmetry,
@@ -409,6 +455,15 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   blurCircle: [],
   blurSquare: [],
   circleInv: [],
+  exp: [],
+  hypershift: [{
+    name: "p",
+    type: "complex",
+    default: {
+      re: 0,
+      im: 0
+    }
+  }],
   hypertile3: [{
       name: "p",
       type: "number",
@@ -440,6 +495,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1
   }],
+  log: [],
   mobius: [{
       name: "a",
       type: "complex",
