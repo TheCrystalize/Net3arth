@@ -1,5 +1,6 @@
 function getFile(file, callback) {
   var xmlhttp = new XMLHttpRequest();
+  xmlhttp.overrideMimeType("text/plain");
 
   xmlhttp.onreadystatechange = function() {
     if(xmlhttp.readyState == XMLHttpRequest.DONE) {
