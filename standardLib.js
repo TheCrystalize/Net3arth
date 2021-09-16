@@ -143,22 +143,19 @@ function blurCircle() {
   return function(z) {
     let a = Math.random() * Math.PI * 2,
       r = Math.sqrt(Math.random());
-    let ans = {
-      re: Math.cos(a) * r,
-      im: Math.sin(a) * r
-    }
     return {
       ...z,
-      ...ans
+      re: Math.cos(a) * r,
+      im: Math.sin(a) * r
     }
   }
 }
 
-function blurSine(power) {
+function blurSine(pow) {
   return function(z) {
     let a = Math.random() * 2 * Math.PI,
       u = Math.random();
-    let r = (power == 1 ? Math.acos(u * 2 - 1) : Math.acos(Math.exp(Math.log(1 - u) * power) * 2 - 1)) / Math.PI;
+    let r = (pow == 1 ? Math.acos(u * 2 - 1) : Math.acos(Math.exp(Math.log(1 - u) * power) * 2 - 1)) / Math.PI;
     return {
       ...z,
       re: Math.cos(a) * r,
@@ -344,13 +341,10 @@ function murl2(c, pow) {
     let re2 = r1 * cosa1, im2 = r1 * sina1,
         vp = c!= -1.0 ? Math.pow(c + 1, 2.0 / pow) : 0.0;
     let r2 = vp / (r1 * r1);
-    let ans = {
-      re: (z.re * re2 + z.im * im2) * r2,
-      im: (z.im * re2 - z.re * im2) * r2
-    };
     return {
       ...z,
-      ...ans
+      re: (z.re * re2 + z.im * im2) * r2,
+      im: (z.im * re2 - z.re * im2) * r2
     };
   }
 }
@@ -443,6 +437,7 @@ const BUILT_IN_TRANSFORMS = {
   arcsinh: arcsinh,
   arctanh: arctanh,
   blurCircle: blurCircle,
+  blurSine: blurSine,
   blurSquare: blurSquare,
   circleInv: circleInv,
   exp: exp,
@@ -466,6 +461,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   arcsinh: [],
   arctanh: [],
   blurCircle: [],
+  blurSine: [{
+    name: "pow",
+    type: "number",
+    default: 1
+  }],
   blurSquare: [],
   circleInv: [],
   exp: [],
