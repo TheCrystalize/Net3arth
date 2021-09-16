@@ -350,7 +350,6 @@ function pointSymmetry(centerX, centerY, order) {
     let angle = idr * da;
     let cosa = Math.cos(angle),
         sina = Math.sin(angle)
-    }
     return {
       ...z,
       re: centerX + dx * cosa + dy * sina,
@@ -437,6 +436,7 @@ const BUILT_IN_TRANSFORMS = {
   hypershift: hypershift,
   hypertile3: hypertile3,
   julian: julian,
+  juliaq: juliaq,
   log: log,
   mobius: mobius,
   murl2: murl2,
@@ -492,6 +492,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   },
   {
     name: "dist",
+    type: "number",
+    default: 1
+  }],
+  juliaq: [{
+    name: "pow",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "div",
     type: "number",
     default: 1
   }],
