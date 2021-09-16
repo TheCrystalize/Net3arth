@@ -64,7 +64,7 @@ function multScalar(z, s) {
 }
 
 function sqrt(z) {
-  const s = Math.sqrt(z.re * z.re + z.im * z.im),
+  const s = Math.hypot(z.re, z.im),
     sgn = z.im < 0 ? -1 : 1;
   return multScalar({
     re: Math.sqrt(s + z.re),
@@ -274,7 +274,8 @@ const BUILT_IN_TRANSFORMS = {
   translate: translate,
   rotate: rotate,
   blurCircle: blurCircle,
-  hypertile3: hypertile3
+  hypertile3: hypertile3,
+  circleInv: circleInv
 };
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
@@ -365,5 +366,6 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       type: "number",
       default: 0.5
     }
-  ]
+  ],
+  circleInv: []
 };
