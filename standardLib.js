@@ -154,6 +154,19 @@ function blurCircle() {
   }
 }
 
+function blurSine(power) {
+  return function(z) {
+    let a = Math.random() * 2 * Math.PI,
+      u = Math.random();
+    let r = (power == 1 ? Math.acos(u * 2 - 1) : Math.acos(Math.exp(Math.log(1 - u) * power) * 2 - 1)) / Math.PI;
+    return {
+      ...z,
+      re: Math.cos(a) * r,
+      im: Math.sin(a) * r
+    }
+  }
+}
+
 function blurSquare() {
   return function(z) {
     return {
