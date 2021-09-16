@@ -1,62 +1,8 @@
-jumpPartway(number cr = 0, number ci = 0, number distance = 0.5) {
-  return function(z) {
-    return {
-      ...z,
-      re: z.re + (cr-z.re) * distance,
-      im: z.im + (ci-z.im) * distance,
-    }
-  }
-}
-
-myXaos() {
-  let at = 0;
-  let cases = [
-    [1, [0, 1, 0, 1, 1], jumpPartway(1,1,0.5)],
-    [1, [0, 1, 1, 0, 1], jumpPartway(1,-1,0.5)],
-    [1, [0, 1, 1, 1, 0], jumpPartway(-1,-1,0.5)],
-    [1, [0, 0, 1, 1, 1], jumpPartway(-1,1,0.5)],
-  ];
-  return function(z) {
-    do {
-      if(at === 0) {
-        let sum = 0;
-        for(let i = 0; i < cases.length; i++) {
-          sum += cases[i][0];
-        }
-        let choice = Math.random() * sum;
-        let count = 0;
-        for(let i = 0; i < cases.length; i++) {
-          count += cases[i][0];
-          if(choice < count) {
-            at = i + 1;
-            break;
-          }
-        }
-      } else {
-        let sum = 0;
-        for(let i = 0; i < cases[at - 1][1].length; i++) {
-          sum += cases[at - 1][1][i];
-        }
-        let choice = Math.random() * sum;
-        let count = 0;
-        for(let i = 0; i < cases[at - 1][1].length; i++) {
-          count += cases[at - 1][1][i];
-          if(choice < count) {
-            at = i;
-            break;
-          }
-        }
-      }
-    } while(at === 0);
-    return {
-      ...z,
-      ...cases[at - 1][2](z)
-    }
-  }
-}
-
 body:
-myXaos();
+  choose{
+    1: arcsinh();
+    1: circleInv() -> splits(0, 1);
+  };
 
 camera:
-scale(0.25);
+scale(0.2);

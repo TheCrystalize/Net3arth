@@ -128,6 +128,10 @@ function arctanh() {
   }
 }
 
+function circleInv() {
+  return mobius(0, 1, 1, 0);
+}
+
 function splits(x, y) {
   return function(z) {
     const xoff = z.re > 0 ? x : -x,
@@ -161,8 +165,8 @@ function scale(s) {
 function tileHelp(width) {
   return function(z) {
     let x = z.re / width;
-    let var = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(x)) * Math.PI), fpx;
-    if (var < Math.random() * 2 - 1) {
+    let val = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(x)) * Math.PI), fpx;
+    if (val < Math.random() * 2 - 1) {
       fpx = x > 0 ? -width : width
     } else {
       fpx = 0
@@ -320,6 +324,7 @@ function hypertile3(p, q, r, shift) {
 const BUILT_IN_TRANSFORMS = {
   arcsinh: arcsinh,
   arctanh: arctanh,
+  circleInv: circleInv,
   splits: splits,
   mobius: mobius,
   scale: scale,
@@ -329,7 +334,6 @@ const BUILT_IN_TRANSFORMS = {
   rotate: rotate,
   blurCircle: blurCircle,
   hypertile3: hypertile3,
-  circleInv: circleInv,
   blurSquare: blurSquare,
 
 };
