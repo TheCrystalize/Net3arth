@@ -1,8 +1,8 @@
 body:
   choose{
-    1: arcsinh();
-    1: circleInv() -> splits(0, 1);
+    1: rotate(1) -> arctanh();
+    1: circleInv() -> rotate(3) -> splits(0, 1);
   };
 
 camera:
-scale(0.2);
+circleInv() -> scale(0.2);
