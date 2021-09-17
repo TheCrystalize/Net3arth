@@ -405,6 +405,47 @@ function scale(s) {
   }
 }
 
+function smartshape(power, roundstr, roundwidth, distortion, compensation) {
+  let pow = Math.max(power, 2);
+  let alpha = Math.PI * 2 / pow;
+  let alphacoeff = Math.tan(alpha * 0.5) * 2,
+    roundcoeff = roundstr / Math.sin(alpha * 0.5) / pow * 2,
+    comp = compensation <= 0 ? 0 : 1;
+
+  return function(z) {
+    let dang = (Math.atan2(z.im, z.re) + Math.PI) / alpha,
+      rad = Math.sqrt(dot(z, z));
+    let zang1 = Math.floor(dang);
+    let xang1 = dang - zang1, xang2, zang, sign, xang;
+
+    if(xang1 > 0.5) {
+      xang2 = 1 - xang1;
+      zang = zang1 + 1;
+      sign = -1;
+    } else {
+      xang2 = xang1;
+      zang = zang1;
+      sign = 1;
+    }
+    if(comp == 1 && distortion >= 1) {
+      xang = Math.atan(xang2 * alphacoeff) / alpha;
+    } else {
+      xang = xang2;
+    }
+    let coeff0 = 1 / Math.cos(xang * alpha),
+      wwidth = roundwidth != 1 ? Math.exp(Math.log(xang * 2) * roundwidth) * roundcoeff : xang * 2 * roundcoeff;
+    let coeff1 = distortion == 0 ? 1 : roundstr != 0 ? Math.abs((1 - wwidth) * coeff0 + wwidth) : coeff0;
+    let coeff = distortion != 1 ? Math.exp(Math.log(coeff1) * distortion) : coeff1;
+    let ang = (zang + sign * xang) * alpha - Math.PI;
+
+    return {
+      ...z,
+      re: Math.cos(ang) * coeff * rad,
+      im: Math.sin(ang) * coeff * rad
+    }
+  }
+}
+
 function splits(x, y) {
   return function(z) {
     const xoff = z.re > 0 ? x : -x,
@@ -417,19 +458,20 @@ function splits(x, y) {
   }
 }
 
-function tileHelp(width) {
+function tileHelp() {
   return function(z) {
-    let x = z.re / width;
-    let val = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(x)) * Math.PI),
+    let x = z.re;
+    let val = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(-x)) * Math.PI),
       fpx;
     if (val < Math.random() * 2 - 1) {
-      fpx = x > 0 ? -width : width
+      fpx = x > 0 ? -1 : 1
     } else {
       fpx = 0
     }
     return {
       ...z,
-      re: z.re + fpx
+      re: z.re + fpx,
+      im: z.im
     }
   }
 }
@@ -438,7 +480,8 @@ function tileLog(spread) {
   return function(z) {
     return {
       ...z,
-      re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5)
+      re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5),
+      im: z.im
     }
   }
 }
@@ -527,6 +570,7 @@ const BUILT_IN_TRANSFORMS = {
   pointSymmetry: pointSymmetry,
   rotate: rotate,
   scale: scale,
+  smartshape: smartshape,
   splits: splits,
   tileHelp: tileHelp,
   tileLog: tileLog,
@@ -672,6 +716,31 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1
   }],
+  smartshape: [{
+    name: "power",
+    type: "number",
+    default: 4
+  },
+  {
+    name: "roundstr",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "roundwidth",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "distortion",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "compensation",
+    type: "number",
+    default: 1
+  }],
   splits: [{
       name: "x",
       type: "number",
@@ -683,11 +752,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0
     }
   ],
-  tileHelp: [{
-    name: "width",
-    type: "number",
-    default: 1
-  }],
+  tileHelp: [],
   tileLog: [{
     name: "spread",
     type: "number",
