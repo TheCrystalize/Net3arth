@@ -231,7 +231,6 @@ function lineToWords(line) {
   return words;
 }
 
-
 const htmlConsole = document.getElementById("console");
 
 function consoleclear() {
@@ -890,14 +889,22 @@ function parseEverything(code) {
   }, code.length - 1, code[code.length - 2])('unexpected end of input');
 }
 
-function compile3arthLang(code) {
-  try {
-    stuffToDo = parseEverything(code);
+let autoFormat = false;
 
+function autoFormatCode(code) {
+  if(autoFormat) {
     let pos = editor.getCursorPosition();
+
     editor.setValue(to3arthLang(stuffToDo));
     editor.moveCursorToPosition(pos);
     editor.clearSelection();
+  }
+}
+
+function compile3arthLang(code) {
+  try {
+    stuffToDo = parseEverything(code);
+    autoFormatCode();
     consolelog("Finished compiling!", "limegreen");
   } catch (e) {
     console.error(e);
@@ -910,11 +917,7 @@ function run3arthLang(code) {
   compileButton.innerText='Compile';
   try {
     stuffToDo = parseEverything(code);
-
-    let pos = editor.getCursorPosition();
-    editor.setValue(to3arthLang(stuffToDo));
-    editor.moveCursorToPosition(pos);
-    editor.clearSelection();
+    autoFormatCode();
     consolelog("Finished compiling!", "limegreen");
 
     compileButton.innerText='Stop';
