@@ -377,14 +377,25 @@ function rotate(theta) {
   }
 }
 
+function rotateDeg(s) {
+  const rad = Math.PI / 180 * s;
+  const sinTheta = -Math.sin(rad);
+  const cosTheta = -Math.cos(rad);
+  return function(z) {
+    return {
+      ...z,
+      re: cosTheta * z.re + sinTheta * z.im,
+      im: sinTheta * z.re - cosTheta * z.im
+    }
+  }
+}
+
 function scale(s) {
   return function(z) {
     return {
       ...z,
-      {
-        re: z.re * s,
-        im: z.im * s,
-      }
+      re: z.re * s,
+      im: z.im * s,
     }
   }
 }
@@ -453,6 +464,7 @@ const BUILT_IN_TRANSFORMS = {
   murl2: murl2,
   pointSymmetry: pointSymmetry,
   rotate: rotate,
+  rotateDeg: rotateDeg,
   scale: scale,
   splits: splits,
   tileHelp: tileHelp,
@@ -581,6 +593,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 1
   }],
   rotate: [{
+    name: "theta",
+    type: "number",
+    default: 0
+  }],
+  rotateDeg: [{
     name: "theta",
     type: "number",
     default: 0
