@@ -118,7 +118,12 @@ function tanh(z) {
   return div(sinh(z), cosh(z))
 }
 
+function gaussRnd() {
+  return (Math.random() + Math.random()) * 2.0 - 2.0;
+}
+
 /* transforms */
+
 function arcsinh() {
   return function(z) {
     return {
@@ -175,6 +180,18 @@ function blurGasket() {
   }
 }
 
+function blurGaussian(pow) {
+  return function(z) {
+    let a = gaussRnd() * Math.PI * 2,
+      s = Math.sqrt(Math.abs(gaussRnd())) * pow;
+    return {
+      ...z,
+      re: Math.cos(a) * s + z.re,
+      im: Math.sin(a) * s + z.im
+    }
+  }
+}
+
 function blurSine(pow) {
   return function(z) {
     let a = Math.random() * 2 * Math.PI,
@@ -194,6 +211,17 @@ function blurSquare() {
       ...z,
       re: Math.random() - 0.5,
       im: Math.random() - 0.5
+    }
+  }
+}
+
+function bubble() {
+  return function(z) {
+    let r = (dot(z, z) + 4)
+    return {
+      ...z,
+      re: z.re / r,
+      im: -z.im / r
     }
   }
 }
@@ -416,9 +444,10 @@ function smartshape(power, roundstr, roundwidth, distortion, compensation) {
     let dang = (Math.atan2(z.im, z.re) + Math.PI) / alpha,
       rad = Math.sqrt(dot(z, z));
     let zang1 = Math.floor(dang);
-    let xang1 = dang - zang1, xang2, zang, sign, xang;
+    let xang1 = dang - zang1,
+      xang2, zang, sign, xang;
 
-    if(xang1 > 0.5) {
+    if (xang1 > 0.5) {
       xang2 = 1 - xang1;
       zang = zang1 + 1;
       sign = -1;
@@ -427,7 +456,7 @@ function smartshape(power, roundstr, roundwidth, distortion, compensation) {
       zang = zang1;
       sign = 1;
     }
-    if(comp == 1 && distortion >= 1) {
+    if (comp == 1 && distortion >= 1) {
       xang = Math.atan(xang2 * alphacoeff) / alpha;
     } else {
       xang = xang2;
@@ -446,10 +475,10 @@ function smartshape(power, roundstr, roundwidth, distortion, compensation) {
   }
 }
 
-function splits(x, y) {
+function splits(real, imaginary) {
   return function(z) {
-    const xoff = z.re > 0 ? x : -x,
-      yoff = z.im > 0 ? y : -y;
+    const xoff = z.re > 0 ? real : -real,
+      yoff = z.im > 0 ? imaginary : -imaginary;
     return {
       ...z,
       re: z.re + xoff,
@@ -558,8 +587,10 @@ const BUILT_IN_TRANSFORMS = {
   arctanh: arctanh,
   blurCircle: blurCircle,
   blurGasket: blurGasket,
+  blurGaussian: blurGaussian,
   blurSine: blurSine,
   blurSquare: blurSquare,
+  bubble: bubble,
   circleInv: circleInv,
   hypershift: hypershift,
   hypertile3: hypertile3,
@@ -588,12 +619,18 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   arctanh: [],
   blurCircle: [],
   blurGasket: [],
+  blurGaussian: [{
+    name: "pow",
+    type: "number",
+    default: 1
+  }],
   blurSine: [{
     name: "pow",
     type: "number",
     default: 1
   }],
   blurSquare: [],
+  bubble:[],
   circleInv: [],
   hypershift: [{
     name: "p",
@@ -717,37 +754,38 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 1
   }],
   smartshape: [{
-    name: "power",
-    type: "number",
-    default: 4
-  },
-  {
-    name: "roundstr",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "roundwidth",
-    type: "number",
-    default: 1
-  },
-  {
-    name: "distortion",
-    type: "number",
-    default: 1
-  },
-  {
-    name: "compensation",
-    type: "number",
-    default: 1
-  }],
-  splits: [{
-      name: "x",
+      name: "power",
+      type: "number",
+      default: 4
+    },
+    {
+      name: "roundstr",
       type: "number",
       default: 0
     },
     {
-      name: "y",
+      name: "roundwidth",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "distortion",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "compensation",
+      type: "number",
+      default: 1
+    }
+  ],
+  splits: [{
+      name: "real",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "imaginary",
       type: "number",
       default: 0
     }
