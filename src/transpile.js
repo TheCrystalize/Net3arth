@@ -313,11 +313,11 @@ function parseEverything(code) {
         let newError = _3arthError(words[j], i, code[i]);
         let newGeneralError = General3arthError(words[j], i, code[i]);
 
-        //console.log(customFunctions);
-        //console.log(JSON.stringify(parseState));
-        //console.log(parseState[0]);
+        console.log(customFunctions);
+        console.log(JSON.stringify(parseState));
+        console.log(parseState[0]);
 
-        //console.log(wordType + ': ' + word);
+        console.log(wordType + ': ' + word);
 
         if(word === '/' && words[j + 1].word === '/') {
           j = words.length;

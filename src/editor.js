@@ -81,6 +81,7 @@ var customWordCompleter = {
 
 editor.completers.unshift(customWordCompleter);
 
+
 editor.commands.addCommand({
   name: "run",
   bindKey: {
@@ -96,8 +97,8 @@ editor.commands.addCommand({
 editor.commands.addCommand({
   name: "stop",
   bindKey: {
-    win: "Ctrl-Shift-R",
-    mac: "Command-Shift-R"
+    win: "Ctrl-Shift-R|Ctrl-S",
+    mac: "Command-Shift-R|Command-S"
   },
   exec: function() {
     stopCode();
