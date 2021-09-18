@@ -1,129 +1,3 @@
-/*helper functions*/
-function C(real, imaginary) {
-  return {
-    re: real,
-    im: imaginary
-  };
-}
-
-function conj(z) {
-  return {
-    re: z.re,
-    im: -z.im
-  }
-}
-
-function div(z, c) {
-  const s = 1 / (c.re * c.re + c.im * c.im);
-  return {
-    re: (z.re * c.re + z.im * c.im) * s,
-    im: (z.im * c.re - z.re * c.im) * s
-  }
-}
-
-function divScalar(z, n) {
-  return {
-    re: z.re / n,
-    im: z.im / n
-  }
-}
-
-function add(z, c) {
-  return {
-    re: z.re + c.re,
-    im: z.im + c.im
-  }
-}
-
-function neg(z) {
-  return {
-    re: -z.re,
-    im: -z.im
-  }
-}
-
-function sub(z, c) {
-  return {
-    re: z.re - c.re,
-    im: z.im - c.im
-  }
-}
-
-function addScalar(z, s) {
-  return {
-    re: z.re + s,
-    im: z.im
-  }
-}
-
-function mult(z, c) {
-  return {
-    re: z.re * c.re - z.im * c.im,
-    im: z.re * c.im + z.im * c.re
-  }
-}
-
-function multScalar(z, s) {
-  return {
-    re: z.re * s,
-    im: z.im * s
-  }
-}
-
-function sqrt(z) {
-  const s = Math.hypot(z.re, z.im),
-    sgn = z.im < 0 ? -1 : 1;
-  return multScalar({
-    re: Math.sqrt(s + z.re),
-    im: sgn * Math.sqrt(s - z.re)
-  }, 0.5 * Math.SQRT2);
-}
-
-function log(z) {
-  return {
-    re: 0.5 * Math.log(z.re * z.re + z.im * z.im),
-    im: Math.atan2(z.im, z.re)
-  }
-}
-
-function pow(z, p) {
-  const n = p * Math.atan2(z.im, z.re);
-  return {
-    re: Math.cos(n),
-    im: Math.sin(n) * Math.exp(p * Math.log(z.re * z.re + z.im * z.im))
-  }
-}
-
-function exp(z) {
-  const e = Math.exp(z.re);
-  return {
-    re: Math.cos(z.im) * e,
-    im: Math.sin(z.im) * e
-  }
-}
-
-function dot(z, c) {
-  return (z.re * c.re + z.im * c.im)
-}
-
-function sinh(z) {
-  return add(divScalar(exp(z), 2), neg(divScalar(exp(neg(z)), 2)))
-}
-
-function cosh(z) {
-  return add(divScalar(exp(neg(z)), 2), divScalar(exp(z), 2))
-}
-
-function tanh(z) {
-  return div(sinh(z), cosh(z))
-}
-
-function gaussRnd() {
-  return (Math.random() + Math.random()) * 2.0 - 2.0;
-}
-
-/* transforms */
-
 function arcsinh() {
   return function(z) {
     return {
@@ -180,18 +54,6 @@ function blurGasket() {
   }
 }
 
-function blurGaussian(pow) {
-  return function(z) {
-    let a = gaussRnd() * Math.PI * 2,
-      s = Math.sqrt(Math.abs(gaussRnd())) * pow;
-    return {
-      ...z,
-      re: Math.cos(a) * s + z.re,
-      im: Math.sin(a) * s + z.im
-    }
-  }
-}
-
 function blurSine(pow) {
   return function(z) {
     let a = Math.random() * 2 * Math.PI,
@@ -211,17 +73,6 @@ function blurSquare() {
       ...z,
       re: Math.random() - 0.5,
       im: Math.random() - 0.5
-    }
-  }
-}
-
-function bubble() {
-  return function(z) {
-    let r = (dot(z, z) + 4)
-    return {
-      ...z,
-      re: z.re / r,
-      im: -z.im / r
     }
   }
 }
@@ -424,19 +275,6 @@ function rotate(theta) {
   }
 }
 
-function rotateDeg(s) {
-  const rad = Math.PI / 180 * s;
-  const sinTheta = -Math.sin(rad);
-  const cosTheta = -Math.cos(rad);
-  return function(z) {
-    return {
-      ...z,
-      re: cosTheta * z.re + sinTheta * z.im,
-      im: sinTheta * z.re - cosTheta * z.im
-    }
-  }
-}
-
 function scale(s) {
   return function(z) {
     return {
@@ -446,52 +284,10 @@ function scale(s) {
   }
 }
 
-function smartshape(power, roundstr, roundwidth, distortion, compensation) {
-  let pow = Math.max(power, 2);
-  let alpha = Math.PI * 2 / pow;
-  let alphacoeff = Math.tan(alpha * 0.5) * 2,
-    roundcoeff = roundstr / Math.sin(alpha * 0.5) / pow * 2,
-    comp = compensation <= 0 ? 0 : 1;
-
+function splits(x, y) {
   return function(z) {
-    let dang = (Math.atan2(z.im, z.re) + Math.PI) / alpha,
-      rad = Math.sqrt(dot(z, z));
-    let zang1 = Math.floor(dang);
-    let xang1 = dang - zang1,
-      xang2, zang, sign, xang;
-
-    if (xang1 > 0.5) {
-      xang2 = 1 - xang1;
-      zang = zang1 + 1;
-      sign = -1;
-    } else {
-      xang2 = xang1;
-      zang = zang1;
-      sign = 1;
-    }
-    if (comp == 1 && distortion >= 1) {
-      xang = Math.atan(xang2 * alphacoeff) / alpha;
-    } else {
-      xang = xang2;
-    }
-    let coeff0 = 1 / Math.cos(xang * alpha),
-      wwidth = roundwidth != 1 ? Math.exp(Math.log(xang * 2) * roundwidth) * roundcoeff : xang * 2 * roundcoeff;
-    let coeff1 = distortion == 0 ? 1 : roundstr != 0 ? Math.abs((1 - wwidth) * coeff0 + wwidth) : coeff0;
-    let coeff = distortion != 1 ? Math.exp(Math.log(coeff1) * distortion) : coeff1;
-    let ang = (zang + sign * xang) * alpha - Math.PI;
-
-    return {
-      ...z,
-      re: Math.cos(ang) * coeff * rad,
-      im: Math.sin(ang) * coeff * rad
-    }
-  }
-}
-
-function splits(real, imaginary) {
-  return function(z) {
-    const xoff = z.re > 0 ? real : -real,
-      yoff = z.im > 0 ? imaginary : -imaginary;
+    const xoff = z.re > 0 ? x : -x,
+      yoff = z.im > 0 ? y : -y;
     return {
       ...z,
       re: z.re + xoff,
@@ -500,20 +296,19 @@ function splits(real, imaginary) {
   }
 }
 
-function tileHelp() {
+function tileHelp(width) {
   return function(z) {
-    let x = z.re;
-    let val = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(-x)) * Math.PI),
+    let x = z.re / width;
+    let val = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(x)) * Math.PI),
       fpx;
     if (val < Math.random() * 2 - 1) {
-      fpx = x > 0 ? -1 : 1
+      fpx = x > 0 ? -width : width
     } else {
       fpx = 0
     }
     return {
       ...z,
-      re: z.re + fpx,
-      im: z.im
+      re: z.re + fpx
     }
   }
 }
@@ -522,8 +317,7 @@ function tileLog(spread) {
   return function(z) {
     return {
       ...z,
-      re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5),
-      im: z.im
+      re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5)
     }
   }
 }
@@ -600,10 +394,8 @@ const BUILT_IN_TRANSFORMS = {
   arctanh: arctanh,
   blurCircle: blurCircle,
   blurGasket: blurGasket,
-  blurGaussian: blurGaussian,
   blurSine: blurSine,
   blurSquare: blurSquare,
-  bubble: bubble,
   circleInv: circleInv,
   hypershift: hypershift,
   hypertile3: hypertile3,
@@ -613,9 +405,7 @@ const BUILT_IN_TRANSFORMS = {
   murl2: murl2,
   pointSymmetry: pointSymmetry,
   rotate: rotate,
-  rotateDeg: rotateDeg,
   scale: scale,
-  smartshape: smartshape,
   splits: splits,
   tileHelp: tileHelp,
   tileLog: tileLog,
@@ -633,18 +423,12 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   arctanh: [],
   blurCircle: [],
   blurGasket: [],
-  blurGaussian: [{
-    name: "pow",
-    type: "number",
-    default: 1
-  }],
   blurSine: [{
     name: "pow",
     type: "number",
     default: 1
   }],
   blurSquare: [],
-  bubble:[],
   circleInv: [],
   hypershift: [{
     name: "p",
@@ -762,54 +546,27 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 0
   }],
-  rotateDeg: [{
-    name: "theta",
-    type: "number",
-    default: 0
-  }],
   scale: [{
     name: "s",
     type: "number",
     default: 1
   }],
-  smartshape: [{
-      name: "power",
-      type: "number",
-      default: 4
-    },
-    {
-      name: "roundstr",
-      type: "number",
-      default: 0
-    },
-    {
-      name: "roundwidth",
-      type: "number",
-      default: 1
-    },
-    {
-      name: "distortion",
-      type: "number",
-      default: 1
-    },
-    {
-      name: "compensation",
-      type: "number",
-      default: 1
-    }
-  ],
   splits: [{
-      name: "real",
+      name: "x",
       type: "number",
       default: 0
     },
     {
-      name: "imaginary",
+      name: "y",
       type: "number",
       default: 0
     }
   ],
-  tileHelp: [],
+  tileHelp: [{
+    name: "width",
+    type: "number",
+    default: 1
+  }],
   tileLog: [{
     name: "spread",
     type: "number",
