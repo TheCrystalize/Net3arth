@@ -1,0 +1,167 @@
+body {
+  background-color: #12161b;
+  margin: 0;
+  height: 100vh;
+}
+
+.creatorSelector {
+  width: 50vw;
+  height: 98vh;
+  background-color: red;
+}
+
+.creator {
+  height: 70%;
+  background-color: gray;
+}
+
+.selector {
+  height: 30%;
+  background-color: darkGray;
+}
+
+.wrapper {
+  display: flex;
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #202830;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #606870;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #808890;
+}
+/* corner not-white */
+::-webkit-scrollbar-corner {
+  background: #202830;
+}
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/*draggable containers*/
+.container {
+  display: flex;
+  /* Misc */
+  height: 100%;
+  width: 100%;
+}
+
+.resizer[data-direction="horizontal"] {
+  background-color: #30353a;
+  cursor: ew-resize;
+  width: 8px;
+}
+
+.resizer[data-direction="vertical"] {
+  background-color: #30353a;
+  cursor: ns-resize;
+  height: 8px;
+  width: 100%;
+}
+
+.container__left {
+  /* Initially, the left takes 1/4 width */
+  width: 50%;
+  /* Misc */
+  display: flex;
+  flex-direction: column;
+}
+
+.container__right {
+  /* Take the remaining width */
+  flex: 1;
+  /* Misc */
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.container__top {
+  /* Initial height */
+  height: 85%;
+  /* Misc */
+  display: flex;
+  width: 100%;
+  overflow: auto;
+}
+
+canvas {
+  margin: auto;
+}
+
+.container__bottom {
+  background-color: black;
+  font-family: "Fira Code", monospace;
+  color: white;
+  /* Take the remaining height */
+  flex: 1;
+  /* Misc */
+  width: 100%;
+  overflow: auto;
+}
+
+.inp {
+  display: inline-block;
+  border: none;
+  padding: 1rem 2rem;
+  margin: 0;
+  text-decoration: none;
+  background: #0069ed;
+  color: #ffffff;
+  font-family: sans-serif;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  text-align: center;
+  transition: background 250ms ease-in-out, transform 150ms ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.inp:hover, .btn:focus {
+  background: #0053ba;
+}
+
+.inp:focus {
+  outline-offset: -4px;
+}
+
+.inp:active {
+  transform: scale(0.99);
+}
+
+#topBar {
+  top: 0;
+}
+
+#editor {
+  width: 100%;
+  height: 100%;
+}

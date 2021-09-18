@@ -1,8 +1,0 @@
-body:
-  choose{
-    1: arcsinh();
-    1: circleInv() -> splits(0, 1);
-  };
-
-camera:
-scale(0.2);

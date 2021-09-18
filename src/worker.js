@@ -50,25 +50,34 @@ let WIDTH;
 let HEIGHT;
 let ID;
 
+function consolelog(){}
+function consoleclear(){}
+
 function run() {
-  let buffer = Array(WIDTH * HEIGHT).fill([0, 0, 0]);
+  let buffer = new Float64Array(WIDTH * HEIGHT * 3 + 1);
+
+  buffer[WIDTH * HEIGHT * 3] = ID;
+
   for(let i = 0; i < stepsPerFrame; i++) {
     //console.log(`change pointer: ${stuffToDo.body}`);
     pointer = loopStuff(stuffToDo.body, pointer);
 
-      //console.log(`do post: ${stuffToDo.post}`);
+    //console.log(`do post: ${stuffToDo.post}`);
     let val = loopStuff(stuffToDo.camera, pointer);
 
     if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
-      let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * WIDTH >> 0) * HEIGHT;
-      let t = buffer[index];
-      buffer[index] = [t[0] + val.red, t[1] + val.green, t[2] + val.blue];
+      let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * HEIGHT >> 0) * WIDTH;
+      buffer[index*3] += val.red;
+      buffer[index*3+1] += val.green;
+      buffer[index*3+2] += val.blue;
     }
   }
 
-  postMessage([ID,buffer]);
+  postMessage(buffer.buffer, [buffer.buffer]);
 
-  stepsPerFrame = Math.min(stepsPerFrame*2, 1e7);
+  stepsPerFrame = Math.min(stepsPerFrame * 4, 1e7);
+
+  setTimeout(run, 1);
 }
 
 function populateFunctionsSwitch(job) {

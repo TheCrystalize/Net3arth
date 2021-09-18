@@ -1,36 +1,54 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>Net3arth</title>
-    <link rel="stylesheet" href="../style.css"></link>
-  </head>
-  <body>
-    <div class="wrapper">
-      <div class="creatorSelector">
-        <div class="creator">
 
-        </div>
-        <div class="selector">
-          <ul>
-            <li></li>
-          </ul>
-        </div>
+<head>
+  <meta charset="utf-8">
+  <title>Net3arth</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#2080d0">
+  <meta name="msapplication-TileColor" content="#303540">
+  <meta name="theme-color" content="#ffffff">
+
+  <link rel="stylesheet" href="src/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+  </link>
+</head>
+
+<body>
+  <div class="container">
+    <div class="container__left">
+      <div id="topBar"><button onclick="runCode()" class="inp">Run</button><button onclick="stopCode()" class="inp" id="compile">Compile</button><input type="number" placeholder="threads" id="threads" min="0" max="32" value="4"/><input type="number" placeholder="Width" id="width" min="0" max="8000" value="800"/><input type="number" placeholder="Height" id="height" min="0" max="8000" value="800"/></div>
+      <div id="editor"></div>
+    </div>
+    <div class="resizer" data-direction="horizontal"></div>
+    <div class="container__right">
+      <div class="container__top">
+        <canvas id="canvas"></canvas>
+        <!-- Error Modal -->
       </div>
-    <canvas id="canvas"></canvas>
-
-    <!-- Error Modal -->
-    <div id="errorModal" class="modal">
-      <!-- Modal content -->
-      <div class="modal-content">
-        <code id="errorModalContent">Some text in the Modal..</code>
+      <div class="resizer" data-direction="vertical"></div>
+      <div class="container__bottom">
+        <div id='console'></div>
       </div>
     </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-javascript.js" type="text/javascript" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+  <script src="src/3arthLang_highlight_rules.js" type="text/javascript" charset="utf-8"></script>
+  <script src="src/editor.js" type="text/javascript" charset="utf-8"></script>
 
-    <script type="text/javascript" src="ajax.js"></script>
-    <script type="text/javascript" src="standardLib.js"></script>
-    <script type="text/javascript" src="ui.js"></script>
-    <script type="text/javascript" src="transpile.js"></script>
-    <script type="text/javascript" src="main.js"></script>
-  </body>
+  <script src="src/ajax.js" type="text/javascript" charset="utf-8"></script>
+  <script src="src/standardLib.js" type="text/javascript" charset="utf-8"></script>
+  <script src="src/ui.js" type="text/javascript" charset="utf-8"></script>
+  <script src="src/transpile.js" type="text/javascript" charset="utf-8"></script>
+  <script src="src/main.js" type="text/javascript" charset="utf-8"></script>
+  <script src="src/tutorial.js" type="text/javascript" charset="utf-8"></script>
+</body>
+
 </html>

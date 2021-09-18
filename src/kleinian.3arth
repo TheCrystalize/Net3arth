@@ -1,0 +1,40 @@
+// command search: F1
+// Tutorial: Ctrl-? or Cmd-?
+red() {
+  return z => {
+    return {
+      ...z,
+      red: 1,
+      green: 0,
+      blue: 0
+    }
+  }
+}
+
+greenish() {
+  return z => {
+    return {
+      ...z,
+      red: z.red - z.red/5,
+      green: z.green + z.red/5
+    }
+  }
+}
+
+body:
+choose{
+  1: blurSquare()
+    -> red();
+  1: scale(0.7)
+    -> rotateDeg(-45)
+    -> translate(-0.5, -1)
+    -> greenish();
+  1: scale(0.7)
+    -> rotateDeg(45)
+    -> translate(0.5, -1)
+    -> greenish();
+};
+
+camera: mobius(1, -0.5+1i, 0, 1)
+-> translate(0.5, 0)
+-> scale(0.15);
