@@ -441,7 +441,8 @@ function scale(s) {
   return function(z) {
     return {
       ...z,
-      ...multScalar(z, s)
+      re: z.re * s,
+      im: z.im * s
     }
   }
 }
