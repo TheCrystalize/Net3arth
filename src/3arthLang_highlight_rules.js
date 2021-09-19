@@ -8,15 +8,10 @@ blurSine
 blurSquare
 bubble
 circleInv
-color
-gradient
-hslShift
 hypershift
 hypertile3
 julian
 juliaq
-lerpHSL
-lerpRGB
 mobius
 murl2
 pointSymmetry
@@ -33,11 +28,24 @@ trigExp
 trigLog
 trigSinh
 trigTanh
-unbubble`.split('\n');
+unbubble
+brighten
+color
+gamma
+gradient
+hslShift
+lerpHSL
+lerpRGB
+normalizeColor
+setHue
+setSaturation
+setLightness`.split('\n');
 
 const StandardLibHelperNamesArray =
 `rgbToHsl
 hslToRgb
+brightenRGB
+lerp
 conj
 div
 divScalar
@@ -48,7 +56,6 @@ addScalar
 mult
 multScalar
 sqrt
-lerp
 log
 pow
 exp
@@ -476,7 +483,7 @@ var EarthLangHighlightRules = function(options) {
             comments("no_regex"),
             {
                 token: "support.class",
-                regex: "body|camera",
+                regex: "body|camera|shader",
                 push: "start",
                 next: "earthLangTransform"
             },
@@ -657,7 +664,7 @@ var EarthLangHighlightRules = function(options) {
             comments("start"),
             {
                 token: "support.class",
-                regex: "body|camera|something",
+                regex: "body|camera|shader",
                 push: "start",
                 next: "pushedColon"
             },

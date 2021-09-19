@@ -1,4 +1,5 @@
-/*helper functions*/
+/* helper functions */
+
 function C(real, imaginary) {
   return {
     re: real,
@@ -606,6 +607,7 @@ function unbubble() {
 }
 
 /* colors */
+
 function color(color) {
   let col = color;
   if(color.hasOwnProperty('h')) {
@@ -732,10 +734,44 @@ function rgbToHsl(r, g, b) {
 
 function hslShift(h, s, l) {
   return z => {
-    let hsl = rgbToHsl(z.red, z.green, z.blue);
+    let magnitude = Math.max(z.red, z.green, z.blue);
+    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
     return {
       ...z,
-      ...hslToRgb((hsl.h + h + 1) % 1, hsl.s + s, hsl.l + l)
+      ...brightenRGB(hslToRgb((hsl.h + h + 1) % 1, hsl.s + s, hsl.l + l), magnitude)
+    }
+  }
+}
+
+function setHue(hue) {
+  return z => {
+    let magnitude = Math.max(z.red, z.green, z.blue);
+    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
+    return {
+      ...z,
+      ...brightenRGB(hslToRgb(hue,hsl.s,hsl.l), magnitude)
+    }
+  }
+}
+
+function setSaturation(saturation) {
+  return z => {
+    let magnitude = Math.max(z.red, z.green, z.blue);
+    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
+    return {
+      ...z,
+      ...brightenRGB(hslToRgb(hsl.h,saturation,hsl.l), magnitude)
+    }
+  }
+}
+
+function setLightness(lightness) {
+  return z => {
+    let magnitude = Math.max(z.red, z.green, z.blue);
+    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
+    return {
+      ...z,
+      ...brightenRGB(hslToRgb(hsl.h,hsl.s,lightness), magnitude)
     }
   }
 }
@@ -743,11 +779,12 @@ function hslShift(h, s, l) {
 function lerpRGB(r, g, b, weight = 0.5) {
   weight = Math.max(0, Math.min(1, weight));
   return z => {
+    let magnitude = Math.max(z.red, z.green, z.blue);
     return {
       ...z,
-      red: z.red * (1 - weight) + r * weight,
-      green: z.green * (1 - weight) + g * weight,
-      blue: z.blue * (1 - weight) + b * weight
+      red: (z.red / magnitude * (1 - weight) + r * weight) * magnitude,
+      green: (z.green / magnitude * (1 - weight) + g * weight) * magnitude,
+      blue: (z.blue / magnitude * (1 - weight) + b * weight) * magnitude
     }
   }
 }
@@ -755,13 +792,45 @@ function lerpRGB(r, g, b, weight = 0.5) {
 function lerpHSL(h, s, l, weight = 0.5) {
   weight = Math.max(0, Math.min(1, weight));
   return z => {
-    let hsl = rgbToHsl(z.red, z.green, z.blue);
+    let magnitude = Math.max(z.red, z.green, z.blue);
+    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
     return {
       ...z,
-      ...hslToRgb(
+      ...brightenRGB(hslToRgb(
         Math.abs(hsl.h - h) > 0.5 ? (hsl.h * (1 - weight) + h * weight + 1) % 1 : hsl.h * (1 - weight) + h * weight,
         hsl.s * (1 - weight) + s * weight,
-        hsl.l * (1 - weight) + l * weight)
+        hsl.l * (1 - weight) + l * weight), magnitude)
+    }
+  }
+}
+
+function normalizeColor() {
+  return z => {
+    let magnitude = Math.max(z.red, z.green, z.blue);
+    return {
+      ...z,
+      red: z.red/magnitude,
+      green: z.green/magnitude,
+      blue: z.blue/magnitude
+    }
+  }
+}
+
+function brightenRGB(color, amount) {
+  return {
+    red: color.red * amount,
+    green: color.green * amount,
+    blue: color.blue * amount
+  }
+}
+
+function brighten(amount) {
+  return z => {
+    return {
+      ...z,
+      red: z.red * amount,
+      green: z.green * amount,
+      blue: z.blue * amount
     }
   }
 }
@@ -772,8 +841,8 @@ function gradient(colors) {
   }
   if(colors.length === 1) {
     let col = colors[0];
-    if(colors[0].hasOwnProperty('h')){
-      col = hslToRgb(colors[0].h,colors[0].s,colors[0].l);
+    if(colors[0].hasOwnProperty('h')) {
+      col = hslToRgb(colors[0].h, colors[0].s, colors[0].l);
     }
     return z => {
       return {
@@ -783,14 +852,26 @@ function gradient(colors) {
     }
   }
   return z => {
-    let at = (z.im - Math.floor(z.im))*colors.length;
+    let at = (z.im - Math.floor(z.im)) * colors.length;
     return {
       ...z,
-      ...lerp(colors[Math.floor(at)%colors.length], colors[Math.ceil(at)%colors.length], at % 1)
+      ...lerp(colors[Math.floor(at) % colors.length], colors[Math.ceil(at) % colors.length], at % 1)
     }
   }
 }
 
+function gamma(gamma) {
+  return z=> {
+    return {
+      ...z,
+      red: Math.pow(z.red, 1/gamma),
+      green: Math.pow(z.green, 1/gamma),
+      blue: Math.pow(z.blue, 1/gamma)
+    }
+  }
+}
+
+/* description s*/
 
 const BUILT_IN_TRANSFORMS = {
   arcsinh: arcsinh,
@@ -802,15 +883,10 @@ const BUILT_IN_TRANSFORMS = {
   blurSquare: blurSquare,
   bubble: bubble,
   circleInv: circleInv,
-  color: color,
-  gradient: gradient,
-  hslShift: hslShift,
   hypershift: hypershift,
   hypertile3: hypertile3,
   julian: julian,
   juliaq: juliaq,
-  lerpHSL: lerpHSL,
-  lerpRGB: lerpRGB,
   mobius: mobius,
   murl2: murl2,
   pointSymmetry: pointSymmetry,
@@ -827,7 +903,19 @@ const BUILT_IN_TRANSFORMS = {
   trigLog: trigLog,
   trigSinh: trigSinh,
   trigTanh: trigTanh,
-  unbubble: unbubble
+  unbubble: unbubble,
+  //color transfomrs
+  brighten: brighten,
+  color: color,
+  gamma: gamma,
+  gradient: gradient,
+  hslShift: hslShift,
+  lerpHSL: lerpHSL,
+  lerpRGB: lerpRGB,
+  normalizeColor: normalizeColor,
+  setHue: setHue,
+  setSaturation: setSaturation,
+  setLightness: setLightness,
 };
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
@@ -848,35 +936,6 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   blurSquare: [],
   bubble: [],
   circleInv: [],
-  color: [{
-      name: "color",
-      type: "object",
-      default: {h:0,s:1,l:0.5}
-    }
-  ],
-  gradient: [{
-      name: "colorA",
-      type: "array",
-      default: {
-        h: 0,
-        s: 1,
-        l: 0.5
-      }
-    }
-  ],
-  hslShift: [{
-    name: "h",
-    type: "number",
-    default: 0
-  }, {
-    name: "s",
-    type: "number",
-    default: 0
-  }, {
-    name: "l",
-    type: "number",
-    default: 0
-  }],
   hypershift: [{
     name: "p",
     type: "complex",
@@ -926,46 +985,6 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       name: "div",
       type: "number",
       default: 1
-    }
-  ],
-  lerpHSL: [{
-      name: "h",
-      type: "number",
-      default: 1
-    },
-    {
-      name: "s",
-      type: "number",
-      default: 1
-    },
-    {
-      name: "l",
-      type: "number",
-      default: 1
-    }, {
-      name: "weight",
-      type: "number",
-      default: 0
-    }
-  ],
-  lerpRGB: [{
-      name: "r",
-      type: "number",
-      default: 1
-    },
-    {
-      name: "g",
-      type: "number",
-      default: 1
-    },
-    {
-      name: "b",
-      type: "number",
-      default: 1
-    }, {
-      name: "weight",
-      type: "number",
-      default: 0
     }
   ],
   mobius: [{
@@ -1041,7 +1060,10 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   scale: [{
     name: "c",
     type: "complex",
-    default: {re:1,im:1}
+    default: {
+      re: 1,
+      im: 1
+    }
   }],
   smartshape: [{
       name: "power",
@@ -1102,5 +1124,105 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   trigLog: [],
   trigSinh: [],
   trigTanh: [],
-  unbubble: []
+  unbubble: [],
+  //color transforms
+  brighten: [
+    {
+      name: "amount",
+      type: "number",
+      default: 1
+    }
+  ],
+  color: [{
+    name: "color",
+    type: "object",
+    default: {
+      h: 0,
+      s: 1,
+      l: 0.5
+    }
+  }],
+  gamma: [{
+    name: "gamma",
+    type: "number",
+    default: "2.2"
+  }],
+  gradient: [{
+    name: "colorA",
+    type: "array",
+    default: {
+      h: 0,
+      s: 1,
+      l: 0.5
+    }
+  }],
+  hslShift: [{
+    name: "h",
+    type: "number",
+    default: 0
+  }, {
+    name: "s",
+    type: "number",
+    default: 0
+  }, {
+    name: "l",
+    type: "number",
+    default: 0
+  }],
+  lerpHSL: [{
+      name: "h",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "s",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "l",
+      type: "number",
+      default: 0.5
+    }, {
+      name: "weight",
+      type: "number",
+      default: 0.5
+    }
+  ],
+  lerpRGB: [{
+      name: "r",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "g",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "b",
+      type: "number",
+      default: 1
+    }, {
+      name: "weight",
+      type: "number",
+      default: 0.5
+    }
+  ],
+  normalizeColor: [],
+  setHue: [{
+    name: "hue",
+    type: "number",
+    default: 0
+  }],
+  setSaturation: [{
+    name: "saturation",
+    type: "number",
+    default: 1
+  }],
+  setLightness: [{
+    name: "lightness",
+    type: "number",
+    default: 0.5
+  }],
 };

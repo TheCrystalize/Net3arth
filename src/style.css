@@ -2,6 +2,7 @@ body {
   background-color: #12161b;
   margin: 0;
   height: 100vh;
+  font-family: arial;
 }
 
 .creatorSelector {
