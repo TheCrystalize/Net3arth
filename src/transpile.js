@@ -30,10 +30,24 @@ function paramsToString(params) {
   for(let i = 0; i < params.length; i++) {
     switch (typeof params[i]) {
       case 'number':
+      case 'string':
+      case 'bool':
         ans += params[i];
         break;
+      case 'array':
       case 'object':
-        ans += complexToString(params[i]);
+        if(Object.keys(params[i]).join(',')==='re,im') {
+          ans += complexToString(params[i]);
+        }
+        else if(Object.keys(params[i]).join(',')==='red,green,blue') {
+          ans += `colorRGB(${params[i].red},${params[i].green},${params[i].blue})`;
+        }
+        else if(Object.keys(params[i]).join(',')==='h,s,l') {
+          ans += `colorHSL(${params[i].h},${params[i].s},${params[i].l})`;
+        }
+        else{
+          ans += JSON.stringify(params[i]);
+        }
         break;
       default:
         throw 'bad parameter';
@@ -77,7 +91,7 @@ function customTransformsToString(transforms) {
     ans += transforms[f].name.replace(/ /g, '_') + '(' +
       transforms[f].params.map(p => p.type + ' ' + p.name + ' = ' + p.default).
     join(',') + ') {\n  ' +
-      transforms[f].code.replace(/consolelog/g,'console.log').replace(/consoleclear/g,'console.clear') + '}\n\n';
+      transforms[f].code.replace(/consolelog/g, 'console.log').replace(/consoleclear/g, 'console.clear') + '}\n\n';
   }
   return ans;
 }
@@ -121,9 +135,10 @@ function getTypeOfWord(word) {
     case (word === 'choose'):
       return word;
     case (word === 'number'):
-    case (word === 'boolean'):
+    case (word === 'bool'):
     case (word === 'string'):
     case (word === 'complex'):
+    case (word === 'object'):
       return 'type';
     case (word === 'true'):
     case (word === 'false'):
@@ -165,6 +180,8 @@ function lineToWords(line) {
       case (char === '}'):
       case (char === '('):
       case (char === ')'):
+      case (char === '['):
+      case (char === ']'):
       case (char === ':'):
       case (char === ';'):
       case (char === ','):
@@ -172,11 +189,6 @@ function lineToWords(line) {
       case (char === '='):
         pushWord(currentWord, i);
         pushWord(char, i + 1);
-        typeOfWord = '';
-        break;
-      case (char === '['):
-      case (char === ']'):
-        pushWord(currentWord, i);
         typeOfWord = '';
         break;
       case (char === '-'):
@@ -251,23 +263,22 @@ function consolelog(msg, color = "white") {
   if(typeof msg === 'string') {
     txt += escapeHtml(msg.replace(/ /g, '\u00a0'));
   } else if(typeof msg === 'object') {
-    try{
-      v = escapeHtml(JSON.stringify(msg,2));
+    try {
+      v = escapeHtml(JSON.stringify(msg, 2));
       txt += v;
-    }
-    catch(e) {
+    } catch (e) {
       v = '{';
-      for(let a in msg){
-        v+=`\n  ${a}: ${msg[a]},`;
+      for(let a in msg) {
+        v += `\n  ${a}: ${msg[a]},`;
       }
-      txt+=v+'\n}';
+      txt += v + '\n}';
     }
   } else if(typeof msg.toString() === 'string') {
     txt += escapeHtml(msg.toString().replace(/ /g, '\u00a0'));
   } else {
     txt += escapeHtml(msg);
   }
-  htmlConsole.innerHTML += txt.replace(/\n/g,'<br/>') + "</div>";
+  htmlConsole.innerHTML += txt.replace(/\n/g, '<br/>') + "</div>";
 }
 
 function General3arthError(word, lineNumber, line) {
@@ -284,16 +295,18 @@ function General3arthError(word, lineNumber, line) {
     }]);
 
     throw `${msg}\n` +
-      `Line ${lineNumber}:${word.at}\n` +
+      `Line ${lineNumber+1}:${word.at}\n` +
       `${line}\n${new Array(word.at).fill(' ').join('')}^`;
   }
 }
 
 function _3arthError(word, lineNumber, line) {
   return msg => {
-    General3arthError(word, lineNumber, line)(`Expected a ${msg}. Instead got: ${word.word}`, lineNumber, line);
+    General3arthError(word, lineNumber, line)(`Expected a ${msg}. Instead got: ${typeof word.word === 'string' ? '"'+word.word+'"' : word.word}`, lineNumber, line);
   }
 }
+
+let verbose = true;
 
 function parseEverything(code) {
   consoleclear();
@@ -311,29 +324,27 @@ function parseEverything(code) {
         let wordType = getTypeOfWord(word);
         let newError = _3arthError(words[j], i, code[i]);
         let newGeneralError = General3arthError(words[j], i, code[i]);
+        if(verbose) {
+          console.log(customFunctions);
+          console.log(JSON.stringify(parseState));
+          console.log(parseState[0]);
 
-        console.log(customFunctions);
-        console.log(JSON.stringify(parseState));
-        console.log(parseState[0]);
-
-        console.log(wordType + ': ' + word);
-
+          console.log(wordType + ': ' + word);
+        }
         if(word === '/' && words[j + 1].word === '/') {
           j = words.length;
           continue;
         }
 
         if(word === '/' && words[j + 1].word === '*') {
-          let err = 'unexpected end of input; unclosed "/*"\n' +
-            `Line ${i}:${words[j].at}\n` +
-            `${code[i]}\n${new Array(words[j+1].at).fill(' ').join('')}^`;
+          let start = [i, words[j].at];
           while(true) {
             j++;
             while(j >= words.length) {
               j = 0;
               i++;
               if(i >= code.length) {
-                throw err;
+                General3arthError({at:start[1]},start[0],code[start[0]])("unclosed comment");
               }
               words = lineToWords(code[i]);
             }
@@ -342,6 +353,273 @@ function parseEverything(code) {
               continue wordLoop;
             }
           }
+        }
+
+        function endDefaultParam() {
+          switch (wordType) {
+            case ',':
+              var param = {
+                name: parseState[1].name,
+                type: parseState[1].type,
+                default: parseState[0].value,
+              };
+              parseState.shift();
+              parseState.shift();
+              parseState[0].params.push(param);
+              break;
+            case ')':
+              var param = {
+                name: parseState[1].name,
+                type: parseState[1].type,
+                default: parseState[0].value,
+              };
+              parseState.shift();
+              parseState.shift();
+              parseState[0].params.push(param);
+              parseState[1].params = parseState[0].params;
+              parseState.shift();
+              parseState.unshift({
+                is: 'js'
+              });
+              break;
+            default:
+              newError(parseState[0].is);
+          }
+        }
+
+        function endParam() {
+          switch (wordType) {
+            case ',':
+              if(!parseState[0].hasOwnProperty('value')) {
+                newError(parseState[0].is);
+              }
+              parseState[1].params.push(parseState[0].value);
+              parseState.shift();
+              parseState[0].on++;
+              if(parseState[0].on >= parseState[0].paramTypes.length) {
+                newError('")"');
+              }
+              parseState.unshift({
+                is: parseState[0].paramTypes[parseState[0].on].type + ' param'
+              });
+              break;
+            case ')':
+              if(!parseState[0].hasOwnProperty('value')) {
+                newError(parseState[0].is);
+              }
+              parseState[1].params.push(parseState[0].value);
+              parseState.shift();
+              parseState[0].on++;
+              if(parseState[0].on < parseState[0].paramTypes.length) {
+                newError('","');
+              }
+              parseState[1].transforms.push([parseState[0].transform, parseState[0].params]);
+              parseState.shift();
+              parseState.unshift({
+                is: 'after transform'
+              });
+              break;
+            default:
+              newError(parseState[0].is);
+          }
+        }
+
+        function getValue() {
+          let start = [i, words[j].at];
+          let bracketDepth = 0;
+          let parenDepth = 0;
+          let squareDepth = 0;
+          let lastBracketDepth = 0;
+          let lastParenDepth = 0;
+          let lastSquareDepth = 0;
+
+          words = lineToWords(code[i]);
+
+          if(words[j].word === '{') {
+            bracketDepth++;
+          }
+          if(words[j].word === '}') {
+            bracketDepth--;
+          }
+          if(words[j].word === '(') {
+            parenDepth++;
+          }
+          if(words[j].word === ')') {
+            parenDepth--;
+          }
+          if(words[j].word === '[') {
+            squareDepth++;
+          }
+          if(words[j].word === ']') {
+            squareDepth--;
+          }
+
+          if(verbose) {
+            console.log(`${words[j].word} | ${parenDepth}, ${bracketDepth}, ${squareDepth}`);
+          }
+          do {
+            lastBracketDepth = bracketDepth;
+            lastParenDepth = parenDepth;
+            lastSquareDepth = squareDepth;
+            j++;
+            while(j >= words.length) {
+              j = 0;
+              i++;
+              if(i >= code.length) {
+                General3arthError({at:start[1]},start[0],code[start[0]])("unexpected end of input");
+              }
+              words = lineToWords(code[i]);
+            }
+            if(words[j].word === '{') {
+              bracketDepth++;
+            }
+            if(words[j].word === '}') {
+              bracketDepth--;
+            }
+            if(words[j].word === '(') {
+              parenDepth++;
+            }
+            if(words[j].word === ')') {
+              parenDepth--;
+            }
+            if(words[j].word === '[') {
+              squareDepth++;
+            }
+            if(words[j].word === ']') {
+              squareDepth--;
+            }
+            if(verbose) {
+              console.log(`${words[j].word} | ${parenDepth}, ${bracketDepth}, ${squareDepth}`);
+            }
+          } while(lastParenDepth > 0 || lastBracketDepth > 0 || lastSquareDepth > 0 || !( words[j].word === ',' || words[j].word === ')'))
+
+          let jsCode = '';
+
+          if(start[0] === i) {
+            jsCode = code[i].slice(start[1], words[j].at);
+          } else {
+            jsCode = code[start[0]].slice(start[1]) + '\n';
+            for(let l = start[0] + 1; l < i; l++) {
+              jsCode += code[l] + '\n';
+            }
+            jsCode += code[i].slice(0, words[j].at);
+          }
+
+          jsCode = jsCode.replace(/console\.log/g, 'consolelog');
+          jsCode = jsCode.replace(/console\.clear/g, 'consoleclear');
+
+          let match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+          while(match) {
+            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index+match[0].length);
+            match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+          }
+
+          match = jsCode.match(/([-]?[0-9.]+)i/);
+          while(match) {
+            jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index+match[0].length);
+            match = jsCode.match(/([-]?[0-9.]+)i/);
+          }
+
+          if(verbose) {
+            console.log(jsCode);
+          }
+
+          let ans;
+          try {
+            let loadCustomFunctions = '';
+            for(let f in customFunctions) {
+              loadCustomFunctions += `function ${f}(${customFunctions[f].params.map(p=>`${p.name}`).join(',')}){${customFunctions[f].code}}`;
+            }
+            ans = eval('(_=>{'+loadCustomFunctions+'return '+jsCode+'})()');
+          } catch (e) {
+            if(parseState[1].is === 'custom transform params'){
+              newGeneralError(`${parseState[1].transform} parameter error:\n` + e);
+            }
+            else{
+              newGeneralError(`${parseState[1].is} value error:\n` + e);
+            }
+          }
+
+          word = words[j].word;
+          wordType = getTypeOfWord(word);
+          newError = _3arthError(words[j], i, code[i]);
+          newGeneralError = General3arthError(words[j], i, code[i]);
+
+          parseState[0].value = ans;
+
+          return start;
+        }
+
+        let desiredType = parseState[0].is.replace(' param','');
+
+        switch(desiredType) {
+          case 'number':
+          case 'complex':
+          case 'bool':
+          case 'string':
+          case 'array':
+          case 'object':
+            if(verbose) {
+              console.log('get value:');
+            }
+            let start = getValue();
+            let typeError =  _3arthError({word:parseState[0].value,at:start[1]}, start[0], code[start[0]]);
+            if(typeof parseState[0].value === 'object'){
+              try{
+                typeError = _3arthError({word:JSON.stringify(parseState[0].value),at:start[1]}, start[0], code[start[0]]);
+                if(Object.keys(parseState[0].value).join(',')==='re,im') {
+                  typeError = _3arthError({word:parseState[0].value.re+(parseState[0].value.im>0?'+':'')+parseState[0].value.im+'i',at:start[1]}, start[0], code[start[0]]);
+                }
+              }catch(e){}
+            }
+            if(verbose) {
+              console.log(parseState[0].value);
+            }
+            switch(typeof parseState[0].value) {
+              case 'number':
+                if(desiredType !== 'number') {
+                  if(desiredType === 'complex') {
+                    parseState[0].value = {re: parseState[0].value, im: 0};
+                  }
+                  else {
+                    typeError(desiredType);
+                  }
+                }
+                break;
+              case 'object':
+                if(desiredType !== 'complex') {
+                  if(desiredType !== 'array' || !Array.isArray(parseState[0].value)) {
+                    if(desiredType !== 'object'){
+                      typeError(desiredType);
+                    }
+                  }
+                }
+                else if(Object.keys(parseState[0].value).join(',')==='re,im'){
+                  if(typeof parseState[0].value.re !== 'number' || isNaN(parseState[0].value.re)) {
+                    General3arthError({word:parseState[0].value,at:start[1]}, start[0], code[start[0]])(`Complex value's real part is undefined: ${parseState[0].value.re}`);
+                  }
+                  if(typeof parseState[0].value.im !== 'number' || isNaN(parseState[0].value.im)) {
+                    General3arthError({word:parseState[0].value,at:start[1]}, start[0], code[start[0]])(`Complex value's imaginary part is undefined: ${parseState[0].value.im}`);
+                  }
+                }
+                else{
+                  typeError(desiredType);
+                }
+                break;
+              case 'boolean':
+                if(desiredType !== 'bool') {
+                  typeError(desiredType);
+                }
+                break;
+              case 'string':
+                if(desiredType !== 'string') {
+                  typeError(desiredType);
+                }
+                break;
+              default:
+                typeError(desiredType)
+            }
+          break;
         }
 
         switch (parseState[0].is) {
@@ -451,183 +729,20 @@ function parseEverything(code) {
             }
             break;
           case 'number':
-            switch (wordType) {
-              case 'number':
-                if(parseState[0].hasOwnProperty('value')) {
-                  throw newError('"," or ")"');
-                } else {
-                  parseState[0].value = word;
-                }
-                break;
-              case ',':
-                var param = {
-                  name: parseState[1].name,
-                  type: parseState[1].type,
-                  default: parseState[0].value,
-                };
-                parseState.shift();
-                parseState.shift();
-                parseState[0].params.push(param);
-                break;
-              case ')':
-                var param = {
-                  name: parseState[1].name,
-                  type: parseState[1].type,
-                  default: parseState[0].value,
-                };
-                parseState.shift();
-                parseState.shift();
-                parseState[0].params.push(param);
-                parseState[1].params = parseState[0].params;
-                parseState.shift();
-                parseState.unshift({
-                  is: 'js'
-                });
-                break;
-              default:
-                newError('number');
-            }
+          case 'complex':
+          case 'bool':
+          case 'string':
+          case 'array':
+          case 'object':
+            endDefaultParam();
             break;
           case 'number param':
-            switch (wordType) {
-              case '-':
-                if(parseState[0].hasOwnProperty('sign')) {
-                  newError('number');
-                }
-                parseState[0].sign = '-';
-                break;
-              case '+':
-                if(parseState[0].hasOwnProperty('sign')) {
-                  newError('number');
-                }
-                parseState[0].sign = '+';
-                break;
-              case 'number':
-                if(parseState[0].hasOwnProperty('value')) {
-                  newError('"," or ")"');
-                }
-                if(parseState[0].hasOwnProperty('sign')) {
-                  parseState[0].value = parseState[0].sign + word;
-                  delete parseState[0].sign;
-                  break;
-                }
-                parseState[0].value = word;
-                break;
-              case ',':
-                if(!parseState[0].hasOwnProperty('value')) {
-                  newError('number');
-                }
-                var val = parseFloat(parseState[0].value);
-                parseState.shift();
-                parseState[0].params.push(val);
-                parseState[0].on++;
-                if(parseState[0].on >= parseState[0].paramTypes.length) {
-                  newError('")"');
-                }
-                parseState.unshift({
-                  is: parseState[0].paramTypes[parseState[0].on].type + ' param'
-                });
-                break;
-              case ')':
-                if(!parseState[0].hasOwnProperty('value')) {
-                  newError('number');
-                }
-                var val = parseFloat(parseState[0].value);
-                parseState.shift();
-                parseState[0].params.push(val);
-                parseState[0].on++;
-                if(parseState[0].on < parseState[0].paramTypes.length) {
-                  newError('","');
-                }
-                parseState[1].transforms.push([parseState[0].transform, parseState[0].params]);
-                parseState.shift();
-                parseState.unshift({
-                  is: 'after transform'
-                });
-                break;
-              default:
-                newError('number');
-            }
-            break;
           case 'complex param':
-            switch (wordType) {
-              case '-':
-                if(parseState[0].hasOwnProperty('sign')) {
-                  newError('complex number');
-                }
-                parseState[0].sign = '-';
-                break;
-              case '+':
-                if(parseState[0].hasOwnProperty('sign')) {
-                  newError('complex number');
-                }
-                parseState[0].sign = '+';
-                break;
-              case 'number':
-                if(parseState[0].hasOwnProperty('imaginary')) {
-                  newError('",", or ")"');
-                }
-                if(parseState[0].hasOwnProperty('real')) {
-                  newError('complex pair, ",", or ")"');
-                }
-                if(parseState[0].hasOwnProperty('sign')) {
-                  parseState[0].real = parseState[0].sign + word;
-                  delete parseState[0].sign;
-                  break;
-                }
-                parseState[0].real = word;
-                break;
-              case 'imaginary':
-                if(parseState[0].hasOwnProperty('imaginary')) {
-                  newError('",", or ")"');
-                }
-                if(parseState[0].hasOwnProperty('sign')) {
-                  parseState[0].imaginary = parseState[0].sign + word;
-                  delete parseState[0].sign;
-                  break;
-                }
-                parseState[0].imaginary = word;
-                break;
-              case 'imaginary unit':
-                if(parseState[0].hasOwnProperty('imaginary')) {
-                  newError('",", or ")"');
-                }
-                if(parseState[0].hasOwnProperty('sign')) {
-                  parseState[0].imaginary = parseState[0].sign + 1;
-                  delete parseState[0].sign;
-                  break;
-                }
-                parseState[0].imaginary = 1;
-                break;
-              case ',':
-                var val = C(parseState[0].hasOwnProperty('real') ? parseFloat(parseState[0].real) : 0, parseState[0].hasOwnProperty('imaginary') ? parseFloat(parseState[0].imaginary) : 0);
-                parseState.shift();
-                parseState[0].params.push(val);
-                parseState[0].on++;
-                if(parseState[0].on >= parseState[0].paramTypes.length) {
-                  newError('")"');
-                }
-                parseState.unshift({
-                  is: parseState[0].paramTypes[parseState[0].on].type + ' param'
-                });
-                break;
-              case ')':
-                var val = C(parseState[0].hasOwnProperty('real') ? parseFloat(parseState[0].real) : 0, parseState[0].hasOwnProperty('imaginary') ? parseFloat(parseState[0].imaginary) : 0);
-                parseState.shift();
-                parseState[0].params.push(val);
-                parseState[0].on++;
-                if(parseState[0].on < parseState[0].paramTypes.length) {
-                  newError('","');
-                }
-                parseState[1].transforms.push([parseState[0].transform, parseState[0].params]);
-                parseState.shift();
-                parseState.unshift({
-                  is: 'after transform'
-                });
-                break;
-              default:
-                newError('complex number');
-            }
+          case 'bool param':
+          case 'string param':
+          case 'array param':
+          case 'object param':
+            endParam();
             break;
           case 'js':
             if(word === '{') {
@@ -683,7 +798,13 @@ function parseEverything(code) {
                 let testFunction = new Function(...parseState[0].params.map(a => a.name), jsCode);
                 let ans = testFunction(...parseState[0].params.map(a => a.default));
                 if(typeof ans === 'function') {
-                  ans = ans({re: 1, im: 2});
+                  ans = ans({
+                    re: 1,
+                    im: 2
+                  });
+                }
+                else {
+                  // determine type of result
                 }
               } catch (e) {
                 consolelog(`In ${parseState[0].name}()\n` + e, "red");
@@ -881,7 +1002,9 @@ function parseEverything(code) {
 
     parseState[0].customFunctions = customFunctions;
 
-    //console.log('-- compiled --');
+    if(verbose) {
+      console.log('-- compiled --');
+    }
     return parseState[0];
   }
   General3arthError({
@@ -898,6 +1021,8 @@ function autoFormatCode(code) {
     editor.setValue(to3arthLang(stuffToDo));
     editor.moveCursorToPosition(pos);
     editor.clearSelection();
+  } else {
+    editor.getSession().clearAnnotations();
   }
 }
 
@@ -914,13 +1039,13 @@ function compile3arthLang(code) {
 let compileButton = document.getElementById('compile');
 
 function run3arthLang(code) {
-  compileButton.innerText='Compile';
+  compileButton.innerText = 'Compile';
   try {
     stuffToDo = parseEverything(code);
     autoFormatCode();
     consolelog("Finished compiling!", "limegreen");
 
-    compileButton.innerText='Stop';
+    compileButton.innerText = 'Stop';
 
     refreshRender();
 

@@ -8,11 +8,15 @@ blurSine
 blurSquare
 bubble
 circleInv
-colorRGB
+color
+gradient
+hslShift
 hypershift
 hypertile3
 julian
 juliaq
+lerpHSL
+lerpRGB
 mobius
 murl2
 pointSymmetry
@@ -31,7 +35,39 @@ trigSinh
 trigTanh
 unbubble`.split('\n');
 
+const StandardLibHelperNamesArray =
+`rgbToHsl
+hslToRgb
+conj
+div
+divScalar
+add
+neg
+sub
+addScalar
+mult
+multScalar
+sqrt
+lerp
+log
+pow
+exp
+dot
+sinh
+cosh
+tanh
+gaussRnd`.split('\n');
+
+const StandardLibConstructorNamesArray =
+`C
+colorRGB
+colorHSL`.split('\n');
+
 let StandardLibNames = StandardLibNamesArray.join('|');
+
+let StandardLibHelperNames = StandardLibHelperNamesArray.join('|');
+
+let StandardLibConstructorNames = StandardLibConstructorNamesArray.join('|');
 
 // helful resource:
 // https://github.com/ajaxorg/ace/wiki/Creating-or-Extending-an-Edit-Mode#common-tokens
@@ -207,17 +243,7 @@ var EarthLangHighlightRules = function(options) {
             },
         ],
         "earthLangParams": [
-            comments("earthLangParms"),
-            {
-                token: "empty",
-                regex: "\\)$",
-                next: "earthLangTransformPost"
-            },
-            {
-                token: "empty",
-                regex: "\\)",
-                next: "earthLangTransformPost"
-            },
+            comments("earthLangParams"),
             {
                 token : "string",
                 regex : "'(?=.)",
@@ -227,6 +253,16 @@ var EarthLangHighlightRules = function(options) {
                 token : "string",
                 regex : '"(?=.)',
                 next  : "qqstringParam"
+            },
+            {
+                token: "empty",
+                regex: ";",
+                next: "pop"
+            },
+            {
+                token: "keyword.control",
+                regex: "->",
+                next: "earthLangTransform"
             },
             {
                 token: "keyword.control",
@@ -241,9 +277,24 @@ var EarthLangHighlightRules = function(options) {
                 regex: "i\\b",
             },
             {
-                token: "constant.numeric",
-                regex: "\\.[0-9]|[0-9]\\.|[0-9]",
+                token : "constant.numeric", // hexadecimal, octal and binary
+                regex : /0(?:[xX][0-9a-fA-F]+|[oO][0-7]+|[bB][01]+)\b/
+            }, {
+                token : "constant.numeric", // decimal integers and floats
+                regex : /(?:\d\d*(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+\b)?/
             },
+            {
+                token: "support.class",
+                regex: "(?:" + StandardLibConstructorNames + ")\\b"
+            },
+            {
+                token: "support.function",
+                regex: "(?:" + StandardLibHelperNames + ")\\b"
+            },
+            {
+                token: "entity.function.name",
+                regex: "\\w+\\b"
+            }
         ],
         "earthLangTransform": [
             comments("earthLangTransform"),
@@ -364,7 +415,7 @@ var EarthLangHighlightRules = function(options) {
             comments("earthLangFunctionType"),
             {
                 token: "storage.type",
-                regex: "(?:number|complex|bool|string)",
+                regex: "(?:number|complex|bool|string|array|object)",
                 next: "earthLangFunction"
             },
             {
@@ -431,7 +482,7 @@ var EarthLangHighlightRules = function(options) {
             },
             {
                 token: "storage.type",
-                regex: "number|complex|bool|string",
+                regex: "number|complex|bool|string|array|object",
                 next: "earthLangFunction"
             },
             {
@@ -612,7 +663,7 @@ var EarthLangHighlightRules = function(options) {
             },
             {
                 token: "storage.type",
-                regex: "number|complex|bool|string",
+                regex: "number|complex|bool|string|array|object",
                 next: "earthLangFunction"
             },
             {

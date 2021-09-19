@@ -125,7 +125,7 @@ function gaussRnd() {
 /* transforms */
 
 function arcsinh() {
-  return function(z) {
+  return z => {
     return {
       ...z,
       ...multScalar(
@@ -141,7 +141,7 @@ function arcsinh() {
 }
 
 function arctanh() {
-  return function(z) {
+  return z => {
     return {
       ...z,
       ...multScalar(
@@ -157,7 +157,7 @@ function arctanh() {
 }
 
 function blurCircle() {
-  return function(z) {
+  return z => {
     let a = Math.random() * Math.PI * 2,
       r = Math.sqrt(Math.random());
     return {
@@ -169,7 +169,7 @@ function blurCircle() {
 }
 
 function blurGasket() {
-  return function(z) {
+  return z => {
     let a = Math.random() * Math.PI * 2,
       r = 1 / Math.sqrt(Math.random() - Math.random());
     return {
@@ -181,7 +181,7 @@ function blurGasket() {
 }
 
 function blurGaussian(pow) {
-  return function(z) {
+  return z => {
     let a = gaussRnd() * Math.PI * 2,
       s = Math.sqrt(Math.abs(gaussRnd())) * pow;
     return {
@@ -193,7 +193,7 @@ function blurGaussian(pow) {
 }
 
 function blurSine(pow) {
-  return function(z) {
+  return z => {
     let a = Math.random() * 2 * Math.PI,
       u = Math.random();
     let r = (pow == 1 ? Math.acos(u * 2 - 1) : Math.acos(Math.exp(Math.log(1 - u) * power) * 2 - 1)) / Math.PI;
@@ -206,7 +206,7 @@ function blurSine(pow) {
 }
 
 function blurSquare() {
-  return function(z) {
+  return z => {
     return {
       ...z,
       re: Math.random() - 0.5,
@@ -216,7 +216,7 @@ function blurSquare() {
 }
 
 function bubble() {
-  return function(z) {
+  return z => {
     let r = (dot(z, z) + 4)
     return {
       ...z,
@@ -227,7 +227,7 @@ function bubble() {
 }
 
 function circleInv() {
-  return function(z) {
+  return z => {
     let r = 1 / dot(z, z)
     return {
       ...z,
@@ -237,19 +237,8 @@ function circleInv() {
   }
 }
 
-function colorRGB(r, g, b) {
-  return function(z) {
-    return {
-      ...z,
-      red: r,
-      green: g,
-      blue: b
-    }
-  }
-}
-
 function hypershift(p) {
-  return function(z) {
+  return z => {
     return {
       ...z,
       ...div(add(z, p), addScalar(mult(conj(p), z), 1))
@@ -278,17 +267,17 @@ function hypertile3(p, q, r, shift) {
     c2 = C(0, b1),
     c3 = C(0, b2);
 
-  return function(z) {
+  return z => {
     let n, pfr, z0;
-    if (shift < 0.25) {
+    if(shift < 0.25) {
       n = 0;
       pfr = 0;
       z0 = z;
-    } else if (shift < 0.5) {
+    } else if(shift < 0.5) {
       n = p;
       pfr = rot1;
       z0 = div(add(z, c1), addScalar(mult(c1, z), 1));
-    } else if (shift < 0.75) {
+    } else if(shift < 0.75) {
       n = q;
       pfr = rot2;
       z0 = div(add(z, neg(c2)), addScalar(mult(c2, z), 1));
@@ -313,25 +302,25 @@ function hypertile3(p, q, r, shift) {
       rnd = Math.random(),
       f3, f0, f;
 
-    if (rnd < 1 / 3) {
+    if(rnd < 1 / 3) {
       f3 = m0f
-    } else if (rnd < 2 / 3) {
+    } else if(rnd < 2 / 3) {
       f3 = m1f
     } else {
       f3 = m2f
     }
 
-    if (shift < 0.25) {
+    if(shift < 0.25) {
       f0 = f3
-    } else if (shift < 0.5) {
+    } else if(shift < 0.5) {
       f0 = div(add(f3, neg(c1)), addScalar(mult(neg(c1), f3), 1))
-    } else if (shift < 0.75) {
+    } else if(shift < 0.75) {
       f0 = div(add(f3, c2), addScalar(mult(neg(c2), f3), 1))
     } else {
       f0 = div(add(f3, neg(c3)), addScalar(mult(c3, f3), 1))
     }
 
-    if (shift < 0.25) {
+    if(shift < 0.25) {
       f = f0
     } else {
       f = mult(C(Math.cos(fr), Math.sin(fr)), f0)
@@ -345,7 +334,7 @@ function hypertile3(p, q, r, shift) {
 }
 
 function julian(pow, dist) {
-  return function(z) {
+  return z => {
     let a = (Math.atan2(z.im, z.re) + Math.floor(pow * Math.random()) * Math.PI * 2.0) / pow,
       r = Math.pow(dot(z, z), dist / pow * 0.5);
     return {
@@ -359,7 +348,7 @@ function julian(pow, dist) {
 function juliaq(pow, div) {
   let ip = div / pow,
     ip2p = (2 * Math.PI) / pow;
-  return function(z) {
+  return z => {
     let ang = Math.atan2(z.im, z.re) * ip + Math.floor(32767 * Math.random()) * ip2p;
     let cosa = Math.cos(ang),
       sina = Math.sin(ang),
@@ -373,7 +362,7 @@ function juliaq(pow, div) {
 }
 
 function mobius(a, b, c, d) {
-  return function(z) {
+  return z => {
     return {
       ...z,
       ...div(add(mult(a, z), b), add(mult(c, z), d))
@@ -382,7 +371,7 @@ function mobius(a, b, c, d) {
 }
 
 function murl2(c, pow) {
-  return function(z) {
+  return z => {
     let angle = Math.atan2(z.im, z.re) * pow;
     let cosa = Math.cos(angle),
       sina = Math.sin(angle),
@@ -406,7 +395,7 @@ function murl2(c, pow) {
 }
 
 function pointSymmetry(centerX, centerY, order) {
-  return function(z) {
+  return z => {
     let idr = Math.floor(Math.random() * order),
       dx = z.re - centerX,
       dy = z.im - centerY,
@@ -426,7 +415,7 @@ function rotate(theta) {
   const th = theta * Math.PI / 2;
   const sinTheta = -Math.sin(th);
   const cosTheta = -Math.cos(th);
-  return function(z) {
+  return z => {
     return {
       ...z,
       re: cosTheta * z.re + sinTheta * z.im,
@@ -439,7 +428,7 @@ function rotateDeg(s) {
   const rad = Math.PI / 180 * s;
   const sinTheta = -Math.sin(rad);
   const cosTheta = -Math.cos(rad);
-  return function(z) {
+  return z => {
     return {
       ...z,
       re: cosTheta * z.re + sinTheta * z.im,
@@ -449,7 +438,7 @@ function rotateDeg(s) {
 }
 
 function scale(s) {
-  return function(z) {
+  return z => {
     return {
       ...z,
       re: z.re * s,
@@ -465,14 +454,14 @@ function smartshape(power, roundstr, roundwidth, distortion, compensation) {
     roundcoeff = roundstr / Math.sin(alpha * 0.5) / pow * 2,
     comp = compensation <= 0 ? 0 : 1;
 
-  return function(z) {
+  return z => {
     let dang = (Math.atan2(z.im, z.re) + Math.PI) / alpha,
       rad = Math.sqrt(dot(z, z));
     let zang1 = Math.floor(dang);
     let xang1 = dang - zang1,
       xang2, zang, sign, xang;
 
-    if (xang1 > 0.5) {
+    if(xang1 > 0.5) {
       xang2 = 1 - xang1;
       zang = zang1 + 1;
       sign = -1;
@@ -481,7 +470,7 @@ function smartshape(power, roundstr, roundwidth, distortion, compensation) {
       zang = zang1;
       sign = 1;
     }
-    if (comp == 1 && distortion >= 1) {
+    if(comp == 1 && distortion >= 1) {
       xang = Math.atan(xang2 * alphacoeff) / alpha;
     } else {
       xang = xang2;
@@ -501,7 +490,7 @@ function smartshape(power, roundstr, roundwidth, distortion, compensation) {
 }
 
 function splits(real, imaginary) {
-  return function(z) {
+  return z => {
     const xoff = z.re > 0 ? real : -real,
       yoff = z.im > 0 ? imaginary : -imaginary;
     return {
@@ -513,11 +502,11 @@ function splits(real, imaginary) {
 }
 
 function tileHelp() {
-  return function(z) {
+  return z => {
     let x = z.re;
     let val = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(-x)) * Math.PI),
       fpx;
-    if (val < Math.random() * 2 - 1) {
+    if(val < Math.random() * 2 - 1) {
       fpx = x > 0 ? -1 : 1
     } else {
       fpx = 0
@@ -531,7 +520,7 @@ function tileHelp() {
 }
 
 function tileLog(spread) {
-  return function(z) {
+  return z => {
     return {
       ...z,
       re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5),
@@ -541,7 +530,7 @@ function tileLog(spread) {
 }
 
 function translate(real, imaginary) {
-  return function(z) {
+  return z => {
     return {
       ...z,
       re: z.re + real,
@@ -551,7 +540,7 @@ function translate(real, imaginary) {
 }
 
 function trigCosh() {
-  return function(z) {
+  return z => {
     return {
       ...z,
       ...cosh(z)
@@ -560,7 +549,7 @@ function trigCosh() {
 }
 
 function trigExp() {
-  return function(z) {
+  return z => {
     return {
       ...z,
       ...exp(z)
@@ -569,7 +558,7 @@ function trigExp() {
 }
 
 function trigLog() {
-  return function(z) {
+  return z => {
     return {
       ...z,
       ...log(z)
@@ -578,7 +567,7 @@ function trigLog() {
 }
 
 function trigSinh() {
-  return function(z) {
+  return z => {
     return {
       ...z,
       ...sinh(z)
@@ -587,7 +576,7 @@ function trigSinh() {
 }
 
 function trigTanh() {
-  return function(z) {
+  return z => {
     return {
       ...z,
       ...tanh(z)
@@ -596,7 +585,7 @@ function trigTanh() {
 }
 
 function unbubble() {
-  return function(z) {
+  return z => {
     let r = dot(z, z);
     let b = (Math.SQRT2 - Math.sqrt(2 - r)) / r;
     return {
@@ -606,6 +595,193 @@ function unbubble() {
     }
   }
 }
+
+/* colors */
+function color(color) {
+  let col = color;
+  if(color.hasOwnProperty('h')) {
+    col = hslToRgb(color.h, color.s, color.l);
+  } else if(!color.hasOwnProperty('red')) {
+    col = colorRGB(...arguments);
+  }
+  return z => {
+    return {
+      ...z,
+      red: col.red,
+      green: col.green,
+      blue: col.blue
+    }
+  }
+}
+
+function lerp(colorA, colorB, weight = 0.5) {
+  weight = Math.max(0, Math.min(1, weight));
+  if(colorA.hasOwnProperty('h')) {
+    if(colorB.hasOwnProperty('h')) {
+      return hslToRgb(
+        Math.abs(colorA.h - colorB.h) > 0.5 ? (colorA.h * (1 - weight) + colorB.h * weight + 1) % 1 : colorA.h * (1 - weight) + colorB.h * weight,
+        colorA.s * (1 - weight) + colorB.s * weight,
+        colorA.l * (1 - weight) + colorB.l * weight);
+    } else {
+      colorB = rgbToHsl(colorB.red, colorB.green, colorB.blue);
+      return hslToRgb(
+        Math.abs(colorA.h - colorB.h) > 0.5 ? (colorA.h * (1 - weight) + colorB.h * weight + 1) % 1 : colorA.h * (1 - weight) + colorB.h * weight,
+        colorA.s * (1 - weight) + colorB.s * weight,
+        colorA.l * (1 - weight) + colorB.l * weight);
+    }
+  } else {
+    if(colorB.hasOwnProperty('h')) {
+      colorA = rgbToHsl(colorA.red, colorA.green, colorA.blue);
+      return hslToRgb(
+        Math.abs(colorA.h - colorB.h) > 0.5 ? (colorA.h * (1 - weight) + colorB.h * weight + 1) % 1 : colorA.h * (1 - weight) + colorB.h * weight,
+        colorA.s * (1 - weight) + colorB.s * weight,
+        colorA.l * (1 - weight) + colorB.l * weight);
+    } else {
+      return lerpRGB(colorB.red, colorB.green, colorB.blue, weight)(colorA);
+    }
+  }
+}
+
+function colorRGB(r, g, b) {
+  return {
+    red: r,
+    green: g,
+    blue: b
+  }
+}
+
+function colorHSL(h, s, l) {
+  return {
+    h: h,
+    s: s,
+    l: l
+  };
+}
+
+function hue2rgb(p, q, t) {
+  if(t < 0) t += 1;
+  if(t > 1) t -= 1;
+  if(t < 1 / 6) return p + (q - p) * 6 * t;
+  if(t < 1 / 2) return q;
+  if(t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+  return p;
+}
+
+function hslToRgb(h, s, l) {
+  let r, g, b;
+
+  if(s == 0) {
+    r = g = b = l; // achromatic
+  } else {
+    let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    let p = 2 * l - q;
+
+    r = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
+  }
+
+  return {
+    red: r,
+    green: g,
+    blue: b
+  };
+}
+
+function rgbToHsl(r, g, b) {
+  let max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+
+  if(max == min) {
+    h = s = 0; // achromatic
+  } else {
+    let d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
+    }
+
+    h /= 6;
+  }
+
+  return {
+    h: h,
+    s: s,
+    l: l
+  };
+}
+
+function hslShift(h, s, l) {
+  return z => {
+    let hsl = rgbToHsl(z.red, z.green, z.blue);
+    return {
+      ...z,
+      ...hslToRgb((hsl.h + h + 1) % 1, hsl.s + s, hsl.l + l)
+    }
+  }
+}
+
+function lerpRGB(r, g, b, weight = 0.5) {
+  weight = Math.max(0, Math.min(1, weight));
+  return z => {
+    return {
+      ...z,
+      red: z.red * (1 - weight) + r * weight,
+      green: z.green * (1 - weight) + g * weight,
+      blue: z.blue * (1 - weight) + b * weight
+    }
+  }
+}
+
+function lerpHSL(h, s, l, weight = 0.5) {
+  weight = Math.max(0, Math.min(1, weight));
+  return z => {
+    let hsl = rgbToHsl(z.red, z.green, z.blue);
+    return {
+      ...z,
+      ...hslToRgb(
+        Math.abs(hsl.h - h) > 0.5 ? (hsl.h * (1 - weight) + h * weight + 1) % 1 : hsl.h * (1 - weight) + h * weight,
+        hsl.s * (1 - weight) + s * weight,
+        hsl.l * (1 - weight) + l * weight)
+    }
+  }
+}
+
+function gradient(colors) {
+  if(colors.length < 1) {
+    throw "not enough colors";
+  }
+  if(colors.length === 1) {
+    let col = colors[0];
+    if(colors[0].hasOwnProperty('h')){
+      col = hslToRgb(colors[0].h,colors[0].s,colors[0].l);
+    }
+    return z => {
+      return {
+        ...z,
+        ...col
+      }
+    }
+  }
+  return z => {
+    let at = (z.im - Math.floor(z.im))*colors.length;
+    return {
+      ...z,
+      ...lerp(colors[Math.floor(at)%colors.length], colors[Math.ceil(at)%colors.length], at % 1)
+    }
+  }
+}
+
 
 const BUILT_IN_TRANSFORMS = {
   arcsinh: arcsinh,
@@ -617,11 +793,15 @@ const BUILT_IN_TRANSFORMS = {
   blurSquare: blurSquare,
   bubble: bubble,
   circleInv: circleInv,
-  colorRGB: colorRGB,
+  color: color,
+  gradient: gradient,
+  hslShift: hslShift,
   hypershift: hypershift,
   hypertile3: hypertile3,
   julian: julian,
   juliaq: juliaq,
+  lerpHSL: lerpHSL,
+  lerpRGB: lerpRGB,
   mobius: mobius,
   murl2: murl2,
   pointSymmetry: pointSymmetry,
@@ -657,22 +837,36 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 1
   }],
   blurSquare: [],
-  bubble:[],
+  bubble: [],
   circleInv: [],
-  colorRGB: [{
-    name: "r",
+  color: [{
+      name: "color",
+      type: "object",
+      default: {h:0,s:1,l:0.5}
+    }
+  ],
+  gradient: [{
+      name: "colorA",
+      type: "array",
+      default: {
+        h: 0,
+        s: 1,
+        l: 0.5
+      }
+    }
+  ],
+  hslShift: [{
+    name: "h",
     type: "number",
-    default: 1
-  },
-  {
-    name: "g",
+    default: 0
+  }, {
+    name: "s",
     type: "number",
-    default: 1
-  },
-  {
-    name: "b",
+    default: 0
+  }, {
+    name: "l",
     type: "number",
-    default: 1
+    default: 0
   }],
   hypershift: [{
     name: "p",
@@ -723,6 +917,46 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       name: "div",
       type: "number",
       default: 1
+    }
+  ],
+  lerpHSL: [{
+      name: "h",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "s",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "l",
+      type: "number",
+      default: 1
+    }, {
+      name: "weight",
+      type: "number",
+      default: 0
+    }
+  ],
+  lerpRGB: [{
+      name: "r",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "g",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "b",
+      type: "number",
+      default: 1
+    }, {
+      name: "weight",
+      type: "number",
+      default: 0
     }
   ],
   mobius: [{

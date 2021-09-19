@@ -19,8 +19,10 @@ var customWordCompleter = {
       ["BODY", ["body"]],
       ["CAMERA", ["camera"]],
       ["keyword", ["choose", "xaos"]],
-      ["type", ["complex", "number", "string", "bool"]],
-      ["transform", StandardLibNamesArray]
+      ["type", ["complex", "number", "string", "bool", "array", "object"]],
+      ["transform", StandardLibNamesArray],
+      ["constructor", StandardLibConstructorNamesArray],
+      ["helper", StandardLibHelperNamesArray]
     ];
     callback(null, wordList.map(function(words) {
       return words[1].map(function(word) {
@@ -36,6 +38,10 @@ var customWordCompleter = {
           case "type":
             post += " n = ";
             break;
+          case "constructor":
+          case "helper":
+            post += "(";
+            break;
           case "transform":
             if(BUILT_IN_TRANSFORMS_PARAMS.hasOwnProperty(word)) {
               post += "(";
@@ -44,6 +50,10 @@ var customWordCompleter = {
                   case "number":
                   case "bool":
                     post += BUILT_IN_TRANSFORMS_PARAMS[word][i].default;
+                    break;
+                  case "array":
+                  case "object":
+                    post += JSON.stringify(BUILT_IN_TRANSFORMS_PARAMS[word][i].default);
                     break;
                   case "string":
                     post += '"' + BUILT_IN_TRANSFORMS_PARAMS[word][i].default+'"';

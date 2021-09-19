@@ -3,9 +3,17 @@
 
 body:
 choose{
-  1: rotate(-1) -> arcsinh() -> rotate(1) -> colorRGB(0.1, 0.8, 1);
-  1: blurGasket() -> scale(0.2) -> splits(1, 0);
-  1: scale(2) -> splits(1.1, 0) -> colorRGB(0.2, 0.9, 0.9);
+  1: rotate(-1)
+    -> arcsinh()
+    -> rotate(1)
+    -> color(colorHSL(0,1,0.5));
+  1: blurGasket()
+    -> scale(0.2)
+    -> splits(1, 0);
+  1: scale(2)
+    -> splits(1.1, 0)
+    -> color(colorHSL(0.5,1,0.5));
 };
 
-camera: julian(-2, 1) -> scale(0.5);
+camera: julian(-2, 1)
+-> scale(0.5);
