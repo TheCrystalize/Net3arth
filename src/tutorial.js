@@ -23,18 +23,21 @@ body: blurCircle()
 `/*
   That was a fine circle, but it'll be
   much better once we start using some
-  iteration. We do this with "choose".
+  iteration. We do this most simply with "choose".
 */
 
 body:
-  choose{
-    1: blurCircle()
-      -> circleInv();
-    1: rotate(0.5)
-      -> arcsinh()
-      -> scale(0.7853981633974)
-      -> trigTanh();
-      };
+choose{
+  1: blurCircle()
+    -> scale(0.25);
+  1: rotate(0.5)
+    -> arcsinh()
+    -> scale(0.7853981633974)
+    -> trigTanh()
+    -> circleInv()
+    -> scale(0.25);
+};
+
 `,
 
 ];

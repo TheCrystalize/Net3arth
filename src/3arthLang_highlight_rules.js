@@ -24,6 +24,7 @@ rotate
 rotateDeg
 smartshape
 scale
+scaleC
 splits
 tileHelp
 tileLog

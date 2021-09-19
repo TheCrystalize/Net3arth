@@ -447,6 +447,16 @@ function scale(s) {
   }
 }
 
+function scaleC(real, imaginary) {
+  return function(z) {
+    return {
+      ...z,
+      re: z.re * real,
+      im: z.im * imaginary
+    }
+  }
+}
+
 function smartshape(power, roundstr, roundwidth, distortion, compensation) {
   let pow = Math.max(power, 2);
   let alpha = Math.PI * 2 / pow;
@@ -808,6 +818,7 @@ const BUILT_IN_TRANSFORMS = {
   rotate: rotate,
   rotateDeg: rotateDeg,
   scale: scale,
+  scaleC: scaleC,
   smartshape: smartshape,
   splits: splits,
   tileHelp: tileHelp,
@@ -1031,6 +1042,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   }],
   scale: [{
     name: "s",
+    type: "number",
+    default: 1
+  }],
+  scaleC: [{
+    name: "real",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "imaginary",
     type: "number",
     default: 1
   }],
