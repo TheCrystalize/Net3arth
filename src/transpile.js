@@ -514,6 +514,13 @@ function parseEverything(code) {
             match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
           }
 
+
+          match = jsCode.match(/([+-]?[0-9.]+)([+-])i/);
+          while(match) {
+            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index+match[0].length);
+            match = jsCode.match(/([+-]?[0-9.]+)([+-]+)i/);
+          }
+
           match = jsCode.match(/([-]?[0-9.]+)i/);
           while(match) {
             jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index+match[0].length);
@@ -579,7 +586,7 @@ function parseEverything(code) {
               case 'number':
                 if(desiredType !== 'number') {
                   if(desiredType === 'complex') {
-                    parseState[0].value = {re: parseState[0].value, im: 0};
+                    parseState[0].value = {re: parseState[0].value, im: 0, n: true};
                   }
                   else {
                     typeError(desiredType);

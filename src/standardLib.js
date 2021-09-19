@@ -437,22 +437,21 @@ function rotateDeg(s) {
   }
 }
 
-function scale(s) {
-  return z => {
-    return {
-      ...z,
-      re: z.re * s,
-      im: z.im * s
+function scale(c) {
+  if(c.hasOwnProperty('n') && c.n) {
+    return function(z) {
+      return {
+        ...z,
+        re: z.re * c.re,
+        im: z.im * c.re
+      }
     }
   }
-}
-
-function scaleC(real, imaginary) {
   return function(z) {
     return {
       ...z,
-      re: z.re * real,
-      im: z.im * imaginary
+      re: z.re * c.re,
+      im: z.im * c.im
     }
   }
 }
@@ -818,7 +817,6 @@ const BUILT_IN_TRANSFORMS = {
   rotate: rotate,
   rotateDeg: rotateDeg,
   scale: scale,
-  scaleC: scaleC,
   smartshape: smartshape,
   splits: splits,
   tileHelp: tileHelp,
@@ -1041,19 +1039,9 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 0
   }],
   scale: [{
-    name: "s",
-    type: "number",
-    default: 1
-  }],
-  scaleC: [{
-    name: "real",
-    type: "number",
-    default: 1
-  },
-  {
-    name: "imaginary",
-    type: "number",
-    default: 1
+    name: "c",
+    type: "complex",
+    default: {re:1,im:1}
   }],
   smartshape: [{
       name: "power",
