@@ -125,9 +125,9 @@ function updateImage(msg) {
 
   for(let b, i = 0; i < WIDTH * HEIGHT; i++) {
     b = buffer[i];
-    img.data[i * 4] = Math.log(buffer[i * 3]) / Math.log(brightest) * 255 >> 0;
-    img.data[i * 4 + 1] = Math.log(buffer[i * 3 + 1]) / Math.log(brightest) * 255 >> 0;
-    img.data[i * 4 + 2] = Math.log(buffer[i * 3 + 2]) / Math.log(brightest) * 255 >> 0;
+    img.data[i * 4] = buffer[i * 3] / brightest * 255 >> 0;
+    img.data[i * 4 + 1] = buffer[i * 3 + 1] / brightest * 255 >> 0;
+    img.data[i * 4 + 2] = buffer[i * 3 + 2] / brightest * 255 >> 0;
   }
   ctx.putImageData(img, 0, 0);
 }
