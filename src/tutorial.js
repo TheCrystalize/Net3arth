@@ -17,12 +17,26 @@ let tutorials = [
  You should see a white circle appear.
  */
 
-body: blurCircle() -> scale(0.5);
+body: blurCircle()
+        -> scale(0.5);
 `,
 `/*
- TODO:
- - Write More Tutorials
- */`
+  That was a fine circle, but it'll be
+  much better once we start using some
+  iteration. We do this with "choose".
+*/
+
+body:
+  choose{
+    1: blurCircle()
+      -> circleInv();
+    1: rotate(0.5)
+      -> arcsinh()
+      -> scale(0.7853981633974)
+      -> trigTanh();
+      };
+`,
+
 ];
 
 function tutorial() {
