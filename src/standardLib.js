@@ -237,6 +237,17 @@ function circleInv() {
   }
 }
 
+function colorRGB(r, g, b) {
+  return function(z) {
+    return {
+      ...z,
+      red: r,
+      green: g,
+      blue: b
+    }
+  }
+}
+
 function hypershift(p) {
   return function(z) {
     return {
@@ -606,6 +617,7 @@ const BUILT_IN_TRANSFORMS = {
   blurSquare: blurSquare,
   bubble: bubble,
   circleInv: circleInv,
+  colorRGB: colorRGB,
   hypershift: hypershift,
   hypertile3: hypertile3,
   julian: julian,
@@ -647,6 +659,21 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   blurSquare: [],
   bubble:[],
   circleInv: [],
+  colorRGB: [{
+    name: "r",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "g",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "b",
+    type: "number",
+    default: 1
+  }],
   hypershift: [{
     name: "p",
     type: "complex",

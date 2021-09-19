@@ -8,6 +8,7 @@ blurSine
 blurSquare
 bubble
 circleInv
+colorRGB
 hypershift
 hypertile3
 julian
