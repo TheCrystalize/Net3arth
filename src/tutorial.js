@@ -29,12 +29,15 @@ body: blurCircle()
 body:
 choose{
   1: blurCircle()
-  -> circleInv();
+    -> scale(0.25);
   1: rotate(0.5)
-  -> arcsinh()
-  -> scale(0.7853981633974)
-  -> trigTanh();
+    -> arcsinh()
+    -> scale(0.7853981633974)
+    -> trigTanh()
+    -> circleInv()
+    -> scale(0.25);
 };
+
 `,
 
 ];
