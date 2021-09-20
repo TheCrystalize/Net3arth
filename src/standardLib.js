@@ -457,6 +457,63 @@ function scale(c) {
   }
 }
 
+function smartcrop(power, radius, roundstr, roundwidth, distortion, edge, cropmode) {
+  let mode = (power > 0) == (radius > 0) ? 1 : 0,
+    pow = Math.abs(power);
+  let alpha = twopi() / pow;
+  let roundcoeff = roundstr / Math.sin(alpha * 0.5) / pow * 2,
+    wradius = Math.abs(radius),
+    radial, wpower, walpha, wcoeff;
+  if(pow < 2) {
+    radial = 1;
+    wpower = pow * Math.PI;
+    walpha = 0;
+    wcoeff = 0;
+  } else {
+    radial = 0;
+    wpower = pow;
+    walpha = alpha;
+    wcoeff = roundcoeff;
+  }
+  return function(z) {
+    let ang = Math.atan2(z.im, z.re),
+      rad = Math.sqrt(dot(z, z));
+    let wedge, xang0, xang1, xang, coeff0, coeff1, coeff, xr, angle, wwidth, rdc;
+    if(radial == 1) {
+      wedge = edge * (Math.random() - 0.5);
+      xang0 = ang / (2 * Math.PI) + 1 + wedge;
+      xang = (xang0 - Math.floor(xang0)) * 2 * Math.PI;
+      angle = Math.floor(Math.random() * 2) != 0 ? wpower + edge * Math.PI;
+      if((xang > wpower) == (mode != 1)) {
+        return {
+          ...z,
+          re: Math.cos(angle) * rad,
+          im: Math.sin(angle) * rad
+        }
+      } else {
+        return {
+          ...z
+        }
+      }
+    } else {
+      xang0 = (ang + Math.PI) / walpha;
+      xang1 = xang0 - Math.floor(xang0);
+      xang = xang1 < 0.5 ? xang1 : 1 - xang1;
+      coeff0 = 1 / Math.cos(xang * walpha);
+      wwidth = roundwidth != 1 ? Math.exp(Math.log(xang * 2) * roundwidth) * roundcoeff : xang * 2 * roundcoeff;
+      coeff1 = distortion == 0 ? 1 : roundstr != 0 ? Math.abs((1 - wwidth) * coeff0 + wwidth) : coeff0;
+      coeff = distortion != 1 ? Math.exp(Math.log(coeff1) * distortion) : coeff1;
+      xr = edge != 0 ? coeff * (wradius + edge * (Math.random() - 0.5)) : coeff * wradius;
+      rdc = cropmode == -1 ? rad : xr
+      f = (rad > xr) == (cropmode == 1) ? cropmode < 0 ? C(Math.cos(ang) * rdc, Math.sin(ang) * rdc) : cropmode == 2 ? C(1 / 0, 1 / 0) : C(0, 0) : z;
+      return {
+        ...z,
+        ...f
+      }
+    }
+  }
+}
+
 function smartshape(power, roundstr, roundwidth, distortion, compensation) {
   let pow = Math.max(power, 2);
   let alpha = Math.PI * 2 / pow;
@@ -893,6 +950,7 @@ const BUILT_IN_TRANSFORMS = {
   rotate: rotate,
   rotateDeg: rotateDeg,
   scale: scale,
+  smartcrop: smartcrop,
   smartshape: smartshape,
   splits: splits,
   tileHelp: tileHelp,
@@ -1065,6 +1123,43 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       im: 1
     }
   }],
+  smartcrop: [{
+      name: "power",
+      type: "number",
+      default: 4
+    },
+    {
+      name: "radius",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "roundstr",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "roundwidth",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "distortion",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "edge",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "cropmode",
+      type: "number",
+      default: 2
+    }
+  ],
+
   smartshape: [{
       name: "power",
       type: "number",
