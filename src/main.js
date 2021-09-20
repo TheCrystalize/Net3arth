@@ -11,19 +11,14 @@ widthUI.value = WIDTH;
 heightUI.value = HEIGHT;
 
 //initialize canvas
-const c = document.getElementById("canvas");
-const ctx = c.getContext("2d", {
-  alpha: false
-});
-c.style.backgroundColor = "#12161b";
-c.style.minWidth = WIDTH + 'px';
-c.style.maxWidth = WIDTH + 'px';
-c.width = WIDTH;
-c.style.minHeight = HEIGHT + 'px';
-c.style.maxHeight = HEIGHT + 'px';
-c.height = HEIGHT;
-
-ctx.imageSmoothingQuality = "high";
+const canvas = document.getElementById("canvas");
+canvas.style.backgroundColor = "black";
+canvas.style.minWidth = WIDTH + 'px';
+canvas.style.maxWidth = WIDTH + 'px';
+canvas.width = WIDTH;
+canvas.style.minHeight = HEIGHT + 'px';
+canvas.style.maxHeight = HEIGHT + 'px';
+canvas.height = HEIGHT;
 
 let buffer;
 let img;
@@ -40,7 +35,16 @@ function getBrightest() {
 
 let threads = [];
 
-let drewFrames;
+let offscreenCanvas = canvas.transferControlToOffscreen();
+
+let rendererThread = new Worker('src/rendererWorker.js');
+rendererThread.postMessage({
+  canvas: offscreenCanvas
+}, [offscreenCanvas]);
+
+function updateImage(msg) {
+  rendererThread.postMessage(msg.data, [msg.data]);
+}
 
 function refreshRender() {
   consolelog("running...", "limegreen");
@@ -48,28 +52,20 @@ function refreshRender() {
     threads[i].terminate();
   }
 
-  drewFrames = 0;
-
   THREADS = parseInt(threadsUI.value);
   WIDTH = parseInt(widthUI.value);
   HEIGHT = parseInt(heightUI.value);
 
-  c.style.minWidth = WIDTH + 'px';
-  c.style.maxWidth = WIDTH + 'px';
-  c.width = WIDTH;
-  c.style.minHeight = HEIGHT + 'px';
-  c.style.maxHeight = HEIGHT + 'px';
-  c.height = HEIGHT;
+  canvas.style.minWidth = WIDTH + 'px';
+  canvas.style.maxWidth = WIDTH + 'px';
+  canvas.style.minHeight = HEIGHT + 'px';
+  canvas.style.maxHeight = HEIGHT + 'px';
 
-  buffer = new Uint32Array(WIDTH * HEIGHT * 3);
-  for(let i = 0; i < buffer.length; i++) {
-    buffer[i] = 0;
-  }
-
-  img = new ImageData(WIDTH, HEIGHT);
-  for(let i = 3; i < WIDTH * HEIGHT * 4; i += 4) {
-    img.data[i] = 255;
-  }
+  rendererThread.postMessage({
+    width: WIDTH,
+    height: HEIGHT,
+    stuffToDo: stuffToDo
+  });
 
   let spc = STEPS_PER_CALL;
 
@@ -80,8 +76,6 @@ function refreshRender() {
     spc *= 1.3;
     threads[i].postMessage(["data"]);
   }
-
-  ctx.fillRect(0,0,WIDTH, HEIGHT);
 }
 
 function runCode() {
@@ -105,29 +99,3 @@ function modMinute() {
 }
 
 let onId = 1;
-
-function updateImage(msg) {
-  let m = new Float64Array(msg.data);
-  let id = m[WIDTH * HEIGHT * 3];
-
-  if(m.length - 1 !== buffer.length) {
-    return;
-  }
-
-  for(let i = 0; i < buffer.length - 1; i++) {
-    buffer[i] += m[i];
-    buffer[i + 1] += m[i + 1];
-    buffer[i + 2] += m[i + 2];
-  }
-
-  // draw onto canvas
-  const brightest = getBrightest();
-
-  for(let b, i = 0; i < WIDTH * HEIGHT; i++) {
-    b = buffer[i];
-    img.data[i * 4] = buffer[i * 3] / brightest * 255 >> 0;
-    img.data[i * 4 + 1] = buffer[i * 3 + 1] / brightest * 255 >> 0;
-    img.data[i * 4 + 2] = buffer[i * 3 + 2] / brightest * 255 >> 0;
-  }
-  ctx.putImageData(img, 0, 0);
-}

@@ -6,14 +6,14 @@ function switchStuff(stuff, val) {
   //console.log(stuff);
 
   let total = 0;
-  for(let i = 0; i < stuff.length; i++){
+  for(let i = 0; i < stuff.length; i++) {
     total += stuff[i][0];
   }
   let rand = Math.random() * total;
   let at = 0;
   for(let i = 0; i < stuff.length; i++) {
     at += stuff[i][0];
-    if(rand < at){
+    if(rand < at) {
       //console.log(`chose ${i}`);
       return loopStuff(stuff[i][1], val);
     }
@@ -31,7 +31,9 @@ function loopStuff(stuff, val) {
     throw stuff;
   }
 
-  if(!stuff[0]){return val;}
+  if(!stuff[0]) {
+    return val;
+  }
 
   if(typeof stuff[0][0] === 'number')
     return switchStuff(stuff, val);
@@ -50,8 +52,9 @@ let WIDTH;
 let HEIGHT;
 let ID;
 
-function consolelog(){}
-function consoleclear(){}
+function consolelog() {}
+
+function consoleclear() {}
 
 function run() {
   let buffer = new Float64Array(WIDTH * HEIGHT * 3 + 1);
@@ -67,9 +70,9 @@ function run() {
 
     if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
       let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * HEIGHT >> 0) * WIDTH;
-      buffer[index*3] += val.red;
-      buffer[index*3+1] += val.green;
-      buffer[index*3+2] += val.blue;
+      buffer[index * 3] += val.red;
+      buffer[index * 3 + 1] += val.green;
+      buffer[index * 3 + 2] += val.blue;
     }
   }
 
@@ -87,19 +90,20 @@ function populateFunctionsSwitch(job) {
 }
 
 function populateFunctions(job) {
-  if(typeof job[0] === 'string'){
+  if(typeof job[0] === 'string') {
     if(BUILT_IN_TRANSFORMS.hasOwnProperty(job[0])) {
       job[0] = BUILT_IN_TRANSFORMS[job[0]](...job[1]);
       return;
-    }
-    else if(customFunctions.hasOwnProperty(job[0])) {
+    } else if(customFunctions.hasOwnProperty(job[0])) {
       job[0] = customFunctions[job[0]](...job[1]);
       return;
     }
     throw (`${job[0]} not supported`);
   }
 
-  if(!job[0]){return;}
+  if(!job[0]) {
+    return;
+  }
 
   if(typeof job[0][0] === 'number') {
     populateFunctionsSwitch(job);
@@ -114,12 +118,12 @@ function populateFunctions(job) {
 
 function loadCustomFunctions(functions) {
   for(let f in functions) {
-    globalThis[functions[f].name] = new Function(...functions[f].params.map(a=>a.name),functions[f].code);
+    globalThis[functions[f].name] = new Function(...functions[f].params.map(a => a.name), functions[f].code);
     functions[f] = globalThis[functions[f].name];
   }
 }
 
-function initialize(id, job, spf, width, height){
+function initialize(id, job, spf, width, height) {
   ID = id;
   WIDTH = width;
   HEIGHT = height;
@@ -139,10 +143,10 @@ function initialize(id, job, spf, width, height){
 }
 
 self.onmessage = function(msg) {
-  switch(msg.data[0]){
+  switch (msg.data[0]) {
     case "start":
       initialize(...msg.data[1]);
-    break;
+      break;
     case "data":
       run();
       break;

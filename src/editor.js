@@ -18,6 +18,7 @@ var customWordCompleter = {
       ["TEMPLATE", ["TRANSFORM"]],
       ["BODY", ["body"]],
       ["CAMERA", ["camera"]],
+      ["SHADER", ["shader"]],
       ["keyword", ["choose", "xaos"]],
       ["type", ["complex", "number", "string", "bool", "array", "object"]],
       ["transform", StandardLibNamesArray],
@@ -30,6 +31,7 @@ var customWordCompleter = {
         switch (words[0]) {
           case "CAMERA":
           case "BODY":
+          case "SHADER":
             post += ":\n";
             break;
           case "TEMPLATE":

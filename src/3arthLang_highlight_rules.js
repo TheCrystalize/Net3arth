@@ -242,15 +242,14 @@ var EarthLangHighlightRules = function(options) {
                 token: "keyword.control",
                 regex: "->",
                 next: "earthLangTransform"
-            },
-            {
-                token: "keyword.control",
-                regex: "\\s*$",
-                next: "earthLangTransformPost"
-            },
+            }
         ],
         "earthLangParams": [
             comments("earthLangParams"),
+            {
+                token : "empty",
+                regex : "'\\(|\\)"
+            },
             {
                 token : "string",
                 regex : "'(?=.)",
@@ -333,11 +332,11 @@ var EarthLangHighlightRules = function(options) {
         "earthLangChoose": [
             comments("earthLangChoose"),
             {
-                token: "markup.bold",
-                regex: "({|})\\s*$",
+                token: "empty",
+                regex: "{"
             },
             {
-                token: "markup.bold",
+                token: "empty",
                 regex: "}",
                 next: "earthLangTransformPost"
             },
@@ -357,7 +356,7 @@ var EarthLangHighlightRules = function(options) {
             comments("earthLangXaos"),
             {
                 token: "empty",
-                regex: "({|})\\s*$"
+                regex: "{"
             },
             {
                 token: "empty",
@@ -379,7 +378,7 @@ var EarthLangHighlightRules = function(options) {
             comments("earthLangXaosIn"),
             {
                 token: "empty",
-                regex: "({|})\\s*$"
+                regex: "{"
             },
             {
                 token: "empty",
@@ -400,7 +399,7 @@ var EarthLangHighlightRules = function(options) {
             comments("earthLangXaosMap"),
             {
                 token: "empty",
-                regex: "({|})\\s*$"
+                regex: "{"
             },
             {
                 token: "empty",
@@ -423,11 +422,16 @@ var EarthLangHighlightRules = function(options) {
             {
                 token: "storage.type",
                 regex: "(?:number|complex|bool|string|array|object)",
+                push: "earthLangFunctionType",
                 next: "earthLangFunction"
             },
             {
                 token: "storage.type",
                 regex: "\\w+\\b"
+            },
+            {
+                token: "empty",
+                regex: "\\(",
             },
             {
                 token: "empty",
@@ -458,7 +462,7 @@ var EarthLangHighlightRules = function(options) {
             {
                 token: "empty",
                 regex: ",",
-                next: "earthLangFunctionType"
+                next: "pop"
             },
             {
                 token: "empty",
@@ -482,7 +486,7 @@ var EarthLangHighlightRules = function(options) {
             DocCommentHighlightRules.getStartRule("doc-start"),
             comments("no_regex"),
             {
-                token: "support.class",
+                token: "support.class.italic",
                 regex: "body|camera|shader",
                 push: "start",
                 next: "earthLangTransform"
@@ -663,7 +667,7 @@ var EarthLangHighlightRules = function(options) {
         "start": [
             comments("start"),
             {
-                token: "support.class",
+                token: "support.class.italic",
                 regex: "body|camera|shader",
                 push: "start",
                 next: "pushedColon"

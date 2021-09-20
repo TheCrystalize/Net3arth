@@ -13,11 +13,14 @@ function parseVal(txt) {
 
 /*to*/
 function complexToString(z) {
-  if(z.im === 0) {
-    return z.re;
-  }
   if(z.re === 0) {
     return z.im + 'i';
+  }
+  if(z.im === 1) {
+    return `${z.re}+i`;
+  }
+  if(z.im === -1) {
+    return `${z.re}-i`;
   }
   if(z.im < 0) {
     return `${z.re}-${-z.im}i`;
@@ -36,16 +39,19 @@ function paramsToString(params) {
         break;
       case 'array':
       case 'object':
-        if(Object.keys(params[i]).join(',')==='re,im') {
+        if(Object.keys(params[i]).join(',') === 're,im') {
           ans += complexToString(params[i]);
-        }
-        else if(Object.keys(params[i]).join(',')==='red,green,blue') {
-          ans += `colorRGB(${params[i].red},${params[i].green},${params[i].blue})`;
-        }
-        else if(Object.keys(params[i]).join(',')==='h,s,l') {
-          ans += `colorHSL(${params[i].h},${params[i].s},${params[i].l})`;
-        }
-        else{
+        } else if(Object.keys(params[i]).join(',') === 're,im,n') {
+          if(params[i].n) {
+            ans += `${params[i].re}`;
+          } else {
+            ans += complexToString(params[i]);
+          }
+        } else if(Object.keys(params[i]).join(',') === 'red,green,blue') {
+          ans += `colorRGB(${params[i].red}, ${params[i].green}, ${params[i].blue})`;
+        } else if(Object.keys(params[i]).join(',') === 'h,s,l') {
+          ans += `colorHSL(${params[i].h}, ${params[i].s}, ${params[i].l})`;
+        } else {
           ans += JSON.stringify(params[i]);
         }
         break;
@@ -100,12 +106,16 @@ function to3arthLang(data) {
   let customFunctions = customTransformsToString(data.customFunctions);
   let body = loopToString(data.body);
   let camera = loopToString(data.camera);
+  let shader = loopToString(data.shader);
   let code = customFunctions;
   if(body.length > 0) {
     code += `body: ${body};\n\n`;
   }
   if(camera.length > 0) {
     code += `camera: ${camera};\n\n`;
+  }
+  if(shader.length > 0) {
+    code += `shader: ${shader};\n\n`;
   }
   return code;
 }
@@ -132,6 +142,7 @@ function getTypeOfWord(word) {
     case (word === '='):
     case (word === 'body'):
     case (word === 'camera'):
+    case (word === 'shader'):
     case (word === 'choose'):
       return word;
     case (word === 'number'):
@@ -306,7 +317,7 @@ function _3arthError(word, lineNumber, line) {
   }
 }
 
-let verbose = true;
+let verbose = false;
 
 function parseEverything(code) {
   consoleclear();
@@ -344,7 +355,9 @@ function parseEverything(code) {
               j = 0;
               i++;
               if(i >= code.length) {
-                General3arthError({at:start[1]},start[0],code[start[0]])("unclosed comment");
+                General3arthError({
+                  at: start[1]
+                }, start[0], code[start[0]])("unclosed comment");
               }
               words = lineToWords(code[i]);
             }
@@ -466,7 +479,9 @@ function parseEverything(code) {
               j = 0;
               i++;
               if(i >= code.length) {
-                General3arthError({at:start[1]},start[0],code[start[0]])("unexpected end of input");
+                General3arthError({
+                  at: start[1]
+                }, start[0], code[start[0]])("unexpected end of input");
               }
               words = lineToWords(code[i]);
             }
@@ -491,7 +506,7 @@ function parseEverything(code) {
             if(verbose) {
               console.log(`${words[j].word} | ${parenDepth}, ${bracketDepth}, ${squareDepth}`);
             }
-          } while(lastParenDepth > 0 || lastBracketDepth > 0 || lastSquareDepth > 0 || !( words[j].word === ',' || words[j].word === ')'))
+          } while(lastParenDepth > 0 || lastBracketDepth > 0 || lastSquareDepth > 0 || !(words[j].word === ',' || words[j].word === ')'))
 
           let jsCode = '';
 
@@ -510,20 +525,20 @@ function parseEverything(code) {
 
           let match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
           while(match) {
-            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index+match[0].length);
+            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index + match[0].length);
             match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
           }
 
 
           match = jsCode.match(/([+-]?[0-9.]+)([+-])i/);
           while(match) {
-            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index+match[0].length);
+            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index + match[0].length);
             match = jsCode.match(/([+-]?[0-9.]+)([+-]+)i/);
           }
 
           match = jsCode.match(/([-]?[0-9.]+)i/);
           while(match) {
-            jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index+match[0].length);
+            jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index + match[0].length);
             match = jsCode.match(/([-]?[0-9.]+)i/);
           }
 
@@ -537,12 +552,11 @@ function parseEverything(code) {
             for(let f in customFunctions) {
               loadCustomFunctions += `function ${f}(${customFunctions[f].params.map(p=>`${p.name}`).join(',')}){${customFunctions[f].code}}`;
             }
-            ans = eval('(_=>{'+loadCustomFunctions+'return '+jsCode+'})()');
+            ans = eval('(_=>{' + loadCustomFunctions + 'return ' + jsCode + '})()');
           } catch (e) {
-            if(parseState[1].is === 'custom transform params'){
+            if(parseState[1].is === 'custom transform params') {
               newGeneralError(`${parseState[1].transform} parameter error:\n` + e);
-            }
-            else{
+            } else {
               newGeneralError(`${parseState[1].is} value error:\n` + e);
             }
           }
@@ -557,9 +571,9 @@ function parseEverything(code) {
           return start;
         }
 
-        let desiredType = parseState[0].is.replace(' param','');
+        let desiredType = parseState[0].is.replace(' param', '');
 
-        switch(desiredType) {
+        switch (desiredType) {
           case 'number':
           case 'complex':
           case 'bool':
@@ -570,25 +584,37 @@ function parseEverything(code) {
               console.log('get value:');
             }
             let start = getValue();
-            let typeError =  _3arthError({word:parseState[0].value,at:start[1]}, start[0], code[start[0]]);
-            if(typeof parseState[0].value === 'object'){
-              try{
-                typeError = _3arthError({word:JSON.stringify(parseState[0].value),at:start[1]}, start[0], code[start[0]]);
-                if(Object.keys(parseState[0].value).join(',')==='re,im') {
-                  typeError = _3arthError({word:parseState[0].value.re+(parseState[0].value.im>0?'+':'')+parseState[0].value.im+'i',at:start[1]}, start[0], code[start[0]]);
+            let typeError = _3arthError({
+              word: parseState[0].value,
+              at: start[1]
+            }, start[0], code[start[0]]);
+            if(typeof parseState[0].value === 'object') {
+              try {
+                typeError = _3arthError({
+                  word: JSON.stringify(parseState[0].value),
+                  at: start[1]
+                }, start[0], code[start[0]]);
+                if(Object.keys(parseState[0].value).join(',') === 're,im') {
+                  typeError = _3arthError({
+                    word: parseState[0].value.re + (parseState[0].value.im > 0 ? '+' : '') + parseState[0].value.im + 'i',
+                    at: start[1]
+                  }, start[0], code[start[0]]);
                 }
-              }catch(e){}
+              } catch (e) {}
             }
             if(verbose) {
               console.log(parseState[0].value);
             }
-            switch(typeof parseState[0].value) {
+            switch (typeof parseState[0].value) {
               case 'number':
                 if(desiredType !== 'number') {
                   if(desiredType === 'complex') {
-                    parseState[0].value = {re: parseState[0].value, im: 0, n: true};
-                  }
-                  else {
+                    parseState[0].value = {
+                      re: parseState[0].value,
+                      im: 0,
+                      n: true
+                    };
+                  } else {
                     typeError(desiredType);
                   }
                 }
@@ -596,20 +622,24 @@ function parseEverything(code) {
               case 'object':
                 if(desiredType !== 'complex') {
                   if(desiredType !== 'array' || !Array.isArray(parseState[0].value)) {
-                    if(desiredType !== 'object'){
+                    if(desiredType !== 'object') {
                       typeError(desiredType);
                     }
                   }
-                }
-                else if(Object.keys(parseState[0].value).join(',')==='re,im'){
+                } else if(Object.keys(parseState[0].value).join(',') === 're,im') {
                   if(typeof parseState[0].value.re !== 'number' || isNaN(parseState[0].value.re)) {
-                    General3arthError({word:parseState[0].value,at:start[1]}, start[0], code[start[0]])(`Complex value's real part is undefined: ${parseState[0].value.re}`);
+                    General3arthError({
+                      word: parseState[0].value,
+                      at: start[1]
+                    }, start[0], code[start[0]])(`Complex value's real part is undefined: ${parseState[0].value.re}`);
                   }
                   if(typeof parseState[0].value.im !== 'number' || isNaN(parseState[0].value.im)) {
-                    General3arthError({word:parseState[0].value,at:start[1]}, start[0], code[start[0]])(`Complex value's imaginary part is undefined: ${parseState[0].value.im}`);
+                    General3arthError({
+                      word: parseState[0].value,
+                      at: start[1]
+                    }, start[0], code[start[0]])(`Complex value's imaginary part is undefined: ${parseState[0].value.im}`);
                   }
-                }
-                else{
+                } else {
                   typeError(desiredType);
                 }
                 break;
@@ -626,7 +656,7 @@ function parseEverything(code) {
               default:
                 typeError(desiredType)
             }
-          break;
+            break;
         }
 
         switch (parseState[0].is) {
@@ -668,6 +698,18 @@ function parseEverything(code) {
                   is: ':'
                 });
                 break;
+              case 'shader':
+                parseState.unshift({
+                  is: 'shader'
+                });
+                parseState.unshift({
+                  is: 'transform',
+                  transforms: []
+                });
+                parseState.unshift({
+                  is: ':'
+                });
+                break;
               case 'word':
                 parseState.unshift({
                   is: 'function',
@@ -675,7 +717,7 @@ function parseEverything(code) {
                 });
                 break;
               default:
-                newError('function, "body", or "camera"');
+                newError('function, "body", "camera", or "shader"');
             }
             break;
           case 'function':
@@ -801,6 +843,28 @@ function parseEverything(code) {
               jsCode = jsCode.replace(/console\.log/g, 'consolelog');
               jsCode = jsCode.replace(/console\.clear/g, 'consoleclear');
 
+              let match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+              while(match) {
+                jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index + match[0].length);
+                match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+              }
+
+              match = jsCode.match(/([+-]?[0-9.]+)([+-])i/);
+              while(match) {
+                jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index + match[0].length);
+                match = jsCode.match(/([+-]?[0-9.]+)([+-]+)i/);
+              }
+
+              match = jsCode.match(/([-]?[0-9.]+)i/);
+              while(match) {
+                jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index + match[0].length);
+                match = jsCode.match(/([-]?[0-9.]+)i/);
+              }
+
+              if(verbose) {
+                console.log(jsCode);
+              }
+
               try {
                 let testFunction = new Function(...parseState[0].params.map(a => a.name), jsCode);
                 let ans = testFunction(...parseState[0].params.map(a => a.default));
@@ -809,8 +873,7 @@ function parseEverything(code) {
                     re: 1,
                     im: 2
                   });
-                }
-                else {
+                } else {
                   // determine type of result
                 }
               } catch (e) {
@@ -948,6 +1011,12 @@ function parseEverything(code) {
                     parseState.shift();
                     parseState.shift();
                     break;
+                  case 'shader':
+                    parseState[3].shader = parseState[1].transforms;
+                    parseState.shift();
+                    parseState.shift();
+                    parseState.shift();
+                    break;
                   default:
                     newGeneralError(`Unhandeled state transition from "${parseState[1].is}" to "${parseState[2].is}"`, parseState);
                 }
@@ -1005,6 +1074,10 @@ function parseEverything(code) {
 
     if(!parseState[0].hasOwnProperty('camera')) {
       parseState[0].camera = [];
+    }
+
+    if(!parseState[0].hasOwnProperty('shader')) {
+      parseState[0].shader = [];
     }
 
     parseState[0].customFunctions = customFunctions;
