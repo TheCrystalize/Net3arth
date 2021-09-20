@@ -151,6 +151,7 @@ function getTypeOfWord(word) {
     case (word === 'camera'):
     case (word === 'shader'):
     case (word === 'choose'):
+    case (word === 'xaos'):
       return word;
     case (word === 'number'):
     case (word === 'bool'):
@@ -444,6 +445,30 @@ function parseEverything(code) {
           }
         }
 
+        function endWeight() {
+          let terminator = parseState[0].terminator;
+          if(!terminator){
+            General3arthError("GET TO DA CHOPPA!");
+          }
+          switch (wordType) {
+            case terminator:
+              if(!parseState[0].hasOwnProperty('value')) {
+                newError(parseState[0].is);
+              }
+              parseState[2].weight = parseState[0].value;
+              parseState.shift();
+              parseState.shift();
+
+              parseState.unshift({
+                is:"transform",
+                transforms:[]
+              });
+              break;
+            default:
+              newError(parseState[0].is);
+          }
+        }
+
         function getValue() {
           let start = [i, words[j].at];
           let bracketDepth = 0;
@@ -513,7 +538,7 @@ function parseEverything(code) {
             if(verbose) {
               console.log(`${words[j].word} | ${parenDepth}, ${bracketDepth}, ${squareDepth}`);
             }
-          } while(lastParenDepth > 0 || lastBracketDepth > 0 || lastSquareDepth > 0 || !(words[j].word === ',' || words[j].word === ')'))
+          } while(lastParenDepth > 0 || lastBracketDepth > 0 || lastSquareDepth > 0 || !(words[j].word === ':' || words[j].word === ',' || words[j].word === ')'))
 
           let jsCode = '';
 
@@ -578,7 +603,7 @@ function parseEverything(code) {
           return start;
         }
 
-        let desiredType = parseState[0].is.replace(' param', '');
+        let desiredType = parseState[0].is.replace(' param', '').replace(' weight', '');
 
         switch (desiredType) {
           case 'number':
@@ -800,6 +825,14 @@ function parseEverything(code) {
           case 'object param':
             endParam();
             break;
+          case 'number weight':
+          case 'complex weight':
+          case 'bool weight':
+          case 'string weight':
+          case 'array weight':
+          case 'object weight':
+            endWeight();
+            break;
           case 'js':
             if(word === '{') {
               j++;
@@ -914,6 +947,22 @@ function parseEverything(code) {
                   items: []
                 });
                 parseState.unshift({
+                  is: 'weight'
+                });
+                parseState.unshift({
+                  is: 'number weight',
+                  terminator: ':'
+                });
+                parseState.unshift({
+                  is: '{'
+                });
+                break;
+              case 'xaos':
+                parseState.unshift({
+                  is: 'xaos items',
+                  items: []
+                });
+                parseState.unshift({
                   is: '{'
                 });
                 break;
@@ -942,7 +991,8 @@ function parseEverything(code) {
                       paramTypes: BUILT_IN_TRANSFORMS_PARAMS[word]
                     });
                     parseState.unshift({
-                      is: parseState[0].paramTypes[0].type + ' param'
+                      is: parseState[0].paramTypes[0].type + ' param',
+                      terminator: ')'
                     });
                     parseState.unshift({
                       is: '('
