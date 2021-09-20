@@ -28,7 +28,7 @@ function complexToString(z) {
   return `${z.re}+${z.im}i`;
 }
 
-function paramsToString(params) {
+function paramsToString(params, tab) {
   let ans = '';
   for(let i = 0; i < params.length; i++) {
     switch (typeof params[i]) {
@@ -37,8 +37,15 @@ function paramsToString(params) {
       case 'bool':
         ans += params[i];
         break;
-      case 'array':
       case 'object':
+        if(Array.isArray(params[i])){
+          let ans = '[\n'+tab;
+          for(let j in params[i]) {
+            ans+= '  '+paramsToString([params[i][j]], tab+'  ')+',\n'+tab;
+          }
+          return ans+']';
+          break;
+        }
         if(Object.keys(params[i]).join(',') === 're,im') {
           ans += complexToString(params[i]);
         } else if(Object.keys(params[i]).join(',') === 're,im,n') {
@@ -75,7 +82,7 @@ function switchToString(data, tab) {
 
 function loopToString(data, tab = '') {
   if(typeof data[0] === 'string') {
-    return `${data[0]}(${paramsToString(data[1])})`;
+    return `${data[0]}(${paramsToString(data[1], tab)})`;
   }
   if(!data[0]) {
     return '';
