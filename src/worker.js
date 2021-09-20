@@ -61,12 +61,27 @@ function run() {
 
   buffer[WIDTH * HEIGHT * 3] = ID;
 
+  let scl = [];
+  if(WIDTH > HEIGHT) {
+    scl = [scale({
+      re: HEIGHT / WIDTH,
+      im: 1
+    })];
+  }
+  if(WIDTH < HEIGHT) {
+    scl = [scale({
+      re: 1,
+      im: WIDTH / HEIGHT
+    })];
+  }
+
   for(let i = 0; i < stepsPerFrame; i++) {
     //console.log(`change pointer: ${stuffToDo.body}`);
     pointer = loopStuff(stuffToDo.body, pointer);
 
     //console.log(`do post: ${stuffToDo.post}`);
     let val = loopStuff(stuffToDo.camera, pointer);
+    val = loopStuff(scl, val);
 
     if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
       let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * HEIGHT >> 0) * WIDTH;
