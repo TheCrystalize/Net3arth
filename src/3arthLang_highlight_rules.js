@@ -8,15 +8,21 @@ blurSine
 blurSquare
 bubble
 circleInv
+color
+gradient
+hslShift
 hypershift
 hypertile3
 julian
 juliaq
+lerpHSL
+lerpRGB
 mobius
 murl2
 pointSymmetry
 rotate
 rotateDeg
+smartcrop
 smartshape
 scale
 splits
@@ -28,24 +34,11 @@ trigExp
 trigLog
 trigSinh
 trigTanh
-unbubble
-brighten
-color
-gamma
-gradient
-hslShift
-lerpHSL
-lerpRGB
-normalizeColor
-setHue
-setSaturation
-setLightness`.split('\n');
+unbubble`.split('\n');
 
 const StandardLibHelperNamesArray =
 `rgbToHsl
 hslToRgb
-brightenRGB
-lerp
 conj
 div
 divScalar
@@ -56,6 +49,7 @@ addScalar
 mult
 multScalar
 sqrt
+lerp
 log
 pow
 exp
@@ -483,7 +477,7 @@ var EarthLangHighlightRules = function(options) {
             comments("no_regex"),
             {
                 token: "support.class",
-                regex: "body|camera|shader",
+                regex: "body|camera",
                 push: "start",
                 next: "earthLangTransform"
             },
@@ -664,7 +658,7 @@ var EarthLangHighlightRules = function(options) {
             comments("start"),
             {
                 token: "support.class",
-                regex: "body|camera|shader",
+                regex: "body|camera|something",
                 push: "start",
                 next: "pushedColon"
             },
