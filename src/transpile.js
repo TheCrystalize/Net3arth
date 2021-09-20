@@ -218,7 +218,7 @@ function lineToWords(line) {
         pushWord(currentWord, i + 1);
         typeOfWord = '';
         break;
-      case (typeOfWord === '' && char === '.' && line[i + 1].search(/\d/) === 0):
+      case (typeOfWord === '' && char === '.' && i < line.length-1 && line[i + 1].search(/\d/) === 0):
         currentWord = '0.';
         typeOfWord = 'decimal';
         break;

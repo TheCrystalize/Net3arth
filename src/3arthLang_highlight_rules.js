@@ -9,15 +9,10 @@ blurSquare
 brighten
 bubble
 circleInv
-color
-gradient
-hslShift
 hypershift
 hypertile3
 julian
 juliaq
-lerpHSL
-lerpRGB
 mobius
 murl2
 pointSymmetry
@@ -34,7 +29,11 @@ trigExp
 trigLog
 trigSinh
 trigTanh
-unbubble`.split('\n');
+unbubble
+color
+gamma
+gradient
+hslShift`.split('\n');
 
 const StandardLibHelperNamesArray =
 `rgbToHsl
