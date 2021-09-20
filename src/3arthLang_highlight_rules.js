@@ -22,7 +22,6 @@ mobius
 murl2
 pointSymmetry
 rotate
-rotateDeg
 smartcrop
 smartshape
 scale

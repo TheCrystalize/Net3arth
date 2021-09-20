@@ -413,20 +413,7 @@ function pointSymmetry(centerX, centerY, order) {
 }
 
 function rotate(theta) {
-  const th = theta * Math.PI / 2;
-  const sinTheta = -Math.sin(th);
-  const cosTheta = -Math.cos(th);
-  return z => {
-    return {
-      ...z,
-      re: cosTheta * z.re + sinTheta * z.im,
-      im: sinTheta * z.re - cosTheta * z.im
-    }
-  }
-}
-
-function rotateDeg(s) {
-  const rad = Math.PI / 180 * s;
+  const rad = Math.PI / 180 * theta;
   const sinTheta = -Math.sin(rad);
   const cosTheta = -Math.cos(rad);
   return z => {
@@ -948,7 +935,6 @@ const BUILT_IN_TRANSFORMS = {
   murl2: murl2,
   pointSymmetry: pointSymmetry,
   rotate: rotate,
-  rotateDeg: rotateDeg,
   scale: scale,
   smartcrop: smartcrop,
   smartshape: smartshape,
@@ -1110,11 +1096,6 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 0
   }],
-  rotateDeg: [{
-    name: "theta",
-    type: "number",
-    default: 0
-  }],
   scale: [{
     name: "c",
     type: "complex",
@@ -1245,11 +1226,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   gradient: [{
     name: "colorA",
     type: "array",
-    default: {
-      h: 0,
-      s: 1,
-      l: 0.5
-    }
+    default: [{
+      r: 1,
+      g: 1,
+      b: 1
+    }]
   }],
   hslShift: [{
     name: "h",
