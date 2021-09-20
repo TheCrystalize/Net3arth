@@ -35,12 +35,22 @@ function getBrightest() {
 
 let threads = [];
 
-let offscreenCanvas = canvas.transferControlToOffscreen();
+let offscreenCanvas = false;
+let rendererThread = false;
 
-let rendererThread = new Worker('src/rendererWorker.js');
-rendererThread.postMessage({
-  canvas: offscreenCanvas
-}, [offscreenCanvas]);
+// offscreenCanvas isn't supported in some browsers (*cough* FireFox *cough*)
+try{
+  offscreenCanvas = canvas.transferControlToOffscreen();
+  rendererThread = new Worker('src/rendererWorker.js');
+  rendererThread.postMessage({
+    canvas: offscreenCanvas
+  }, [offscreenCanvas]);
+}
+catch(e) {
+  alert(`This uses offscreenCanvas, `+
+    `which isn't supported by your browser.
+    We recommend switching to Chrome, Edge, or Opera.`);
+}
 
 function updateImage(msg) {
   rendererThread.postMessage(msg.data, [msg.data]);
