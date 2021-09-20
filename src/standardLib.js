@@ -483,7 +483,7 @@ function smartcrop(power, radius, roundstr, roundwidth, distortion, edge, cropmo
       wedge = edge * (Math.random() - 0.5);
       xang0 = ang / (2 * Math.PI) + 1 + wedge;
       xang = (xang0 - Math.floor(xang0)) * 2 * Math.PI;
-      angle = Math.floor(Math.random() * 2) != 0 ? wpower + edge * Math.PI;
+      angle = Math.floor(Math.random() * 2) != 0 ? wpower + edge * Math.PI : -edge * Math.PI;
       if((xang > wpower) == (mode != 1)) {
         return {
           ...z,
