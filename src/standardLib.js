@@ -238,6 +238,28 @@ function circleInv() {
   }
 }
 
+function cylinder() {
+  return z => {
+    return {
+      ...z,
+      re: z.re / Math.sqrt(z.re * z.re + 1),
+      im: z.im
+    }
+  }
+}
+
+function disc() {
+  return z => {
+    let r = Math.sqrt(dot(z, z)) * Math.PI,
+      a = Math.atan2(z.im, z.re) / Math.PI;
+    return {
+      ...z,
+      re: Math.sin(r) * a,
+      im: Math.cos(r) * a
+    }
+  }
+}
+
 function hypershift(p) {
   return z => {
     return {
@@ -440,6 +462,16 @@ function scale(c) {
       ...z,
       re: z.re * c.re,
       im: z.im * c.im
+    }
+  }
+}
+
+function sinusoidal() {
+  return z => {
+    return {
+      ...z,
+      re: Math.sin(z.re),
+      im: Math.sin(z.im)
     }
   }
 }
@@ -953,6 +985,8 @@ const BUILT_IN_TRANSFORMS = {
   blurSquare: blurSquare,
   bubble: bubble,
   circleInv: circleInv,
+  cylinder: cylinder,
+  disc: disc,
   hypershift: hypershift,
   hypertile3: hypertile3,
   julian: julian,
@@ -962,6 +996,7 @@ const BUILT_IN_TRANSFORMS = {
   pointSymmetry: pointSymmetry,
   rotate: rotate,
   scale: scale,
+  sinusoidal: sinusoidal,
   smartcrop: smartcrop,
   smartshape: smartshape,
   splits: splits,
@@ -1007,6 +1042,8 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   blurSquare: [],
   bubble: [],
   circleInv: [],
+  cylinder: [],
+  disc: [],
   hypershift: [{
     name: "p",
     type: "complex",
@@ -1131,6 +1168,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       im: 1
     }
   }],
+  sinusoidal: [],
   smartcrop: [{
       name: "power",
       type: "number",
@@ -1167,7 +1205,6 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 2
     }
   ],
-
   smartshape: [{
       name: "power",
       type: "number",

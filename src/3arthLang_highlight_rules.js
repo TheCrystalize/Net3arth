@@ -9,6 +9,8 @@ blurSquare
 brighten
 bubble
 circleInv
+cylinder
+disc
 hypershift
 hypertile3
 julian
@@ -17,6 +19,7 @@ mobius
 murl2
 pointSymmetry
 rotate
+sinusoidal
 smartcrop
 smartshape
 scale
