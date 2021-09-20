@@ -2,19 +2,19 @@
 // Tutorial: Ctrl-? or Cmd-?
 
 body:
-choose{
-  1: rotate(-1)
-    -> circleInv()
-    -> arcsinh()
-    -> rotate(1);
-  1: blurGasket()
-    -> scale(0.2+i)
-    -> splits(1, 0)
-    -> color(colorRGB(0.1, 0.8, 1));
-  1: scale(2)
-    -> splits(1.1, 0)
-    -> color(colorRGB(0.2, 0.9, 0.9));
+hslShift(0.1, 0, 0)
+-> choose{
+  1: blurSquare() -> color(colorHSL(0, 1, 0.5));
+  3: scale(0.7)
+    -> rotateDeg(-45)
+    -> translate(-0.5, -1)
+    -> brighten(1);
+  3: scale(0.7)
+    -> rotateDeg(45)
+    -> translate(0.5, -1)
+    -> brighten(1);
 };
 
-camera: julian(-2, 1)
--> scale(0.5);
+camera:
+translate(0, 1)
+-> scale(0.15);
