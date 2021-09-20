@@ -6,10 +6,10 @@ hslShift(0.1, 0, 0)
 -> choose{
   1: blurSquare() -> color(colorHSL(0, 1, 0.5));
   3: scale(0.7)
-    -> rotateDeg(-45)
+    -> rotate(-45)
     -> translate(-0.5, -1);
   3: scale(0.7)
-    -> rotateDeg(45)
+    -> rotate(45)
     -> translate(0.5, -1);
 };
 
