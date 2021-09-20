@@ -21,9 +21,9 @@ var customWordCompleter = {
       ["SHADER", ["shader"]],
       ["keyword", ["choose", "xaos"]],
       ["type", ["complex", "number", "string", "bool", "array", "object"]],
-      ["constructor", StandardLibConstructorNamesArray.map(a=>a+'()')],
+      ["constructor", StandardLibConstructorNamesArray],
       ["transform", StandardLibNamesArray.map(a=>a+'()')],
-      ["helper", StandardLibHelperNamesArray.map(a=>a+'()')],
+      ["helper", StandardLibHelperNamesArray],
       ["keyword", [...StandardLibNamesArray]],
     ];
     callback(null, wordList.map(function(words) {
@@ -48,6 +48,7 @@ var customWordCompleter = {
           case "transform":
             if(BUILT_IN_TRANSFORMS_PARAMS.hasOwnProperty(word.slice(0,word.length-2))) {
               wordT = word.slice(0,word.length-2);
+              post = wordT;
               post += "(";
               for(let i = 0; i < BUILT_IN_TRANSFORMS_PARAMS[wordT].length; i++) {
                 post += paramsToString([BUILT_IN_TRANSFORMS_PARAMS[wordT][i].default],'');
