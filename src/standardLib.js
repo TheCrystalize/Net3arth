@@ -950,7 +950,11 @@ const BUILT_IN_TRANSFORMS = {
   rotate: rotate,
   rotateDeg: rotateDeg,
   scale: scale,
+<<<<<<< HEAD
   smartcrop: smartcrop,
+=======
+  smartcrop : smartcrop,
+>>>>>>> bf2d6fd7202065914d5abd96b28277e64d855ce6
   smartshape: smartshape,
   splits: splits,
   tileHelp: tileHelp,
@@ -1123,7 +1127,12 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       im: 1
     }
   }],
+<<<<<<< HEAD
   smartcrop: [{
+=======
+  power, radius, roundstr, roundwidth, distortion, edge, cropmode
+  smartshape: [{
+>>>>>>> bf2d6fd7202065914d5abd96b28277e64d855ce6
       name: "power",
       type: "number",
       default: 4
@@ -1159,7 +1168,10 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 2
     }
   ],
+<<<<<<< HEAD
 
+=======
+>>>>>>> bf2d6fd7202065914d5abd96b28277e64d855ce6
   smartshape: [{
       name: "power",
       type: "number",
