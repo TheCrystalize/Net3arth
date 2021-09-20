@@ -18,12 +18,18 @@ let tutorials = [
  */
 
 body: blurCircle()
-        -> scale(0.5);
+  -> scale(0.5);
+
+/*
+ The above code is defining the body of the code
+ and applying a circle function which is curried
+ into a scale function.
+ */
 `,
 `/*
-  That was a fine circle, but it'll be
-  much better once we start using some
-  iteration. We do this most simply with "choose".
+ That was a fine circle, but it'll be
+ much better once we start using some
+ iteration. We do this most simply with "choose".
 */
 
 body:
@@ -37,9 +43,42 @@ choose{
     -> circleInv()
     -> scale(0.25);
 };
-
 `,
+`/*
+ In addition to the body, there's the camera
+ The camera is run before the points are
+ drawn, and then discarded.
+*/
 
+body: blurCircle();
+
+camera: scale(0.5);
+`,
+`/*
+ And to top it all of, there's the shader.
+ The shader runs on the pixels and is given
+ a normalized brightness, which lets you do
+ things like change the gamma.
+*/
+
+body:
+choose{
+  1: blurCircle()
+  -> scale(0.5)
+  -> gradient([
+    colorRGB(0, 0, 1),
+    colorRGB(0, 1, 1)
+  ]);
+  1: translate(0.2, 0);
+};
+
+camera:
+translate(-4, 0)
+-> scale(0.1);
+
+shader:
+gamma(10);
+`,
 ];
 
 function tutorial() {
