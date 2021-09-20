@@ -447,7 +447,7 @@ function scale(c) {
 function smartcrop(power, radius, roundstr, roundwidth, distortion, edge, cropmode) {
   let mode = (power > 0) == (radius > 0) ? 1 : 0,
     pow = Math.abs(power);
-  let alpha = twopi() / pow;
+  let alpha = Math.PI * 2 / pow;
   let roundcoeff = roundstr / Math.sin(alpha * 0.5) / pow * 2,
     wradius = Math.abs(radius),
     radial, wpower, walpha, wcoeff;
