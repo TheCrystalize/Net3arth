@@ -879,7 +879,7 @@ function brighten(amount) {
   }
 }
 
-function gradient(colors) {
+function repeatingGradient(colors) {
   if(colors.length < 1) {
     throw "not enough colors";
   }
@@ -897,6 +897,32 @@ function gradient(colors) {
   }
   return z => {
     let at = (z.im - Math.floor(z.im)) * colors.length;
+    return {
+      ...z,
+      ...lerp(colors[Math.floor(at) % colors.length], colors[Math.ceil(at) % colors.length], at % 1)
+    }
+  }
+}
+
+
+function gradient(colors) {
+  if(colors.length < 1) {
+    throw "not enough colors";
+  }
+  if(colors.length === 1) {
+    let col = colors[0];
+    if(colors[0].hasOwnProperty('h')) {
+      col = hslToRgb(colors[0].h, colors[0].s, colors[0].l);
+    }
+    return z => {
+      return {
+        ...z,
+        ...col
+      }
+    }
+  }
+  return z => {
+    let at = Math.max(0,Math.min(1,z.im + 0.5)) * (colors.length-1);
     return {
       ...z,
       ...lerp(colors[Math.floor(at) % colors.length], colors[Math.ceil(at) % colors.length], at % 1)
@@ -953,6 +979,7 @@ const BUILT_IN_TRANSFORMS = {
   color: color,
   gamma: gamma,
   gradient: gradient,
+  repeatingGradient: repeatingGradient,
   hslShift: hslShift,
   lerpHSL: lerpHSL,
   lerpRGB: lerpRGB,
@@ -1227,9 +1254,26 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "colorA",
     type: "array",
     default: [{
-      r: 1,
-      g: 1,
-      b: 1
+      red: 1,
+      green: 1,
+      blue: 1
+    },{
+      red: 1,
+      green: 0,
+      blue: 0
+    }]
+  }],
+  repeatingGradient: [{
+    name: "colorA",
+    type: "array",
+    default: [{
+      red: 1,
+      green: 1,
+      blue: 1
+    },{
+      red: 1,
+      green: 0,
+      blue: 0
     }]
   }],
   hslShift: [{

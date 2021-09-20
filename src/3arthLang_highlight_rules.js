@@ -33,6 +33,7 @@ unbubble
 color
 gamma
 gradient
+repeatingGradient
 hslShift`.split('\n');
 
 const StandardLibHelperNamesArray =

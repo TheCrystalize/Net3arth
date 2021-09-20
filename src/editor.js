@@ -21,9 +21,10 @@ var customWordCompleter = {
       ["SHADER", ["shader"]],
       ["keyword", ["choose", "xaos"]],
       ["type", ["complex", "number", "string", "bool", "array", "object"]],
-      ["transform", StandardLibNamesArray],
-      ["constructor", StandardLibConstructorNamesArray],
-      ["helper", StandardLibHelperNamesArray]
+      ["constructor", StandardLibConstructorNamesArray.map(a=>a+'()')],
+      ["transform", StandardLibNamesArray.map(a=>a+'()')],
+      ["helper", StandardLibHelperNamesArray.map(a=>a+'()')],
+      ["keyword", [...StandardLibNamesArray]],
     ];
     callback(null, wordList.map(function(words) {
       return words[1].map(function(word) {
@@ -45,34 +46,12 @@ var customWordCompleter = {
             post += "(";
             break;
           case "transform":
-            if(BUILT_IN_TRANSFORMS_PARAMS.hasOwnProperty(word)) {
+            if(BUILT_IN_TRANSFORMS_PARAMS.hasOwnProperty(word.slice(0,word.length-2))) {
+              wordT = word.slice(0,word.length-2);
               post += "(";
-              for(let i = 0; i < BUILT_IN_TRANSFORMS_PARAMS[word].length; i++) {
-                switch (BUILT_IN_TRANSFORMS_PARAMS[word][i].type) {
-                  case "number":
-                  case "bool":
-                    post += BUILT_IN_TRANSFORMS_PARAMS[word][i].default;
-                    break;
-                  case "array":
-                  case "object":
-                    post += JSON.stringify(BUILT_IN_TRANSFORMS_PARAMS[word][i].default);
-                    break;
-                  case "string":
-                    post += '"' + BUILT_IN_TRANSFORMS_PARAMS[word][i].default+'"';
-                    break;
-                  case "complex":
-                    if(BUILT_IN_TRANSFORMS_PARAMS[word][i].default.im === 0) {
-                      post += BUILT_IN_TRANSFORMS_PARAMS[word][i].default.re;
-                    } else if(BUILT_IN_TRANSFORMS_PARAMS[word][i].default.re === 0) {
-                      post += BUILT_IN_TRANSFORMS_PARAMS[word][i].default.im + 'i';
-                    } else if(BUILT_IN_TRANSFORMS_PARAMS[word][i].default.im < 0) {
-                      post += BUILT_IN_TRANSFORMS_PARAMS[word][i].default.re + "-" + (-BUILT_IN_TRANSFORMS_PARAMS[word][i].default.im) + 'i';
-                    } else {
-                      post += BUILT_IN_TRANSFORMS_PARAMS[word][i].default.re + "+" + BUILT_IN_TRANSFORMS_PARAMS[word][i].default.im + 'i';
-                    }
-                    break;
-                }
-                if(i < BUILT_IN_TRANSFORMS_PARAMS[word].length - 1) {
+              for(let i = 0; i < BUILT_IN_TRANSFORMS_PARAMS[wordT].length; i++) {
+                post += paramsToString([BUILT_IN_TRANSFORMS_PARAMS[wordT][i].default],'');
+               if(i < BUILT_IN_TRANSFORMS_PARAMS[wordT].length - 1) {
                   post += ", ";
                 }
               }
