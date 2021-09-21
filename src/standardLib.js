@@ -867,9 +867,11 @@ function lerpRGB(r, g, b, weight = 0.5) {
     let magnitude = Math.max(z.red, z.green, z.blue);
     return {
       ...z,
-      red: (z.red / magnitude * (1 - weight) + r * weight) * magnitude,
-      green: (z.green / magnitude * (1 - weight) + g * weight) * magnitude,
-      blue: (z.blue / magnitude * (1 - weight) + b * weight) * magnitude
+      ...brightenRGB(normalizeRGB({
+        red: (z.red * (1 - weight) + r * weight),
+        green: (z.green * (1 - weight) + g * weight),
+        blue: (z.blue * (1 - weight) + b * weight)
+      }), magnitude)
     }
   }
 }
@@ -881,11 +883,20 @@ function lerpHSL(h, s, l, weight = 0.5) {
     let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
     return {
       ...z,
-      ...brightenRGB(hslToRgb(
+      ...brightenRGB(normalizeRGB(hslToRgb(
         Math.abs(hsl.h - h) > 0.5 ? (hsl.h * (1 - weight) + h * weight + 1) % 1 : hsl.h * (1 - weight) + h * weight,
         hsl.s * (1 - weight) + s * weight,
-        hsl.l * (1 - weight) + l * weight), magnitude)
+        hsl.l * (1 - weight) + l * weight)), magnitude)
     }
+  }
+}
+
+function normalizeRGB(color) {
+  let magnitude = Math.max(color.red, color.green, color.blue);
+  return {
+    red: color.red/magnitude,
+    green: color.green/magnitude,
+    blue: color.blue/magnitude
   }
 }
 
