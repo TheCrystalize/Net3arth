@@ -994,10 +994,6 @@ function parseEverything(code) {
               }
 
               try {
-                console.log(parseState[0]);
-                console.log(parseState[0].params);
-                console.log(parseState[0].params.map(a => a.name));
-                console.log(jsCode);
                 let testFunction = new Function(...parseState[0].params.map(a => a.name), jsCode);
                 let ans = testFunction(...parseState[0].params.map(a => a.default));
                 if(typeof ans === 'function') {
