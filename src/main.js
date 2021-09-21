@@ -39,15 +39,14 @@ let offscreenCanvas = false;
 let rendererThread = false;
 
 // offscreenCanvas isn't supported in some browsers (*cough* FireFox *cough*)
-try{
+try {
   offscreenCanvas = canvas.transferControlToOffscreen();
   rendererThread = new Worker('src/rendererWorker.js');
   rendererThread.postMessage({
     canvas: offscreenCanvas
   }, [offscreenCanvas]);
-}
-catch(e) {
-  alert(`This uses offscreenCanvas, `+
+} catch (e) {
+  alert(`This uses offscreenCanvas, ` +
     `which isn't supported by your browser.
     We recommend switching to Chrome, Edge, or Opera.`);
 }
@@ -63,7 +62,7 @@ function refreshRender(refreshCanvas = true) {
 
   THREADS = parseInt(threadsUI.value);
 
-  if(refreshCanvas){
+  if(refreshCanvas) {
     WIDTH = parseInt(widthUI.value);
     HEIGHT = parseInt(heightUI.value);
 
@@ -77,8 +76,7 @@ function refreshRender(refreshCanvas = true) {
       height: HEIGHT,
       stuffToDo: stuffToDo
     });
-  }
-  else{
+  } else {
     rendererThread.postMessage({
       stuffToDo: stuffToDo
     });
@@ -97,42 +95,53 @@ function refreshRender(refreshCanvas = true) {
 
 let oldCode = '';
 
-function runCode() {
-  consoleclear();
-  compileButton.innerText = 'Pause';
-  for(let i = 0; i < threads.length; i++) {
-    threads[i].terminate();
-  }
-  compile3arthLang(editor.getValue());
-  let newCode = JSON.stringify([stuffToDo.customFunctions,stuffToDo.body,stuffToDo.camera]);
+function resetCanvas() {
+  rendererThread.postMessage({
+    reset: true
+  });
+}
 
-  if(newCode != oldCode){
-    run3arthLang(editor.getValue());
-    consolelog('Running...', 'limegreen');
-    oldCode = newCode;
-  }
-  else{
-    resume3arthLang(editor.getValue());
-    consolelog('Resuming...', 'limegreen');
-  }
-  runButton.innerText = 'restart';
+function runCode() {
+  try {
+    consoleclear();
+    compileButton.innerText = 'Pause';
+    for(let i = 0; i < threads.length; i++) {
+      threads[i].terminate();
+    }
+    compile3arthLang(editor.getValue());
+    let newCode = JSON.stringify([stuffToDo.customFunctions, stuffToDo.body, stuffToDo.camera]);
+
+    if(newCode != oldCode) {
+      run3arthLang(editor.getValue());
+      consolelog('Running...', 'limegreen');
+      oldCode = newCode;
+      resetCanvas();
+    } else {
+      resume3arthLang(editor.getValue());
+      consolelog('Resuming...', 'limegreen');
+    }
+    runButton.innerText = 'restart';
+  } catch (e) {}
 }
 
 function stopCode() {
-  for(let i = 0; i < threads.length; i++) {
-    threads[i].terminate();
-  }
-  if(compileButton.innerText === 'Compile'){
-    oldCode = '';
-    compile3arthLang(editor.getValue());
-    runButton.innerText = 'Run';
-  }
-  else if(runButton.innerText === 'Resume'){
-    consolelog('stopped.','limegreen');
-  }
-  else{
-    consolelog('paused.','limegreen');
-    compileButton.innerText = 'Compile';
-    runButton.innerText = 'Resume';
-  }
+  try {
+    for(let i = 0; i < threads.length; i++) {
+      threads[i].terminate();
+    }
+    if(compileButton.innerText === 'Compile') {
+      consoleclear();
+      oldCode = '';
+      resetCanvas();
+      compile3arthLang(editor.getValue());
+      consolelog('Finished compiling!','limegreen');
+      runButton.innerText = 'Run';
+    } else if(runButton.innerText === 'Resume') {
+      consolelog('stopped.', 'limegreen');
+    } else {
+      consolelog('paused.', 'limegreen');
+      compileButton.innerText = 'Compile';
+      runButton.innerText = 'Resume';
+    }
+  } catch (e) {}
 }

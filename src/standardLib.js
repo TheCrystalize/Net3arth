@@ -729,6 +729,15 @@ function lerp(colorA, colorB, weight = 0.5) {
   }
 }
 
+function lerpColor(color, weight) {
+  return z => {
+    return {
+      ...z,
+      ...lerp(z, color, weight)
+    }
+  }
+}
+
 function colorRGB(r, g, b) {
   return {
     red: r,
@@ -1016,6 +1025,7 @@ const BUILT_IN_TRANSFORMS = {
   gradient: gradient,
   repeatingGradient: repeatingGradient,
   hslShift: hslShift,
+  lerpColor: lerpColor,
   lerpHSL: lerpHSL,
   lerpRGB: lerpRGB,
   normalizeColor: normalizeColor,
@@ -1340,6 +1350,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       name: "l",
       type: "number",
       default: 0.5
+    }, {
+      name: "weight",
+      type: "number",
+      default: 0.5
+    }
+  ],
+  lerpColor: [{
+      name: "color",
+      type: "object",
+      default: {red: 1, green: 1, blue: 1}
     }, {
       name: "weight",
       type: "number",

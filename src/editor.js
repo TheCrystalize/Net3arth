@@ -77,8 +77,8 @@ editor.completers.unshift(customWordCompleter);
 editor.commands.addCommand({
   name: "run",
   bindKey: {
-    win: "Ctrl-R",
-    mac: "Command-R"
+    win: "Ctrl-R|Ctrl-Space",
+    mac: "Command-R|Command-Space"
   },
   exec: function() {
     runCode();

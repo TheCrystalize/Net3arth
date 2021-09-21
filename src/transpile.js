@@ -38,12 +38,12 @@ function paramsToString(params, tab) {
         ans += params[i];
         break;
       case 'object':
-        if(Array.isArray(params[i])){
-          let ans = '[\n'+tab;
+        if(Array.isArray(params[i])) {
+          let ans = '[\n' + tab;
           for(let j in params[i]) {
-            ans+= '  '+paramsToString([params[i][j]], tab+'  ')+',\n'+tab;
+            ans += '  ' + paramsToString([params[i][j]], tab + '  ') + ',\n' + tab;
           }
-          return ans+']';
+          return ans + ']';
           break;
         }
         if(Object.keys(params[i]).join(',') === 're,im') {
@@ -80,6 +80,14 @@ function switchToString(data, tab) {
   return ans + tab + '}';
 }
 
+function xaosToString(data, tab) {
+  let ans = '\n' + tab + 'xaos{\n';
+  for(let i = 0; i < data.length; i++) {
+    ans += tab + '  1:' + (data[i][1][0]?(data[i][1][1]?'eo':'e'):(data[i][1][1]?'o':'_')) + ':[' + paramsToString(data[i][2]) + ']: ' + loopToString(data[i][3], tab + '    ') + ';\n';
+  }
+  return ans + tab + '}';
+}
+
 function loopToString(data, tab = '') {
   if(typeof data[0] === 'string') {
     return `${data[0]}(${paramsToString(data[1], tab)})`;
@@ -88,7 +96,12 @@ function loopToString(data, tab = '') {
     return '';
   }
   if(typeof data[0][0] === 'number') {
-    return switchToString(data, tab);
+    switch(data[0].length) {
+      case 2:
+        return switchToString(data, tab);
+      case 4:
+        return xaosToString(data, tab);
+    }
   }
 
   let ans = data.length > 1 && typeof data[1][0] === 'object' ? '\n' + tab : '';
@@ -226,7 +239,7 @@ function lineToWords(line) {
         pushWord(currentWord, i + 1);
         typeOfWord = '';
         break;
-      case (typeOfWord === '' && char === '.' && i < line.length-1 && line[i + 1].search(/\d/) === 0):
+      case (typeOfWord === '' && char === '.' && i < line.length - 1 && line[i + 1].search(/\d/) === 0):
         currentWord = '0.';
         typeOfWord = 'decimal';
         break;
@@ -260,6 +273,35 @@ function lineToWords(line) {
     }
   }
   return words;
+}
+
+function validateNumberArray(array, length, error) {
+  if(!Array.isArray(array)) {
+    error('weight array');
+  }
+  if(array.length !== length) {
+    error(`${length} length weight array`);
+  }
+  for(let i = 0; i < length; i++) {
+    if(typeof array[i] !== 'number') {
+      error('numbers');
+    }
+  }
+}
+
+function getEnterOut(word, error){
+  switch (word) {
+    case '_':
+      return [0, 0];
+    case 'e':
+      return [1, 0];
+    case 'o':
+      return [0, 1];
+    case 'eo':
+      return [1, 1];
+    default:
+      error('enterOut definition');
+  }
 }
 
 const htmlConsole = document.getElementById("console");
@@ -325,7 +367,7 @@ function _3arthError(word, lineNumber, line) {
   }
 }
 
-let verbose = false;
+let verbose = true;
 
 function parseEverything(code) {
   code = code.split('\n');
@@ -343,6 +385,7 @@ function parseEverything(code) {
         let newError = _3arthError(words[j], i, code[i]);
         let newGeneralError = General3arthError(words[j], i, code[i]);
         if(verbose) {
+          console.log('-- loop-top --');
           console.log(customFunctions);
           console.log(JSON.stringify(parseState));
           console.log(parseState[0]);
@@ -446,7 +489,7 @@ function parseEverything(code) {
 
         function endWeight() {
           let terminator = parseState[0].terminator;
-          if(!terminator){
+          if(!terminator) {
             General3arthError("GET TO DA CHOPPA!");
           }
           switch (wordType) {
@@ -455,13 +498,40 @@ function parseEverything(code) {
                 newError(parseState[0].is);
               }
               parseState[2].weight = parseState[0].value;
-              parseState.shift();
-              parseState.shift();
+              switch (parseState[2].is) {
+                case 'choose items':
+                  parseState.shift();
+                  parseState.shift();
 
-              parseState.unshift({
-                is:"transform",
-                transforms:[]
-              });
+                  parseState.unshift({
+                    is: "transform",
+                    transforms: []
+                  });
+                  break;
+                case 'xaos items':
+                  switch(parseState[0].is){
+                    case 'number weight':
+                      parseState.shift();
+                      parseState.shift();
+                      break;
+                    case 'array weight':
+                      parseState.shift();
+                      parseState.shift();
+                      if(parseState[0].items.length === 0) {
+                        validateNumberArray(parseState[0].weight, parseState[0].weight.length, newError);
+                        parseState[0].size = parseState[0].weight.length;
+                      }
+                      else {
+                        validateNumberArray(parseState[0].weight, parseState[0].size, newError);
+                      }
+                      parseState.unshift({
+                        is: "transform",
+                        transforms: []
+                      });
+                      break;
+                  }
+                  break;
+              }
               break;
             default:
               newError(parseState[0].is);
@@ -602,6 +672,16 @@ function parseEverything(code) {
           return start;
         }
 
+        if(parseState[0].is.indexOf(' items') > 0 && word !== '}' && word !== ';' && !parseState[0].hasOwnProperty('weight')) {
+          parseState.unshift({
+            is: 'weight'
+          });
+          parseState.unshift({
+            is: 'number weight',
+            terminator: ':'
+          });
+        }
+
         let desiredType = parseState[0].is.replace(' param', '').replace(' weight', '');
 
         switch (desiredType) {
@@ -688,6 +768,15 @@ function parseEverything(code) {
                 typeError(desiredType)
             }
             break;
+        }
+
+        if(verbose) {
+          console.log('-- switch-top --');
+          console.log(customFunctions);
+          console.log(JSON.stringify(parseState));
+          console.log(parseState[0]);
+
+          console.log(wordType + ': ' + word);
         }
 
         switch (parseState[0].is) {
@@ -946,13 +1035,6 @@ function parseEverything(code) {
                   items: []
                 });
                 parseState.unshift({
-                  is: 'weight'
-                });
-                parseState.unshift({
-                  is: 'number weight',
-                  terminator: ':'
-                });
-                parseState.unshift({
                   is: '{'
                 });
                 break;
@@ -1050,6 +1132,14 @@ function parseEverything(code) {
                     parseState.shift();
                     parseState.shift();
                     break;
+                  case 'xaos items':
+                    parseState[2].items.push([parseState[2].mainWeight, parseState[2].enterOut, parseState[2].weight, parseState[1].transforms]);
+                    delete parseState[2].mainWeight;
+                    delete parseState[2].enterOut;
+                    delete parseState[2].weight;
+                    parseState.shift();
+                    parseState.shift();
+                    break;
                   case 'transform':
                     parseState[2].transforms.push(parseState[1].transforms);
                     parseState.shift();
@@ -1083,16 +1173,6 @@ function parseEverything(code) {
             break;
           case 'choose items':
             switch (wordType) {
-              case 'number':
-                parseState[0].weight = parseFloat(word);
-                parseState.unshift({
-                  is: 'transform',
-                  transforms: []
-                });
-                parseState.unshift({
-                  is: ':'
-                });
-                break;
               case '}':
                 switch (parseState[1].is) {
                   case 'choose items':
@@ -1113,6 +1193,49 @@ function parseEverything(code) {
                 break;
               default:
                 newError('weight value or "}"');
+            }
+            break;
+          case 'xaos items':
+            if(parseState[0].hasOwnProperty('weight') &&
+              !parseState[0].hasOwnProperty('enterOut')) {
+              parseState[0].mainWeight = parseState[0].weight;
+              delete parseState[0].weight;
+              parseState[0].enterOut = getEnterOut(word, newError);
+              parseState.unshift({
+                is: 'weight'
+              });
+              parseState.unshift({
+                is: 'array weight',
+                terminator: ':'
+              });
+              parseState.unshift({is:':'});
+              break;
+            }
+            switch (wordType) {
+              case '}':
+                if(parseState[0].size < parseState[0].items.length) {
+                  newGeneralError(`Xaos weight arrays are only length ${parseState[0].size} but there only ${parseState[0].items.length} states.`);
+                }
+                if(parseState[0].size > parseState[0].items.length) {
+                  newGeneralError(`Xaos weight arrays are length ${parseState[0].size} but there are only ${parseState[0].items.length} states.`);
+                }
+                switch (parseState[1].is) {
+                  case 'transform':
+                    parseState[1].transforms.push(JSON.parse(JSON.stringify(parseState[0].items)).map(row=>{
+                      let newWeights = row[2].map((sub, index)=>parseState[0].items[index][0] * sub);
+                      return [newWeights.reduce((a,b)=>a+b),row[1],newWeights, row[3]];
+                    }));
+                    parseState.shift();
+                    parseState.unshift({
+                      is: 'after transform'
+                    });
+                    break;
+                  default:
+                    newGeneralError(`Unhandeled state transition from "${parseState[0].is}" to "${parseState[1].is}"`, parseState);
+                }
+                break;
+              default:
+                newError(`}`);
             }
             break;
           default:
@@ -1166,9 +1289,11 @@ function compile3arthLang(code) {
   try {
     stuffToDo = parseEverything(code);
     autoFormatCode();
-    consolelog("Finished compiling!", "limegreen");
   } catch (e) {
     console.error(e);
+    runButton.innerText = 'Run';
+    compileButton.innerText = 'Compile';
+    throw ('Compile error');
   }
 }
 
@@ -1187,6 +1312,9 @@ function resume3arthLang(code) {
 
   } catch (e) {
     console.error(e);
+    runButton.innerText = 'Run';
+    compileButton.innerText = 'Compile';
+    throw ('Compile error');
   }
 }
 
@@ -1197,12 +1325,17 @@ function run3arthLang(code) {
     stuffToDo = parseEverything(code);
     autoFormatCode();
 
+    consolelog("Finished compiling!", "limegreen");
+
     compileButton.innerText = 'Stop';
 
     refreshRender();
 
   } catch (e) {
     console.error(e);
+    runButton.innerText = 'Run';
+    compileButton.innerText = 'Compile';
+    throw ('Compile error');
   }
 }
 

@@ -183,6 +183,8 @@ onmessage = function(msg) {
     customFunctions = stuffToDo.customFunctions;
     loadCustomFunctions(customFunctions);
     populateFunctions(stuffToDo.shader);
+  } else if(msg.data.hasOwnProperty('reset')) {
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
   } else {
     updateImage(msg);
   }

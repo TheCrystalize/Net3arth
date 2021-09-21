@@ -2,9 +2,6 @@
 importScripts('standardLib.js');
 /*IFS stuff*/
 function switchStuff(stuff, val) {
-  //console.log('switch');
-  //console.log(stuff);
-
   let total = 0;
   for(let i = 0; i < stuff.length; i++) {
     total += stuff[i][0];
@@ -14,11 +11,43 @@ function switchStuff(stuff, val) {
   for(let i = 0; i < stuff.length; i++) {
     at += stuff[i][0];
     if(rand < at) {
-      //console.log(`chose ${i}`);
       return loopStuff(stuff[i][1], val);
     }
   }
-  //console.log(`didn't switch!`);
+}
+
+function xaosStuff(stuff, val) {
+  let total = 0;
+  for(let i = 0; i < stuff.length; i++) {
+    total += stuff[i][1][0];
+  }
+  let rand = Math.random() * total;
+  let at = 0;
+  for(let i = 0; i < stuff.length; i++) {
+    at += stuff[i][1][0];
+    if(rand < at) {
+      at = i;
+      i = Infinity;
+    }
+  }
+  //console.log(`start`);
+  while(true) {
+    //console.log(`${JSON.stringify(val)} - ${at}`);
+    val = loopStuff(stuff[at][3], val);
+    if(stuff[at][1][1] && Math.random() < 0.5){
+      return val;
+    }
+    let on = at;
+    at = Math.random() * stuff[on][0];
+    total = 0;
+    for(let i = 0; i < stuff[on][2].length; i++) {
+      total += stuff[on][2][i];
+      if(at <= total) {
+        at = i;
+        i = Infinity;
+      }
+    }
+  }
 }
 
 function loopStuff(stuff, val) {
@@ -35,8 +64,12 @@ function loopStuff(stuff, val) {
     return val;
   }
 
-  if(typeof stuff[0][0] === 'number')
-    return switchStuff(stuff, val);
+  if(typeof stuff[0][0] === 'number'){
+    switch(stuff[0].length){
+      case 2: return switchStuff(stuff, val);
+      case 4: return xaosStuff(stuff, val);
+    }
+  }
 
   for(let i = 0; i < stuff.length; i++) {
     val = loopStuff(stuff[i], val);
@@ -104,6 +137,12 @@ function populateFunctionsSwitch(job) {
   }
 }
 
+function populateFunctionsXaos(job) {
+  for(let i = 0; i < job.length; i++) {
+    populateFunctions(job[i][3]);
+  }
+}
+
 function populateFunctions(job) {
   if(typeof job[0] === 'string') {
     if(BUILT_IN_TRANSFORMS.hasOwnProperty(job[0])) {
@@ -121,7 +160,10 @@ function populateFunctions(job) {
   }
 
   if(typeof job[0][0] === 'number') {
-    populateFunctionsSwitch(job);
+    switch(job[0].length){
+      case 2: populateFunctionsSwitch(job); break;
+      case 4: populateFunctionsXaos(job); break;
+    }
     return;
   }
 

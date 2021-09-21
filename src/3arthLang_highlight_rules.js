@@ -37,7 +37,13 @@ color
 gamma
 gradient
 repeatingGradient
-hslShift`.split('\n');
+hslShift
+lerpColor
+lerpHSL
+lerpRGB
+setHue
+setSaturation
+setLightness`.split('\n');
 
 const StandardLibHelperNamesArray =
 `rgbToHsl
@@ -416,10 +422,15 @@ var EarthLangHighlightRules = function(options) {
                 token: "keyword.control",
                 regex: ":",
                 next: "earthLangTransform"
-            },
-            {
-                token: "support.class",
-                regex: "\\.[0-9]|[0-9]\\.|[0-9]",
+            },{
+                token : "support.class", // hexadecimal, octal and binary
+                regex : /0(?:[xX][0-9a-fA-F]+|[oO][0-7]+|[bB][01]+)\b/
+            }, {
+                token : "support.class", // decimal integers and floats
+                regex : /(?:\d\d*(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+\b)?/
+            }, {
+                token : "keyword.control",
+                regex : /--|\+\+|\.{3}|===|==|=|!=|!==|<+=?|>+=?|!|&&|\|\||\?:|[!$%&*+\-~\/^]=?/
             },
         ],
 
