@@ -9,8 +9,10 @@ blurSquare
 brighten
 bubble
 circleInv
+cpow
 cylinder
 disc
+hypershape
 hypershift
 hypertile3
 julian
