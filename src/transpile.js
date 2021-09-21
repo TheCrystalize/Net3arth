@@ -328,7 +328,6 @@ function _3arthError(word, lineNumber, line) {
 let verbose = false;
 
 function parseEverything(code) {
-  consoleclear();
   code = code.split('\n');
   let parseState = [{
     is: "top"
@@ -1174,13 +1173,29 @@ function compile3arthLang(code) {
 }
 
 let compileButton = document.getElementById('compile');
+let runButton = document.getElementById('run');
 
-function run3arthLang(code) {
+function resume3arthLang(code) {
   compileButton.innerText = 'Compile';
   try {
     stuffToDo = parseEverything(code);
     autoFormatCode();
-    consolelog("Finished compiling!", "limegreen");
+
+    compileButton.innerText = 'Stop';
+
+    refreshRender(false);
+
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function run3arthLang(code) {
+  compileButton.innerText = 'Compile';
+  try {
+    consoleclear();
+    stuffToDo = parseEverything(code);
+    autoFormatCode();
 
     compileButton.innerText = 'Stop';
 

@@ -11,8 +11,8 @@ widthUI.value = WIDTH;
 heightUI.value = HEIGHT;
 
 //initialize canvas
-const canvas = document.getElementById("canvas");
-canvas.style.backgroundColor = "black";
+const canvas = document.getElementById('canvas');
+canvas.style.backgroundColor = 'black';
 canvas.style.minWidth = WIDTH + 'px';
 canvas.style.maxWidth = WIDTH + 'px';
 canvas.width = WIDTH;
@@ -56,56 +56,83 @@ function updateImage(msg) {
   rendererThread.postMessage(msg.data, [msg.data]);
 }
 
-function refreshRender() {
-  consolelog("running...", "limegreen");
+function refreshRender(refreshCanvas = true) {
   for(let i = 0; i < threads.length; i++) {
     threads[i].terminate();
   }
 
   THREADS = parseInt(threadsUI.value);
-  WIDTH = parseInt(widthUI.value);
-  HEIGHT = parseInt(heightUI.value);
 
-  canvas.style.minWidth = WIDTH + 'px';
-  canvas.style.maxWidth = WIDTH + 'px';
-  canvas.style.minHeight = HEIGHT + 'px';
-  canvas.style.maxHeight = HEIGHT + 'px';
+  if(refreshCanvas){
+    WIDTH = parseInt(widthUI.value);
+    HEIGHT = parseInt(heightUI.value);
 
-  rendererThread.postMessage({
-    width: WIDTH,
-    height: HEIGHT,
-    stuffToDo: stuffToDo
-  });
+    canvas.style.minWidth = WIDTH + 'px';
+    canvas.style.maxWidth = WIDTH + 'px';
+    canvas.style.minHeight = HEIGHT + 'px';
+    canvas.style.maxHeight = HEIGHT + 'px';
+
+    rendererThread.postMessage({
+      width: WIDTH,
+      height: HEIGHT,
+      stuffToDo: stuffToDo
+    });
+  }
+  else{
+    rendererThread.postMessage({
+      stuffToDo: stuffToDo
+    });
+  }
 
   let spc = STEPS_PER_CALL;
 
   for(let i = 0; i < THREADS; i++) {
     threads[i] = new Worker('src/worker.js');
-    threads[i].postMessage(["start", [i, stuffToDo, spc, WIDTH, HEIGHT]]);
+    threads[i].postMessage(['start', [i, stuffToDo, spc, WIDTH, HEIGHT]]);
     threads[i].onmessage = updateImage;
     spc *= 1.3;
-    threads[i].postMessage(["data"]);
+    threads[i].postMessage(['data']);
   }
 }
+
+let oldCode = '';
 
 function runCode() {
-  compileButton.innerText = 'Compile';
-  for(let i = 0; i < threads.length; i++) {
-    threads[i].terminate();
-  }
-  run3arthLang(editor.getValue());
-}
-
-function stopCode() {
-  compileButton.innerText = 'Compile';
+  consoleclear();
+  compileButton.innerText = 'Pause';
   for(let i = 0; i < threads.length; i++) {
     threads[i].terminate();
   }
   compile3arthLang(editor.getValue());
+  let newCode = JSON.stringify([stuffToDo.customFunctions,stuffToDo.body,stuffToDo.camera]);
+
+  if(newCode != oldCode){
+    run3arthLang(editor.getValue());
+    consolelog('Running...', 'limegreen');
+    oldCode = newCode;
+  }
+  else{
+    resume3arthLang(editor.getValue());
+    consolelog('Resuming...', 'limegreen');
+  }
+  runButton.innerText = 'restart';
 }
 
-function modMinute() {
-  return ('' + (Date.now() % 60000) / 1000).padEnd(6, 0);
+function stopCode() {
+  for(let i = 0; i < threads.length; i++) {
+    threads[i].terminate();
+  }
+  if(compileButton.innerText === 'Compile'){
+    oldCode = '';
+    compile3arthLang(editor.getValue());
+    runButton.innerText = 'Run';
+  }
+  else if(runButton.innerText === 'Resume'){
+    consolelog('stopped.','limegreen');
+  }
+  else{
+    consolelog('paused.','limegreen');
+    compileButton.innerText = 'Compile';
+    runButton.innerText = 'Resume';
+  }
 }
-
-let onId = 1;

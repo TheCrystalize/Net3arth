@@ -177,6 +177,12 @@ onmessage = function(msg) {
     customFunctions = stuffToDo.customFunctions;
     loadCustomFunctions(customFunctions);
     populateFunctions(stuffToDo.shader);
+  } else if(msg.data.hasOwnProperty('stuffToDo')) {
+    stuffToDo = msg.data.stuffToDo;
+
+    customFunctions = stuffToDo.customFunctions;
+    loadCustomFunctions(customFunctions);
+    populateFunctions(stuffToDo.shader);
   } else {
     updateImage(msg);
   }
