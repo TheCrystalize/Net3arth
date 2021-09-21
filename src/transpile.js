@@ -971,19 +971,19 @@ function parseEverything(code) {
               jsCode = jsCode.replace(/console\.log/g, 'consolelog');
               jsCode = jsCode.replace(/console\.clear/g, 'consoleclear');
 
-              let match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+              let match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i/);
               while(match) {
                 jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index + match[0].length);
                 match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
               }
 
-              match = jsCode.match(/([+-]?[0-9.]+)([+-])i/);
+              match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-])i/);
               while(match) {
                 jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index + match[0].length);
                 match = jsCode.match(/([+-]?[0-9.]+)([+-]+)i/);
               }
 
-              match = jsCode.match(/([-]?[0-9.]+)i/);
+              match = jsCode.match(/([-]?[0-9]+[0-9.]*)i/);
               while(match) {
                 jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index + match[0].length);
                 match = jsCode.match(/([-]?[0-9.]+)i/);
@@ -994,6 +994,10 @@ function parseEverything(code) {
               }
 
               try {
+                console.log(parseState[0]);
+                console.log(parseState[0].params);
+                console.log(parseState[0].params.map(a => a.name));
+                console.log(jsCode);
                 let testFunction = new Function(...parseState[0].params.map(a => a.name), jsCode);
                 let ans = testFunction(...parseState[0].params.map(a => a.default));
                 if(typeof ans === 'function') {
