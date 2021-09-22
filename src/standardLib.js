@@ -500,7 +500,7 @@ function rotate(theta) {
   return z => {
     return {
       ...z,
-      re: cosTheta * z.re + sinTheta * z.im,
+      re: -(cosTheta * z.re + sinTheta * z.im),
       im: sinTheta * z.re - cosTheta * z.im
     }
   }
@@ -535,7 +535,7 @@ function sinusoidal() {
   }
 }
 
-function smartcrop(power, radius, roundstr, roundwidth, distortion, edge, cropmode) {
+function smartcrop(power, radius, roundstr, roundwidth, distortion, cropmode) {
   let mode = (power > 0) == (radius > 0) ? 1 : 0,
     pow = Math.abs(power);
   let alpha = Math.PI * 2 / pow;
@@ -558,10 +558,9 @@ function smartcrop(power, radius, roundstr, roundwidth, distortion, edge, cropmo
       rad = Math.sqrt(dot(z, z));
     let wedge, xang0, xang1, xang, coeff0, coeff1, coeff, xr, angle, wwidth, rdc;
     if (radial == 1) {
-      wedge = edge * (Math.random() - 0.5);
-      xang0 = ang / (2 * Math.PI) + 1 + wedge;
+      xang0 = ang / (2 * Math.PI) + 1;
       xang = (xang0 - Math.floor(xang0)) * 2 * Math.PI;
-      angle = Math.floor(Math.random() * 2) != 0 ? wpower + edge * Math.PI : -edge * Math.PI;
+      angle = Math.floor(Math.random() * 2) != 0 ? wpower : 0;
       if ((xang > wpower) == (mode != 1)) {
         return {
           ...z,
@@ -581,9 +580,9 @@ function smartcrop(power, radius, roundstr, roundwidth, distortion, edge, cropmo
       wwidth = roundwidth != 1 ? Math.exp(Math.log(xang * 2) * roundwidth) * roundcoeff : xang * 2 * roundcoeff;
       coeff1 = distortion == 0 ? 1 : roundstr != 0 ? Math.abs((1 - wwidth) * coeff0 + wwidth) : coeff0;
       coeff = distortion != 1 ? Math.exp(Math.log(coeff1) * distortion) : coeff1;
-      xr = edge != 0 ? coeff * (wradius + edge * (Math.random() - 0.5)) : coeff * wradius;
+      xr =  coeff * wradius;
       rdc = cropmode == -1 ? rad : xr
-      f = (rad > xr) == (cropmode == 1) ? cropmode < 0 ? C(Math.cos(ang) * rdc, Math.sin(ang) * rdc) : cropmode == 2 ? C(1 / 0, 1 / 0) : C(0, 0) : z;
+      f = (rad > xr) == (mode == 1) ? cropmode != 0 ? multScalar({re: Math.cos(ang), im: Math.sin(ang)}, rdc) : {re: 0, im: 0} : z;
       return {
         ...z,
         ...f
@@ -1150,7 +1149,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   hypershape: [{
     name: "pow",
     type: "number",
-    default: 1
+    default: 3
   }],
   hypershift: [{
     name: "p",
@@ -1301,11 +1300,6 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       name: "distortion",
       type: "number",
       default: 1
-    },
-    {
-      name: "edge",
-      type: "number",
-      default: 0
     },
     {
       name: "cropmode",
