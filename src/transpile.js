@@ -83,7 +83,7 @@ function switchToString(data, tab) {
 function xaosToString(data, tab) {
   let ans = '\n' + tab + 'xaos{\n';
   for(let i = 0; i < data.length; i++) {
-    ans += tab + '  1:' + (data[i][1][0]?(data[i][1][1]?'eo':'e'):(data[i][1][1]?'o':'_')) + ':[' + paramsToString(data[i][2]) + ']: ' + loopToString(data[i][3], tab + '    ') + ';\n';
+    ans += tab + '  1:' + (data[i][1][0] ? (data[i][1][1] ? 'eo' : 'e') : (data[i][1][1] ? 'o' : '_')) + ':[' + paramsToString(data[i][2]) + ']: ' + loopToString(data[i][3], tab + '    ') + ';\n';
   }
   return ans + tab + '}';
 }
@@ -96,7 +96,7 @@ function loopToString(data, tab = '') {
     return '';
   }
   if(typeof data[0][0] === 'number') {
-    switch(data[0].length) {
+    switch (data[0].length) {
       case 2:
         return switchToString(data, tab);
       case 4:
@@ -289,7 +289,7 @@ function validateNumberArray(array, length, error) {
   }
 }
 
-function getEnterOut(word, error){
+function getEnterOut(word, error) {
   switch (word) {
     case '_':
       return [0, 0];
@@ -490,7 +490,7 @@ function parseEverything(code) {
         function endWeight() {
           let terminator = parseState[0].terminator;
           if(!terminator) {
-            General3arthError("GET TO DA CHOPPA!");
+            newGeneralError("GET TO DA CHOPPA!");
           }
           switch (wordType) {
             case terminator:
@@ -509,7 +509,7 @@ function parseEverything(code) {
                   });
                   break;
                 case 'xaos items':
-                  switch(parseState[0].is){
+                  switch (parseState[0].is) {
                     case 'number weight':
                       parseState.shift();
                       parseState.shift();
@@ -520,8 +520,7 @@ function parseEverything(code) {
                       if(parseState[0].items.length === 0) {
                         validateNumberArray(parseState[0].weight, parseState[0].weight.length, newError);
                         parseState[0].size = parseState[0].weight.length;
-                      }
-                      else {
+                      } else {
                         validateNumberArray(parseState[0].weight, parseState[0].size, newError);
                       }
                       parseState.unshift({
@@ -539,7 +538,28 @@ function parseEverything(code) {
         }
 
         function getValue() {
+          let ans;
           let start = [i, words[j].at];
+          if(word === ':') {
+            switch (parseState[2].is) {
+              case 'xaos items':
+                if(parseState[2].items.length > 0) {
+                  if(!parseState[2].hasOwnProperty('enterOut')) {
+                    ans = parseState[2].items[parseState[2].items.length - 1][1];
+                  } else {
+                    ans = parseState[2].items[parseState[2].items.length - 1][2];
+                  }
+                } else {
+                  newGeneralError("No ");
+                }
+                parseState[0].value = ans;
+                return start;
+                return;
+              default:
+                newGeneralError("Unexpected token ':'");
+                return;
+            }
+          }
           let bracketDepth = 0;
           let parenDepth = 0;
           let squareDepth = 0;
@@ -647,7 +667,6 @@ function parseEverything(code) {
             console.log(jsCode);
           }
 
-          let ans;
           try {
             let loadCustomFunctions = '';
             for(let f in customFunctions) {
@@ -695,6 +714,7 @@ function parseEverything(code) {
               console.log('get value:');
             }
             let start = getValue();
+            console.log(start);
             let typeError = _3arthError({
               word: parseState[0].value,
               at: start[1]
@@ -1200,7 +1220,16 @@ function parseEverything(code) {
               !parseState[0].hasOwnProperty('enterOut')) {
               parseState[0].mainWeight = parseState[0].weight;
               delete parseState[0].weight;
-              parseState[0].enterOut = getEnterOut(word, newError);
+              let same = word === ':';
+              if(same){
+                if(parseState[0].items.length === 0) {
+                  newGeneralError("Unexpected token ':'");
+                }
+                parseState[0].enterOut = parseState[0].items[parseState[0].items.length-1][1];
+              }
+              else{
+                parseState[0].enterOut = getEnterOut(word, newError);
+              }
               parseState.unshift({
                 is: 'weight'
               });
@@ -1208,7 +1237,11 @@ function parseEverything(code) {
                 is: 'array weight',
                 terminator: ':'
               });
-              parseState.unshift({is:':'});
+              if(!same) {
+                parseState.unshift({
+                  is: ':'
+                });
+              }
               break;
             }
             switch (wordType) {
@@ -1221,9 +1254,9 @@ function parseEverything(code) {
                 }
                 switch (parseState[1].is) {
                   case 'transform':
-                    parseState[1].transforms.push(JSON.parse(JSON.stringify(parseState[0].items)).map(row=>{
-                      let newWeights = row[2].map((sub, index)=>parseState[0].items[index][0] * sub);
-                      return [newWeights.reduce((a,b)=>a+b),row[1],newWeights, row[3]];
+                    parseState[1].transforms.push(JSON.parse(JSON.stringify(parseState[0].items)).map(row => {
+                      let newWeights = row[2].map((sub, index) => parseState[0].items[index][0] * sub);
+                      return [newWeights.reduce((a, b) => a + b), row[1], newWeights, row[3]];
                     }));
                     parseState.shift();
                     parseState.unshift({
