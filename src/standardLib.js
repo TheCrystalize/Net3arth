@@ -1067,6 +1067,7 @@ const BUILT_IN_TRANSFORMS = {
   cpow: cpow,
   cylinder: cylinder,
   disc: disc,
+  hypershape: hypershape,
   hypershift: hypershift,
   hypertile3: hypertile3,
   julian: julian,
