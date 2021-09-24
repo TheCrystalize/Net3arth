@@ -154,12 +154,14 @@ function updateImage(msg) {
       red: buffer[i * 3] / brightest,
       green: buffer[i * 3 + 1] / brightest,
       blue: buffer[i * 3 + 2] / brightest,
+      alpha: 1,
     });
     img.data[i * 4] = shaderResult.red * 255 >> 0;
     img.data[i * 4 + 1] = shaderResult.green * 255 >> 0;
     img.data[i * 4 + 2] = shaderResult.blue * 255 >> 0;
   }
   ctx.putImageData(img, 0, 0);
+  postMessage(0);
 }
 
 onmessage = function(msg) {

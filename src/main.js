@@ -45,10 +45,20 @@ try {
   rendererThread.postMessage({
     canvas: offscreenCanvas
   }, [offscreenCanvas]);
+  rendererThread.onmessage = incrementAnimation;
 } catch (e) {
   alert(`This uses offscreenCanvas, ` +
     `which isn't supported by your browser.
     We recommend switching to Chrome, Edge, or Opera.`);
+}
+
+let loads = 0;
+
+let loadAnimation = "/-\\|";
+
+function incrementAnimation() {
+  loads = (loads+1) % loadAnimation.length;
+  htmlConsole.children.item(htmlConsole.children.length-1).innerText=`rendering ${loadAnimation[loads]}`;
 }
 
 function updateImage(msg) {
@@ -96,6 +106,7 @@ function refreshRender(refreshCanvas = true) {
 let oldCode = '';
 
 function resetCanvas() {
+  loads = 0;
   rendererThread.postMessage({
     reset: true
   });

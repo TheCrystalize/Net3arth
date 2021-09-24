@@ -125,6 +125,19 @@ function gaussRnd() {
 
 /* transforms */
 
+function reset() {
+  return z=>{
+    return {
+      re: 0.000001,
+      im: 0.000002,
+      red: 1,
+      green: 1,
+      blue: 1,
+      alpha: 1,
+    }
+  }
+}
+
 function arcsinh() {
   return z => {
     return {
@@ -765,13 +778,17 @@ function lerp(colorA, colorB, weight = 0.5) {
   if (colorA.hasOwnProperty('h')) {
     if (colorB.hasOwnProperty('h')) {
       return hslToRgb(
-        Math.abs(colorA.h - colorB.h) > 0.5 ? (colorA.h * (1 - weight) + colorB.h * weight + 1) % 1 : colorA.h * (1 - weight) + colorB.h * weight,
+        Math.abs((colorA.h%1) - (colorB.h%1)) > 0.5 ?
+          (((colorA.h+(colorA.h%1>colorB.h?0:1)) * (1 - weight) + (colorB.h+(colorA.h%1>colorB.h?1:0)) * weight + 1)+1) % 1 :
+          colorA.h * (1 - weight) + colorB.h * weight,
         colorA.s * (1 - weight) + colorB.s * weight,
         colorA.l * (1 - weight) + colorB.l * weight);
     } else {
       colorB = rgbToHsl(colorB.red, colorB.green, colorB.blue);
       return hslToRgb(
-        Math.abs(colorA.h - colorB.h) > 0.5 ? (colorA.h * (1 - weight) + colorB.h * weight + 1) % 1 : colorA.h * (1 - weight) + colorB.h * weight,
+        Math.abs((colorA.h%1) - (colorB.h%1)) > 0.5 ?
+          (((colorA.h+(colorA.h%1>colorB.h?0:1)) * (1 - weight) + (colorB.h+(colorA.h%1>colorB.h?1:0)) * weight + 1)+1) % 1 :
+          colorA.h * (1 - weight) + colorB.h * weight,
         colorA.s * (1 - weight) + colorB.s * weight,
         colorA.l * (1 - weight) + colorB.l * weight);
     }
@@ -779,7 +796,9 @@ function lerp(colorA, colorB, weight = 0.5) {
     if (colorB.hasOwnProperty('h')) {
       colorA = rgbToHsl(colorA.red, colorA.green, colorA.blue);
       return hslToRgb(
-        Math.abs(colorA.h - colorB.h) > 0.5 ? (colorA.h * (1 - weight) + colorB.h * weight + 1) % 1 : colorA.h * (1 - weight) + colorB.h * weight,
+        Math.abs((colorA.h%1) - (colorB.h%1)) > 0.5 ?
+          (((colorA.h+(colorA.h%1>colorB.h?0:1)) * (1 - weight) + (colorB.h+(colorA.h%1>colorB.h?1:0)) * weight + 1)+1) % 1 :
+          colorA.h * (1 - weight) + colorB.h * weight,
         colorA.s * (1 - weight) + colorB.s * weight,
         colorA.l * (1 - weight) + colorB.l * weight);
     } else {
@@ -878,44 +897,40 @@ function rgbToHsl(r, g, b) {
 
 function hslShift(h, s, l) {
   return z => {
-    let magnitude = Math.max(z.red, z.green, z.blue);
-    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
+    let hsl = rgbToHsl(z.red, z.green, z.blue);
     return {
       ...z,
-      ...brightenRGB(hslToRgb((hsl.h + h + 1) % 1, hsl.s + s, hsl.l + l), magnitude)
+      ...hslToRgb((hsl.h + h + 1) % 1, hsl.s + s, hsl.l + l)
     }
   }
 }
 
 function setHue(hue) {
   return z => {
-    let magnitude = Math.max(z.red, z.green, z.blue);
-    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
+    let hsl = rgbToHsl(z.red, z.green, z.blue);
     return {
       ...z,
-      ...brightenRGB(hslToRgb(hue, hsl.s, hsl.l), magnitude)
+      ...hslToRgb(hue, hsl.s, hsl.l)
     }
   }
 }
 
 function setSaturation(saturation) {
   return z => {
-    let magnitude = Math.max(z.red, z.green, z.blue);
-    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
+    let hsl = rgbToHsl(z.red, z.green, z.blue);
     return {
       ...z,
-      ...brightenRGB(hslToRgb(hsl.h, saturation, hsl.l), magnitude)
+      ...hslToRgb(hsl.h, saturation, hsl.l)
     }
   }
 }
 
 function setLightness(lightness) {
   return z => {
-    let magnitude = Math.max(z.red, z.green, z.blue);
-    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
+    let hsl = rgbToHsl(z.red, z.green, z.blue);
     return {
       ...z,
-      ...brightenRGB(hslToRgb(hsl.h, hsl.s, lightness), magnitude)
+      ...hslToRgb(hsl.h, hsl.s, lightness)
     }
   }
 }
@@ -923,14 +938,13 @@ function setLightness(lightness) {
 function lerpRGB(r, g, b, weight = 0.5) {
   weight = Math.max(0, Math.min(1, weight));
   return z => {
-    let magnitude = Math.max(z.red, z.green, z.blue);
     return {
       ...z,
-      ...brightenRGB(normalizeRGB({
+      ...{
         red: (z.red * (1 - weight) + r * weight),
         green: (z.green * (1 - weight) + g * weight),
         blue: (z.blue * (1 - weight) + b * weight)
-      }), magnitude)
+      }
     }
   }
 }
@@ -938,14 +952,16 @@ function lerpRGB(r, g, b, weight = 0.5) {
 function lerpHSL(h, s, l, weight = 0.5) {
   weight = Math.max(0, Math.min(1, weight));
   return z => {
-    let magnitude = Math.max(z.red, z.green, z.blue);
-    let hsl = rgbToHsl(z.red / magnitude, z.green / magnitude, z.blue / magnitude);
+    let hsl = rgbToHsl(z.red, z.green, z.blue);
     return {
       ...z,
-      ...brightenRGB(normalizeRGB(hslToRgb(
-        Math.abs(hsl.h - h) > 0.5 ? (hsl.h * (1 - weight) + h * weight + 1) % 1 : hsl.h * (1 - weight) + h * weight,
+      ...hslToRgb(
+        Math.abs((hsl.h%1) - (h%1)) > 0.5 ?
+          (((hsl.h+(hsl.h%1>h%1?0:1)) * (1 - weight) + (h+(hsl.h%1>h%1?1:0)) * weight)+1)%1:
+          (hsl.h%1) * (1 - weight) + (h%1) * weight,
         hsl.s * (1 - weight) + s * weight,
-        hsl.l * (1 - weight) + l * weight)), magnitude)
+        hsl.l * (1 - weight) + l * weight
+      )
     }
   }
 }
@@ -973,9 +989,9 @@ function normalizeColor() {
 
 function brightenRGB(color, amount) {
   return {
-    red: color.red * amount,
-    green: color.green * amount,
-    blue: color.blue * amount
+    red: Math.min(1, color.red * amount),
+    green:  Math.min(1, color.green * amount),
+    blue:  Math.min(1, color.blue * amount)
   }
 }
 
@@ -983,9 +999,7 @@ function brighten(amount) {
   return z => {
     return {
       ...z,
-      red: z.red * amount,
-      green: z.green * amount,
-      blue: z.blue * amount
+      alpha: z.alpha * amount,
     }
   }
 }
@@ -1055,6 +1069,7 @@ function gamma(gamma) {
 /* description s*/
 
 const BUILT_IN_TRANSFORMS = {
+  reset: reset,
   arcsinh: arcsinh,
   arctanh: arctanh,
   blurCircle: blurCircle,
@@ -1107,6 +1122,7 @@ const BUILT_IN_TRANSFORMS = {
 };
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
+  reset: [],
   arcsinh: [],
   arctanh: [],
   blurCircle: [],

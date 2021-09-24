@@ -118,9 +118,9 @@ function run() {
 
     if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
       let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * HEIGHT >> 0) * WIDTH;
-      buffer[index * 3] += val.red;
-      buffer[index * 3 + 1] += val.green;
-      buffer[index * 3 + 2] += val.blue;
+      buffer[index * 3] += val.red * val.alpha;
+      buffer[index * 3 + 1] += val.green * val.alpha;
+      buffer[index * 3 + 2] += val.blue * val.alpha;
     }
   }
 
@@ -189,7 +189,8 @@ function initialize(id, job, spf, width, height) {
     im: 0.001,
     red: 1,
     green: 1,
-    blue: 1
+    blue: 1,
+    alpha: 1,
   };
   stuffToDo = job;
   stepsPerFrame = spf;

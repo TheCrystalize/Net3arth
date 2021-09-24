@@ -1,12 +1,12 @@
 const StandardLibNamesArray =
-`arcsinh
+`reset
+arcsinh
 arctanh
 blurCircle
 blurGasket
 blurGaussian
 blurSine
 blurSquare
-brighten
 bubble
 circleInv
 cpow
@@ -21,10 +21,10 @@ mobius
 murl2
 pointSymmetry
 rotate
+scale
 sinusoidal
 smartcrop
 smartshape
-scale
 splits
 tileHelp
 tileLog
@@ -35,6 +35,7 @@ trigLog
 trigSinh
 trigTanh
 unbubble
+brighten
 color
 gamma
 gradient
@@ -43,6 +44,7 @@ hslShift
 lerpColor
 lerpHSL
 lerpRGB
+normalizeColor
 setHue
 setSaturation
 setLightness`.split('\n');
