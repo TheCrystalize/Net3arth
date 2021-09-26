@@ -520,21 +520,22 @@ function rotate(theta) {
   }
 }
 
-function scale(c) {
-  if (c.hasOwnProperty('n') && c.n) {
-    return function(z) {
-      return {
-        ...z,
-        re: z.re * c.re,
-        im: z.im * c.re
-      }
-    }
-  }
+function scale(factor) {
   return function(z) {
     return {
       ...z,
-      re: z.re * c.re,
-      im: z.im * c.im
+      re: z.re * factor,
+      im: z.im * factor
+    }
+  }
+}
+
+function scale2(real, imaginary) {
+  return function(z) {
+    return {
+      ...z,
+      re: z.re * real,
+      im: z.im * imaginary
     }
   }
 }
@@ -1092,6 +1093,7 @@ const BUILT_IN_TRANSFORMS = {
   pointSymmetry: pointSymmetry,
   rotate: rotate,
   scale: scale,
+  scale2: scale2,
   sinusoidal: sinusoidal,
   smartcrop: smartcrop,
   smartshape: smartshape,
@@ -1285,12 +1287,18 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 0
   }],
   scale: [{
-    name: "c",
-    type: "complex",
-    default: {
-      re: 1,
-      im: 1
-    }
+    name: "factor",
+    type: "number",
+    default: 1
+  }],
+  scale2: [{
+    name: "real",
+    type: "number",
+    default: 1
+  },{
+    name: "imaginary",
+    type: "number",
+    default: 1
   }],
   sinusoidal: [],
   smartcrop: [{

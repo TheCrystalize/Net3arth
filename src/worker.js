@@ -108,6 +108,8 @@ function run() {
     })];
   }
 
+  let samples = 0;
+
   for(let i = 0; i < stepsPerFrame; i++) {
     //console.log(`change pointer: ${stuffToDo.body}`);
     pointer = loopStuff(stuffToDo.body, pointer);
@@ -116,7 +118,8 @@ function run() {
     let val = loopStuff(stuffToDo.camera, pointer);
     val = loopStuff(scl, val);
 
-    if(val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
+    if(val.alpha > 0 && val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
+      samples++;
       let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * HEIGHT >> 0) * WIDTH;
       buffer[index * 3] += val.red * val.alpha;
       buffer[index * 3 + 1] += val.green * val.alpha;
@@ -125,7 +128,7 @@ function run() {
   }
 
   postMessage(buffer.buffer, [buffer.buffer]);
-  postMessage({steps: stepsPerFrame});
+  postMessage({steps: samples});
 
   stepsPerFrame = Math.min(stepsPerFrame * 4, 1e7);
 

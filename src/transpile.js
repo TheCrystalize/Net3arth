@@ -72,7 +72,7 @@ function paramsToString(params, tab) {
   return ans;
 }
 
-function switchToString(data, tab) {
+function chooseToString(data, tab) {
   let ans = 'choose{\n';
   for(let i = 0; i < data.length; i++) {
     ans += tab + '  ' + data[i][0] + ': ' + loopToString(data[i][1], tab + '    ') + ';\n';
@@ -88,7 +88,7 @@ function xaosToString(data, tab) {
     let eo = (data[i][1][0] ? (data[i][1][1] ? 'eo' : 'e') : (data[i][1][1] ? 'o' : '_'));
     let ar = '[' + paramsToString(data[i][2]) + ']';
     ans += tab + '  1:' + (eo === lastEO ? '' : eo) + ':' +
-      (ar === lastAR ? '' : ar) + ':\n'+tab+'    ' +
+      (ar === lastAR ? '' : ar) + ':\n' + tab + '    ' +
       loopToString(data[i][3], tab + '    ') + ';\n';
     lastEO = eo;
     lastAR = ar;
@@ -106,7 +106,7 @@ function loopToString(data, tab = '') {
   if(typeof data[0][0] === 'number') {
     switch (data[0].length) {
       case 2:
-        return switchToString(data, tab);
+        return chooseToString(data, tab);
       case 4:
         return xaosToString(data, tab);
     }
@@ -174,6 +174,10 @@ function getTypeOfWord(word) {
     case (word === 'choose'):
     case (word === 'xaos'):
       return word;
+    case (word === 'const'):
+      return 'const';
+    case (word === 'transform'):
+      return 'transform';
     case (word === 'number'):
     case (word === 'bool'):
     case (word === 'string'):
@@ -382,7 +386,11 @@ function parseEverything(code) {
   let parseState = [{
     is: "top"
   }];
+  let consts = {};
+  let lets = {};
   let customFunctions = {};
+  let transformTemplates = {};
+  let customTransformParams = false;
   for(let i = 0; i < code.length; i++) {
     let words = lineToWords(code[i]);
 
@@ -394,6 +402,9 @@ function parseEverything(code) {
         let newGeneralError = General3arthError(words[j], i, code[i]);
         if(verbose) {
           console.log('-- loop-top --');
+          console.log(consts);
+          console.log(lets);
+          console.log(transformTemplates);
           console.log(customFunctions);
           console.log(JSON.stringify(parseState));
           console.log(parseState[0]);
@@ -426,35 +437,185 @@ function parseEverything(code) {
           }
         }
 
-        function endDefaultParam() {
-          switch (wordType) {
-            case ',':
-              var param = {
-                name: parseState[1].name,
-                type: parseState[1].type,
-                default: parseState[0].value,
-              };
-              parseState.shift();
-              parseState.shift();
-              parseState[0].params.push(param);
-              break;
-            case ')':
-              var param = {
-                name: parseState[1].name,
-                type: parseState[1].type,
-                default: parseState[0].value,
-              };
-              parseState.shift();
-              parseState.shift();
-              parseState[0].params.push(param);
-              parseState[1].params = parseState[0].params;
-              parseState.shift();
+        function evalValue(jsCode) {
+          if(typeof jsCode !== 'string') {
+            return {
+              code: '' + jsCode,
+              isParam: false
+            }
+          }
+          jsCode = jsCode.replace(/console\.log/g, 'consolelog');
+          jsCode = jsCode.replace(/console\.clear/g, 'consoleclear');
+
+          let match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+          while(match) {
+            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index + match[0].length);
+            match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+          }
+
+          match = jsCode.match(/([+-]?[0-9.]+)([+-])i/);
+          while(match) {
+            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index + match[0].length);
+            match = jsCode.match(/([+-]?[0-9.]+)([+-]+)i/);
+          }
+
+          match = jsCode.match(/([-]?[0-9.]+)i/);
+          while(match) {
+            jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index + match[0].length);
+            match = jsCode.match(/([-]?[0-9.]+)i/);
+          }
+
+          if(verbose) {
+            console.log(jsCode);
+          }
+
+          let loadCustomFunctions = '';
+          for(let f in customFunctions) {
+            loadCustomFunctions += `function ${f}(${customFunctions[f].params.map(p=>`${p.name}`).join(',')}){${customFunctions[f].code}}`;
+          }
+
+          for(let v in consts) {
+            loadCustomFunctions += `const ${v} = ${consts[v]};`;
+          }
+
+          for(let v in lets) {
+            loadCustomFunctions += `let ${v} = ${lets[v]};`;
+          }
+
+          let isParam = false;
+          let testCode = jsCode;
+          if(customTransformParams) {
+            for(let i = 0; i < customTransformParams.length; i++) {
+              if(jsCode.match(new RegExp(`\\b${customTransformParams[i].name}\\b`))) {
+                jsCode = jsCode.replace(new RegExp(`\\b${customTransformParams[i].name}\\b`, 'g'), `<!${customTransformParams[i].name}!>`);
+                let replacement = '';
+                switch (customTransformParams[i].type) {
+                  case 'number':
+                    replacement = '0';
+                    break;
+                  case 'complex':
+                    replacement = '{re:0,im:0}';
+                    break;
+                  case 'bool':
+                    replacement = 'false';
+                    break;
+                  case 'string':
+                    replacement = '"test"';
+                    break;
+                  case 'array':
+                    replacement = '[0]';
+                    break;
+                  case 'object':
+                    replacement = '{re: 0, im: 0, z: 0, red: 0, green: 0, blue: 0, alpha: 0, h: 0, s: 0, l: 0}';
+                    break;
+                  default:
+                    newGeneralError(`Unhandeled type test: ${customTransformParams[i].type}`);
+                }
+                testCode = testCode.replace(new RegExp(`\\b${customTransformParams[i].name}\\b`, 'g'), '(' + replacement + ')');
+                isParam = true;
+              }
+            }
+          }
+
+          return {
+            code: '(_=>{' + loadCustomFunctions + 'return ' + testCode + '})()',
+            testCode: jsCode,
+            isParam: isParam
+          };
+        }
+
+        function replaceParams(params, values, transforms) {
+          let ans = [];
+          for(let i = 0; i < transforms.length; i++) {
+            ans.push(replaceParam(params, values, transforms[i]));
+          }
+          return ans;
+        }
+
+        function customChoose(params, values, transform) {
+          let ans = [];
+          for(let i = 0; i < transform.length; i++) {
+            ans.push([replaceParam(params, values, transform[i][0]), customTransform(params, values, transform[i][1])]);
+          }
+          return ans;
+        }
+
+        function customXaos(params, values, transform) {
+          let ans = [];
+          for(let i = 0; i < transform.length; i++) {
+            ans.push([
+              replaceParam(params, values, transform[i][0]),
+              transform[i][1],
+              replaceParam(params, values, transform[i][2]),
+              customTransform(params, values, transform[i][3])
+            ]);
+          }
+          return ans;
+        }
+
+        function customTransform(params, values, transform) {
+          if(typeof transform[0] === 'string') {
+            return [transform[0], replaceParams(params, values, transform[1])];
+          }
+          if(!transform[0]) {
+            return '';
+          }
+          if(typeof transform[0][0] === 'number') {
+            switch (transform[0].length) {
+              case 2:
+                return customChoose(params, values, transform);
+              case 4:
+                return customXaos(params, values, transform);
+            }
+          }
+
+          let ans = [];
+          for(let i = 0; i < transform.length; i++) {
+            ans.push(customTransform(params, values, transform[i]));
+          }
+          return ans;
+        }
+
+        function replaceParam(params, values, txt) {
+          if(typeof txt !== 'string') {
+            return txt;
+          }
+          console.log(`~param~`);
+          let ans = txt;
+          console.log(params);
+          console.log(values);
+          console.log(ans);
+          for(let i = 0; i < values.length; i++) {
+            ans = ans.replace(new RegExp('<!' + params[i].name + '!>', 'g'), values[i]);
+          }
+          console.log(ans);
+
+          if(ans.indexOf('<!') >= 0) {
+            return ans;
+          }
+
+          return eval(evalValue(ans).code);
+        }
+
+        function postParams() {
+          switch (parseState[0].is) {
+            case 'function':
               parseState.unshift({
                 is: 'js'
               });
               break;
+            case 'new transform':
+              customTransformParams = parseState[0].params;
+              parseState.unshift({
+                is: 'transform',
+                transforms: []
+              });
+              parseState.unshift({
+                is: ':'
+              });
+              break;
             default:
-              newError(parseState[0].is);
+              newGeneralError(`Unhandeled state transition from "parameters" "${parseState[0].is}"`, parseState);
           }
         }
 
@@ -486,9 +647,26 @@ function parseEverything(code) {
               }
               parseState[1].transforms.push([parseState[0].transform, parseState[0].params]);
               parseState.shift();
-              parseState.unshift({
-                is: 'after transform'
-              });
+              switch (parseState[0].is) {
+                case 'transform':
+                  parseState.unshift({
+                    is: 'after transform'
+                  });
+                  break;
+                case 'parse custom function':
+                  parseState[1].transforms.push(customTransform(
+                    transformTemplates[parseState[0].name].params,
+                    parseState[0].transforms[0][1],
+                    transformTemplates[parseState[0].name].transform
+                  ));
+                  parseState.shift();
+                  parseState.unshift({
+                    is: 'after transform'
+                  });
+                  break;
+                default:
+                  newGeneralError(`Unhandeled state transition: endParam -> ${parseState[0].is}`);
+              }
               break;
             default:
               newError(parseState[0].is);
@@ -635,7 +813,7 @@ function parseEverything(code) {
             if(verbose) {
               console.log(`${words[j].word} | ${parenDepth}, ${bracketDepth}, ${squareDepth}`);
             }
-          } while(lastParenDepth > 0 || lastBracketDepth > 0 || lastSquareDepth > 0 || !(words[j].word === ':' || words[j].word === ',' || words[j].word === ')'))
+          } while(lastParenDepth > 0 || lastBracketDepth > 0 || lastSquareDepth > 0 || !(words[j].word === ';' || words[j].word === ':' || words[j].word === ',' || words[j].word === ')'))
 
           let jsCode = '';
 
@@ -649,39 +827,18 @@ function parseEverything(code) {
             jsCode += code[i].slice(0, words[j].at);
           }
 
-          jsCode = jsCode.replace(/console\.log/g, 'consolelog');
-          jsCode = jsCode.replace(/console\.clear/g, 'consoleclear');
-
-          let match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
-          while(match) {
-            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index + match[0].length);
-            match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
-          }
-
-
-          match = jsCode.match(/([+-]?[0-9.]+)([+-])i/);
-          while(match) {
-            jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index + match[0].length);
-            match = jsCode.match(/([+-]?[0-9.]+)([+-]+)i/);
-          }
-
-          match = jsCode.match(/([-]?[0-9.]+)i/);
-          while(match) {
-            jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index + match[0].length);
-            match = jsCode.match(/([-]?[0-9.]+)i/);
-          }
-
-          if(verbose) {
-            console.log(jsCode);
-          }
+          jsCode = evalValue(jsCode);
 
           try {
-            let loadCustomFunctions = '';
-            for(let f in customFunctions) {
-              loadCustomFunctions += `function ${f}(${customFunctions[f].params.map(p=>`${p.name}`).join(',')}){${customFunctions[f].code}}`;
+            if(jsCode.isParam) {
+              let test = eval(jsCode.code);
+              ans = jsCode.testCode;
+              parseState[0].testValue = test;
+            } else {
+              ans = eval(jsCode.code);
             }
-            ans = eval('(_=>{' + loadCustomFunctions + 'return ' + jsCode + '})()');
           } catch (e) {
+            console.log(JSON.stringify(parseState));
             if(parseState[1].is === 'custom transform params') {
               newGeneralError(`${parseState[1].transform} parameter error:\n` + e);
             } else {
@@ -722,84 +879,106 @@ function parseEverything(code) {
               console.log('get value:');
             }
             let start = getValue();
-            console.log(start);
+
+            let val = parseState[0].value;
+
+            if(customTransformParams) {
+              for(let i = 0; i < customTransformParams.length; i++) {
+                if(typeof parseState[0].value !== 'string') {
+                  continue;
+                }
+                if(parseState[0].value.indexOf('<!' + customTransformParams[i].name + '!>') >= 0) {
+                  val = parseState[0].testValue;
+                  i = Infinity;
+                }
+              }
+            }
+
+            if(verbose) {
+              console.log(customTransformParams);
+              console.log(start);
+              console.log(JSON.stringify(parseState));
+              console.log(val);
+            }
             let typeError = _3arthError({
-              word: parseState[0].value,
+              word: val,
               at: start[1]
             }, start[0], code[start[0]]);
-            if(typeof parseState[0].value === 'object') {
+            if(typeof val === 'object') {
               try {
                 typeError = _3arthError({
-                  word: JSON.stringify(parseState[0].value),
+                  word: JSON.stringify(val),
                   at: start[1]
                 }, start[0], code[start[0]]);
-                if(Object.keys(parseState[0].value).join(',') === 're,im') {
+                if(Object.keys(val).join(',') === 're,im') {
                   typeError = _3arthError({
-                    word: parseState[0].value.re + (parseState[0].value.im > 0 ? '+' : '') + parseState[0].value.im + 'i',
+                    word: val.re + (val.im > 0 ? '+' : '') + val.im + 'i',
                     at: start[1]
                   }, start[0], code[start[0]]);
                 }
               } catch (e) {}
-            }
-            if(verbose) {
-              console.log(parseState[0].value);
-            }
-            switch (typeof parseState[0].value) {
-              case 'number':
-                if(desiredType !== 'number') {
-                  if(desiredType === 'complex') {
-                    parseState[0].value = {
-                      re: parseState[0].value,
-                      im: 0,
-                      n: true
-                    };
-                  } else {
-                    typeError(desiredType);
-                  }
-                }
-                break;
-              case 'object':
-                if(desiredType !== 'complex') {
-                  if(desiredType !== 'array' || !Array.isArray(parseState[0].value)) {
-                    if(desiredType !== 'object') {
+
+              if(verbose) {
+                console.log(val);
+              }
+              switch (typeof val) {
+                case 'number':
+                  if(desiredType !== 'number') {
+                    if(desiredType === 'complex') {
+                      val = {
+                        re: val,
+                        im: 0,
+                        n: true
+                      };
+                    } else {
                       typeError(desiredType);
                     }
                   }
-                } else if(Object.keys(parseState[0].value).join(',') === 're,im') {
-                  if(typeof parseState[0].value.re !== 'number' || isNaN(parseState[0].value.re)) {
-                    General3arthError({
-                      word: parseState[0].value,
-                      at: start[1]
-                    }, start[0], code[start[0]])(`Complex value's real part is undefined: ${parseState[0].value.re}`);
+                  break;
+                case 'object':
+                  if(desiredType !== 'complex') {
+                    if(desiredType !== 'array' || !Array.isArray(val)) {
+                      if(desiredType !== 'object') {
+                        typeError(desiredType);
+                      }
+                    }
+                  } else if(Object.keys(val).join(',') === 're,im') {
+                    if(typeof val.re !== 'number' || isNaN(val.re)) {
+                      General3arthError({
+                        word: val,
+                        at: start[1]
+                      }, start[0], code[start[0]])(`Complex value's real part is undefined: ${val.re}`);
+                    }
+                    if(typeof val.im !== 'number' || isNaN(val.im)) {
+                      General3arthError({
+                        word: val,
+                        at: start[1]
+                      }, start[0], code[start[0]])(`Complex value's imaginary part is undefined: ${val.im}`);
+                    }
+                  } else {
+                    typeError(desiredType);
                   }
-                  if(typeof parseState[0].value.im !== 'number' || isNaN(parseState[0].value.im)) {
-                    General3arthError({
-                      word: parseState[0].value,
-                      at: start[1]
-                    }, start[0], code[start[0]])(`Complex value's imaginary part is undefined: ${parseState[0].value.im}`);
+                  break;
+                case 'boolean':
+                  if(desiredType !== 'bool') {
+                    typeError(desiredType);
                   }
-                } else {
-                  typeError(desiredType);
-                }
-                break;
-              case 'boolean':
-                if(desiredType !== 'bool') {
-                  typeError(desiredType);
-                }
-                break;
-              case 'string':
-                if(desiredType !== 'string') {
-                  typeError(desiredType);
-                }
-                break;
-              default:
-                typeError(desiredType)
+                  break;
+                case 'string':
+                  if(desiredType !== 'string') {
+                    typeError(desiredType);
+                  }
+                  break;
+                default:
+                  typeError(desiredType)
+              }
             }
             break;
         }
 
         if(verbose) {
           console.log('-- switch-top --');
+          console.log(transformTemplates);
           console.log(customFunctions);
           console.log(JSON.stringify(parseState));
           console.log(parseState[0]);
@@ -858,6 +1037,22 @@ function parseEverything(code) {
                   is: ':'
                 });
                 break;
+              case 'const':
+                parseState.unshift({
+                  is: 'new const'
+                });
+                parseState.unshift({
+                  is: 'new name'
+                });
+                break;
+              case 'transform':
+                parseState.unshift({
+                  is: 'new transform'
+                });
+                parseState.unshift({
+                  is: 'new name'
+                });
+                break;
               case 'word':
                 parseState.unshift({
                   is: 'function',
@@ -878,6 +1073,21 @@ function parseEverything(code) {
               newError('function declaration');
             }
             break;
+          case 'function param':
+            switch (wordType) {
+              case ',':
+                parseState.shift();
+                break;
+              case ')':
+                parseState.shift();
+                parseState[1].params = parseState[0].params;
+                parseState.shift();
+                postParams();
+                break;
+              default:
+                newError('"," or ")"');
+            }
+            break;
           case 'function params':
             if(wordType === 'type') {
               parseState.unshift({
@@ -885,17 +1095,12 @@ function parseEverything(code) {
                 type: word
               });
               parseState.unshift({
-                is: word
-              });
-              parseState.unshift({
                 is: 'function param name'
               });
             } else if(wordType === ')') {
               parseState.shift();
               parseState[0].params = [];
-              parseState.unshift({
-                is: 'js'
-              });
+              postParams();
             } else {
               newError('type definition or ")"');
             }
@@ -903,35 +1108,13 @@ function parseEverything(code) {
           case 'function param name':
             if(wordType === 'word') {
               parseState.shift();
-              parseState[1].name = word;
-              parseState.unshift({
-                is: '='
+              parseState[1].params.push({
+                name: word,
+                type: parseState[0].type
               });
             } else {
               newError("parameter name");
             }
-            break;
-          case 'function param default':
-            if(wordType === 'word') {
-              parseState.shift();
-              parseState[0].name = word;
-              parseState.unshift({
-                is: 'function param default'
-              });
-              parseState.unshift({
-                is: '='
-              });
-            } else {
-              newError("parameter default");
-            }
-            break;
-          case 'number':
-          case 'complex':
-          case 'bool':
-          case 'string':
-          case 'array':
-          case 'object':
-            endDefaultParam();
             break;
           case 'number param':
           case 'complex param':
@@ -1113,7 +1296,7 @@ function parseEverything(code) {
                   if(word === transform) {
                     //console.log(`found ${transform}`);
                     if(customFunctions[word].params.length === 0) {
-                      parseState[0].transforms.push([word, []]);
+                      //parseState[0].transforms.push([word, []]);
                       parseState.unshift({
                         is: 'after transform'
                       });
@@ -1141,6 +1324,45 @@ function parseEverything(code) {
                     continue wordLoop;
                   }
                 }
+                for(let transform in transformTemplates) {
+                  if(word === transform) {
+                    //console.log(`found ${transform}`);
+                    if(transformTemplates[word].params.length === 0) {
+                      parseState.unshift({
+                        is: 'parse custom function',
+                        name: word,
+                        transforms: []
+                      });
+                      parseState[0].transforms.push([word, []]);
+                      parseState.unshift({
+                        is: ')'
+                      });
+                      parseState.unshift({
+                        is: '('
+                      });
+                      continue wordLoop;
+                    }
+                    parseState.unshift({
+                      is: 'parse custom function',
+                      name: word,
+                      transforms: []
+                    });
+                    parseState.unshift({
+                      is: 'transform template params',
+                      transform: word,
+                      on: 0,
+                      params: [],
+                      paramTypes: transformTemplates[word].params
+                    });
+                    parseState.unshift({
+                      is: parseState[0].paramTypes[0].type + ' param'
+                    });
+                    parseState.unshift({
+                      is: '('
+                    });
+                    continue wordLoop;
+                  }
+                }
                 newGeneralError(`Function undefined: ${word}`);
                 break;
               default:
@@ -1154,6 +1376,16 @@ function parseEverything(code) {
                 break;
               case ';':
                 switch (parseState[2].is) {
+                  case 'new transform':
+                    transformTemplates[parseState[2].name] = {
+                      params: parseState[2].params,
+                      transform: parseState[1].transforms
+                    };
+                    customTransformParams = false;
+                    parseState.shift();
+                    parseState.shift();
+                    parseState.shift();
+                    break;
                   case 'choose items':
                     parseState[2].items.push([parseState[2].weight, parseState[1].transforms]);
                     delete parseState[2].weight;
@@ -1254,7 +1486,7 @@ function parseEverything(code) {
             switch (wordType) {
               case '}':
                 if(parseState[0].size < parseState[0].items.length) {
-                  newGeneralError(`Xaos weight arrays are only length ${parseState[0].size} but there only ${parseState[0].items.length} states.`);
+                  newGeneralError(`Xaos weight arrays are only length ${parseState[0].size} but there ${parseState[0].items.length} states.`);
                 }
                 if(parseState[0].size > parseState[0].items.length) {
                   newGeneralError(`Xaos weight arrays are length ${parseState[0].size} but there are only ${parseState[0].items.length} states.`);
@@ -1276,6 +1508,51 @@ function parseEverything(code) {
                 break;
               default:
                 newError(`}`);
+            }
+            break;
+
+          case 'variable param':
+            let val = getValue();
+            try {
+              parseState[0].value = eval(evalValue(parseState[0].value).code);
+            } catch (e) {
+              newGeneralError('variable param\n' + e);
+            }
+            consts[parseState[1].name] = parseState[0].value;
+            parseState.shift();
+            parseState.shift();
+            break;
+
+          case 'new name':
+            switch (wordType) {
+              case 'word':
+                parseState[1].name = word;
+                parseState.shift();
+                switch (parseState[0].is) {
+                  case 'new transform':
+                    parseState.unshift({
+                      is: 'function params',
+                      params: []
+                    });
+                    parseState.unshift({
+                      is: '('
+                    });
+                    break;
+                  case 'new const':
+                    parseState.unshift({
+                      is: 'variable param',
+                      terminator: ';'
+                    });
+                    parseState.unshift({
+                      is: '='
+                    });
+                    break;
+                  default:
+                    newGeneralError('Something went horribly wrong...');
+                }
+                break;
+              default:
+                newError('valid alphanumeric name');
             }
             break;
           default:
@@ -1303,6 +1580,7 @@ function parseEverything(code) {
 
     if(verbose) {
       console.log('-- compiled --');
+      console.log(JSON.stringify(parseState[0]));
     }
     return parseState[0];
   }

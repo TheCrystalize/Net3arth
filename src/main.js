@@ -3,8 +3,10 @@ let HEIGHT = 800;
 let THREADS = (Math.max(navigator.hardwareConcurrency, 8) - 4) || 4;
 const STEPS_PER_CALL = WIDTH * HEIGHT / 2;
 
+const preventKeys = 'psr';
+
 document.addEventListener('keydown',event=>{
-  if(event.ctrlKey){
+  if(event.ctrlKey && preventKeys.indexOf(event.key) >= 0){
     event.preventDefault();
     event.stopPropagation();
   }

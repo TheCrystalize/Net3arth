@@ -15,7 +15,9 @@ editor.setOptions({
 var customWordCompleter = {
   getCompletions: function(editor, session, pos, prefix, callback) {
     var wordList = [
-      ["TEMPLATE", ["TRANSFORM"]],
+      ["TEMPLATE", ["JavaScript TRANSFORM"]],
+      ["CONST", ["const"]],
+      ["TRANSFORM", ["transform"]],
       ["BODY", ["body"]],
       ["CAMERA", ["camera"]],
       ["SHADER", ["shader"]],
@@ -32,6 +34,10 @@ var customWordCompleter = {
       return words[1].map(function(word) {
         let post = word;
         switch (words[0]) {
+          case "CONST":
+          case "TRANSFORM":
+            post += ' ';
+            break;
           case "CAMERA":
           case "BODY":
           case "SHADER":

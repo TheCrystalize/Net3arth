@@ -493,14 +493,60 @@ var EarthLangHighlightRules = function(options) {
             {
                 token: "constant.language",
                 regex: "i\\b",
-            },
-            {
-                token: "constant.numeric",
-                regex: "\\.[0-9]|[0-9]\\.|[0-9]",
+            }, {
+                token : "support.class", // hexadecimal, octal and binary
+                regex : /0(?:[xX][0-9a-fA-F]+|[oO][0-7]+|[bB][01]+)\b/
+            }, {
+                token : "support.class", // decimal integers and floats
+                regex : /(?:\d\d*(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+\b)?/
             },
             {
                 token: "variable.parameter",
                 regex: "\\w+\\b",
+            }
+        ],
+        "earthLangConst" : [
+            comments("earthLangConst"),
+            {
+                token: "entity.function.name",
+                regex: "\\w+\\b"
+            },
+            {
+                token: "empty",
+                regex: "=",
+                next: "startjs"
+            }
+        ],
+        "earthLangCustomTransformParams" : [
+            comments("earthLangCustomTransformParams"),
+            {
+                token: "storage.type",
+                regex: "(?:number|complex|bool|string|array|object)"
+            },
+            {
+                token: "entity.function.name",
+                regex: "\\w+\\b"
+            },
+            {
+                token: "empty",
+                regex: "\\(",
+            },
+            {
+                token: "empty",
+                regex: "\\)",
+            },
+            {
+                token: "empty",
+                regex: ":",
+                next: "earthLangTransform"
+            },
+            {
+                token : "support.class", // hexadecimal, octal and binary
+                regex : /0(?:[xX][0-9a-fA-F]+|[oO][0-7]+|[bB][01]+)\b/
+            },
+            {
+                token : "support.class", // decimal integers and floats
+                regex : /(?:\d\d*(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+\b)?/
             }
         ],
         "no_regex" : [
@@ -511,6 +557,18 @@ var EarthLangHighlightRules = function(options) {
                 regex: "body|camera|shader",
                 push: "start",
                 next: "earthLangTransform"
+            },
+            {
+                token: "keyword.control",
+                regex: "transform\\b",
+                push: "start",
+                next: "earthLangCustomTransformParams"
+            },
+            {
+                token: "keyword.control",
+                regex: "const\\b",
+                push: "start",
+                next: "earthLangConst"
             },
             {
                 token: "storage.type",
@@ -697,6 +755,18 @@ var EarthLangHighlightRules = function(options) {
                 token: "storage.type",
                 regex: "number|complex|bool|string|array|object",
                 next: "earthLangFunction"
+            },
+            {
+                token: "keyword.control",
+                regex: "transform\\b",
+                push: "start",
+                next: "earthLangCustomTransformParams"
+            },
+            {
+                token: "keyword.control",
+                regex: "const\\b",
+                push: "start",
+                next: "earthLangConst"
             },
             {
                 token: "entity.name.function",
