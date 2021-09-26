@@ -112,12 +112,23 @@ editor.commands.addCommand({
 });
 
 editor.commands.addCommand({
-  name: "tutorial",
+  name: "next tutorial",
   bindKey: {
-    win: "Ctrl-/|Ctrl-Shift-/",
-    mac: "Command-/|Command-Shift-/"
+    win: "Ctrl-/",
+    mac: "Command-/"
   },
   exec: function() {
     tutorial();
+  }
+});
+
+editor.commands.addCommand({
+  name: "last tutorial",
+  bindKey: {
+    win: "Ctrl-Shift-/",
+    mac: "Command-Shift-/"
+  },
+  exec: function() {
+    tutorial(true);
   }
 });
