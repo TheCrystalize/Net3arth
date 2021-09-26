@@ -385,6 +385,18 @@ function arctanh() {
   }
 }
 
+function bent(real, imaginary) {
+  return z => {
+    let nr = z.re < 0 ? real * z.re : z.re,
+      ni = z.im < 0 ? imaginary * z.im : z.im
+    return {
+      ...z,
+      re: nr,
+      im: ni
+    }
+  }
+}
+
 function blurCircle() {
   return z => {
     let a = Math.random() * Math.PI * 2,
@@ -597,7 +609,7 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
     }
     if (Math.random() > radial) {
       rotate = !rotate;
-      current = direct ? ++current % length : current == (current === 0) ? length - 1 : --current;
+      current = direct ? ++current % length : ((current === 0) ? length - 1 : --current);
     }
     if (direct) {
       if (rotate) {
@@ -635,6 +647,24 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
         im: y
       }
       rotate = true;
+    }
+  }
+}
+
+function flipX() {
+  return z => {
+    return {
+      ...z,
+      re: z.im > 0 ? -z.re : z.re
+    }
+  }
+}
+
+function flipY() {
+  return z => {
+    return {
+      ...z,
+      im: z.re > 0 ? -z.im : z.im
     }
   }
 }
@@ -1431,6 +1461,7 @@ const BUILT_IN_TRANSFORMS = {
   reset: reset,
   arcsinh: arcsinh,
   arctanh: arctanh,
+  bent: bent,
   blurCircle: blurCircle,
   blurGasket: blurGasket,
   blurGaussian: blurGaussian,
@@ -1442,6 +1473,8 @@ const BUILT_IN_TRANSFORMS = {
   cylinder: cylinder,
   disc: disc,
   dragon: dragon,
+  flipX: flipX,
+  flipY: flipY,
   hypershape: hypershape,
   hypershift: hypershift,
   hypertile3: hypertile3,
@@ -1487,6 +1520,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   reset: [],
   arcsinh: [],
   arctanh: [],
+  bent: [{
+    name: "real",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "imaginary",
+    type: "number",
+    default: 0
+  }],
   blurCircle: [],
   blurGasket: [],
   blurGaussian: [{
@@ -1566,6 +1609,8 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0
     }
   ],
+  flipX: [],
+  flipY: [],
   hypershape: [{
     name: "pow",
     type: "number",

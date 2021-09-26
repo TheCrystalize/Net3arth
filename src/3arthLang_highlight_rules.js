@@ -2,6 +2,7 @@ const StandardLibNamesArray =
 `reset
 arcsinh
 arctanh
+bent
 blurCircle
 blurGasket
 blurGaussian
@@ -13,6 +14,8 @@ cpow
 cylinder
 disc
 dragon
+flipX
+flipY
 hypershape
 hypershift
 hypertile3
