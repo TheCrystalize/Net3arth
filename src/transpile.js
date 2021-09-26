@@ -894,6 +894,10 @@ function parseEverything(code) {
               }
             }
 
+            if(desiredType === 'complex' && typeof parseState[0].value === 'number'){
+              parseState[0].value = {re:parseState[0].value, im:0};
+            }
+
             if(verbose) {
               console.log(customTransformParams);
               console.log(start);
