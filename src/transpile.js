@@ -654,7 +654,7 @@ function parseEverything(code) {
                   });
                   break;
                 case 'parse custom function':
-                  parseState[1].transforms.push(customTransform(
+                  parseState[1].transforms.push(...customTransform(
                     transformTemplates[parseState[0].name].params,
                     parseState[0].transforms[0][1],
                     transformTemplates[parseState[0].name].transform
@@ -1328,12 +1328,11 @@ function parseEverything(code) {
                   if(word === transform) {
                     //console.log(`found ${transform}`);
                     if(transformTemplates[word].params.length === 0) {
+                      parseState[0].transforms.push(...transformTemplates[word].transform);
                       parseState.unshift({
-                        is: 'parse custom function',
-                        name: word,
+                        is: 'after transform',
                         transforms: []
                       });
-                      parseState[0].transforms.push([word, []]);
                       parseState.unshift({
                         is: ')'
                       });
