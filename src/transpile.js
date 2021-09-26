@@ -1296,7 +1296,7 @@ function parseEverything(code) {
                   if(word === transform) {
                     //console.log(`found ${transform}`);
                     if(customFunctions[word].params.length === 0) {
-                      //parseState[0].transforms.push([word, []]);
+                      parseState[0].transforms.push([word, []]);
                       parseState.unshift({
                         is: 'after transform'
                       });
