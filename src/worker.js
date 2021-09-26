@@ -125,6 +125,7 @@ function run() {
   }
 
   postMessage(buffer.buffer, [buffer.buffer]);
+  postMessage({steps: stepsPerFrame});
 
   stepsPerFrame = Math.min(stepsPerFrame * 4, 1e7);
 
@@ -187,6 +188,7 @@ function initialize(id, job, spf, width, height) {
   pointer = {
     re: 0.001,
     im: 0.001,
+    z: 0,
     red: 1,
     green: 1,
     blue: 1,

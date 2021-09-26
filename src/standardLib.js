@@ -130,6 +130,7 @@ function reset() {
     return {
       re: 0.000001,
       im: 0.000002,
+      z: 0,
       red: 1,
       green: 1,
       blue: 1,

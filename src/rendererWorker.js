@@ -151,6 +151,7 @@ function updateImage(msg) {
     let shaderResult = loopStuff(stuffToDo.shader, {
       re: i % WIDTH,
       im: (i / WIDTH) >> 0,
+      z: 0,
       red: buffer[i * 3] / brightest,
       green: buffer[i * 3 + 1] / brightest,
       blue: buffer[i * 3 + 2] / brightest,

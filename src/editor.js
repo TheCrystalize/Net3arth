@@ -19,6 +19,8 @@ var customWordCompleter = {
       ["BODY", ["body"]],
       ["CAMERA", ["camera"]],
       ["SHADER", ["shader"]],
+      ["XAOS", ["xaos{}"]],
+      ["CHOOSE", ["choose{}"]],
       ["keyword", ["choose", "xaos"]],
       ["type", ["complex", "number", "string", "bool", "array", "object"]],
       ["constructor", StandardLibConstructorNamesArray],
@@ -37,6 +39,12 @@ var customWordCompleter = {
             break;
           case "TEMPLATE":
             post = "myTransform() {\n  return z => {\n    return {\n      ...z,\n      re: z.re,\n      im: z.im\n    }\n  }\n}\n";
+            break;
+          case "XAOS":
+            post = "xaos{\n  1:eo:[1,1]:\n}";
+            break;
+          case "CHOOSE":
+            post = "choose{\n  1:\n}";
             break;
           case "type":
             post += " n = ";

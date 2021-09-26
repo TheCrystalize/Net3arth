@@ -3,6 +3,13 @@ let HEIGHT = 800;
 let THREADS = (Math.max(navigator.hardwareConcurrency, 8) - 4) || 4;
 const STEPS_PER_CALL = WIDTH * HEIGHT / 2;
 
+document.addEventListener('keydown',event=>{
+  if(event.ctrlKey){
+    event.preventDefault();
+    event.stopPropagation();
+  }
+});
+
 let threadsUI = document.getElementById('threads');
 let widthUI = document.getElementById('width');
 let heightUI = document.getElementById('height');
@@ -54,15 +61,26 @@ try {
 
 let loads = 0;
 
+let samples = 0;
 let loadAnimation = "/-\\|";
 
 function incrementAnimation() {
-  loads = (loads+1) % loadAnimation.length;
-  htmlConsole.children.item(htmlConsole.children.length-1).innerText=`rendering ${loadAnimation[loads]}`;
+  loads = (loads + 1) % loadAnimation.length;
+  htmlConsole.children.item(htmlConsole.children.length - 1).innerText =
+    `Sample Level: ${Math.floor(Math.sqrt(samples / WIDTH / HEIGHT) * 1000) / 1000}\nrendering ${loadAnimation[loads]}`;
 }
 
 function updateImage(msg) {
   rendererThread.postMessage(msg.data, [msg.data]);
+}
+
+function workerMessage(msg) {
+  if(msg.data.hasOwnProperty('steps')) {
+    samples += msg.data.steps;
+  }
+  else{
+    updateImage(msg);
+  }
 }
 
 function refreshRender(refreshCanvas = true) {
@@ -73,6 +91,7 @@ function refreshRender(refreshCanvas = true) {
   THREADS = parseInt(threadsUI.value);
 
   if(refreshCanvas) {
+    samples = 0;
     WIDTH = parseInt(widthUI.value);
     HEIGHT = parseInt(heightUI.value);
 
@@ -97,7 +116,7 @@ function refreshRender(refreshCanvas = true) {
   for(let i = 0; i < THREADS; i++) {
     threads[i] = new Worker('src/worker.js');
     threads[i].postMessage(['start', [i, stuffToDo, spc, WIDTH, HEIGHT]]);
-    threads[i].onmessage = updateImage;
+    threads[i].onmessage = workerMessage;
     spc *= 1.3;
     threads[i].postMessage(['data']);
   }
@@ -145,7 +164,7 @@ function stopCode() {
       oldCode = '';
       resetCanvas();
       compile3arthLang(editor.getValue());
-      consolelog('Finished compiling!','limegreen');
+      consolelog('Finished compiling!', 'limegreen');
       runButton.innerText = 'Run';
     } else if(runButton.innerText === 'Resume') {
       consolelog('stopped.', 'limegreen');

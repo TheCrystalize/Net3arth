@@ -73,7 +73,7 @@ function paramsToString(params, tab) {
 }
 
 function switchToString(data, tab) {
-  let ans = '\n' + tab + 'choose{\n';
+  let ans = 'choose{\n';
   for(let i = 0; i < data.length; i++) {
     ans += tab + '  ' + data[i][0] + ': ' + loopToString(data[i][1], tab + '    ') + ';\n';
   }
@@ -81,9 +81,17 @@ function switchToString(data, tab) {
 }
 
 function xaosToString(data, tab) {
-  let ans = '\n' + tab + 'xaos{\n';
+  let ans = 'xaos{\n';
+  let lastEO;
+  let lastAR;
   for(let i = 0; i < data.length; i++) {
-    ans += tab + '  1:' + (data[i][1][0] ? (data[i][1][1] ? 'eo' : 'e') : (data[i][1][1] ? 'o' : '_')) + ':[' + paramsToString(data[i][2]) + ']: ' + loopToString(data[i][3], tab + '    ') + ';\n';
+    let eo = (data[i][1][0] ? (data[i][1][1] ? 'eo' : 'e') : (data[i][1][1] ? 'o' : '_'));
+    let ar = '[' + paramsToString(data[i][2]) + ']';
+    ans += tab + '  1:' + (eo === lastEO ? '' : eo) + ':' +
+      (ar === lastAR ? '' : ar) + ':\n'+tab+'    ' +
+      loopToString(data[i][3], tab + '    ') + ';\n';
+    lastEO = eo;
+    lastAR = ar;
   }
   return ans + tab + '}';
 }
@@ -129,13 +137,13 @@ function to3arthLang(data) {
   let shader = loopToString(data.shader);
   let code = customFunctions;
   if(body.length > 0) {
-    code += `body: ${body};\n\n`;
+    code += `body:\n${body};\n\n`;
   }
   if(camera.length > 0) {
-    code += `camera: ${camera};\n\n`;
+    code += `camera:\n${camera};\n\n`;
   }
   if(shader.length > 0) {
-    code += `shader: ${shader};\n\n`;
+    code += `shader:\n${shader};\n\n`;
   }
   return code;
 }
@@ -1221,13 +1229,12 @@ function parseEverything(code) {
               parseState[0].mainWeight = parseState[0].weight;
               delete parseState[0].weight;
               let same = word === ':';
-              if(same){
+              if(same) {
                 if(parseState[0].items.length === 0) {
                   newGeneralError("Unexpected token ':'");
                 }
-                parseState[0].enterOut = parseState[0].items[parseState[0].items.length-1][1];
-              }
-              else{
+                parseState[0].enterOut = parseState[0].items[parseState[0].items.length - 1][1];
+              } else {
                 parseState[0].enterOut = getEnterOut(word, newError);
               }
               parseState.unshift({
