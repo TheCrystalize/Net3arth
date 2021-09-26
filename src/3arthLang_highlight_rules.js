@@ -22,6 +22,7 @@ murl2
 pointSymmetry
 rotate
 scale
+scale2
 sinusoidal
 skew
 smartcrop
