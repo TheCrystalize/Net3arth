@@ -128,7 +128,7 @@ function jacobiAm(u, x, k) {
     g = new Array(31),
     c = new Array(31);
 
-  if(k == 1) {
+  if (k == 1) {
     return 2 * Math.atan(Math.exp(u)) - Math.PI * 2;
   }
 
@@ -137,8 +137,8 @@ function jacobiAm(u, x, k) {
   c[0] = k;
 
   let two_n = 1;
-  for(let n = 0; n < 30; n++) {
-    if(Math.abs(a[n] - g[n]) < (a[n] * Math.EPSILON)) break;
+  for (let n = 0; n < 30; n++) {
+    if (Math.abs(a[n] - g[n]) < (a[n] * Math.EPSILON)) break;
     two_n += two_n;
     a[n + 1] = 0.5 * (a[n] + g[n]);
     g[n + 1] = Math.sqrt(a[n] * g[n]);
@@ -146,36 +146,201 @@ function jacobiAm(u, x, k) {
   }
   let phi = two_n * a[n] * u;
 
-  for(let n = 30; n > 0; n--) {
+  for (let n = 30; n > 0; n--) {
     phi = 0.5 * (phi + Math.asin(c[n] * Math.sin(phi) / a[n]));
   }
   return phi;
 }
 
 function jacobiAmA(u, x) {
-  if(x == 0) {
+  if (x == 0) {
     return u;
   }
   jacobiAm(u, x, Math.abs(x));
 }
 
 function jacobiAmM(u, x) {
-  if(x == 0) {
+  if (x == 0) {
     return u;
   }
   return jacobiAm(u, x, Math.sqrt(Math.abs(x)));
 }
 
 function jacobiAmK(u, x) {
-  if(x == 0) {
+  if (x == 0) {
     return u;
   }
   return jacobiAm(u, x, Math.sin(Math.abs(x)));
 }
+
+
+function addPoly(a, b) {
+  if (a.length < b.length) {
+    [a, b] = [b, a];
+  }
+  const max = a.length;
+  const min = b.length;
+  const result = new Array(max);
+  let i = 0;
+  for (; i < min; i++) {
+    result[i] = a[i] + b[i];
+  }
+  for (; i < max; i++) {
+    result[i] = a[i];
+  }
+  return result;
+}
+
+function multiplyPoly(a, b) {
+  const al = a.length;
+  if (al === 0) {
+    return [];
+  }
+  const bl = b.length;
+  if (bl === 0) {
+    return [];
+  }
+  const size = al + bl - 2;
+  const result = new Array(size).fill(0);
+  let ai, bi, ri;
+  let are, aim, bre, bim;
+  for (ai = 0; ai < al; ai += 2) {
+    are = a[ai];
+    aim = a[ai + 1];
+    for (bi = 0; bi < bl; bi += 2) {
+      bre = b[bi];
+      bim = b[bi + 1];
+      ri = ai + bi;
+      result[ri] += are * bre - aim * bim;
+      result[ri + 1] += are * bim + bre * aim;
+    }
+  }
+  return result;
+}
+
+function multiplyMatrices(a, b) {
+  const length = a.length;
+  const size = Math.sqrt(length);
+  const result = new Array(length);
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      let x = [];
+      const offset = r * size;
+      for (let i = 0; i < size; i++) {
+        x = addPoly(x, multiplyPoly(a[offset + i], b[i * size + c]));
+      }
+      result[offset + c] = x;
+    }
+  }
+  return result;
+}
+
+function findRoots(poly) {
+  const epsilon = Number.EPSILON,
+    negativeEpsilon = -Number.EPSILON;
+  const length = poly.length;
+  const size = length / 2;
+  const roots = size - 1;
+  const real = new Array(size);
+  const im = new Array(size);
+  for (let i = 0, j = 0; i < size; i++, j += 2) {
+    real[i] = poly[j];
+    im[i] = poly[j + 1];
+  }
+  let rc = real[roots],
+    ic = im[roots],
+    m = rc * rc + ic * ic;
+  rc /= m;
+  ic /= -m;
+  let c1, c2, c3, dc = ic - rc,
+    sc = rc + ic;
+  for (let i = 0; i < roots; ++i) {
+    c1 = rc * (real[i] + im[i]);
+    c2 = real[i] * dc;
+    c3 = im[i] * sc;
+    real[i] = c1 - c3;
+    im[i] = c1 + c2;
+  }
+  real[roots] = 1.0;
+  im[roots] = 0.0;
+  const zr = new Array(roots);
+  const zi = new Array(roots).fill(0);
+  for (let i = 0; i < roots; ++i) {
+    zr[i] = i / 10;
+  }
+
+  let j, k, a, b, na, nb, pa, pb, qa, qb, k1, k2, k3, s1, s2, t;
+  for (let i = 0; i < 1000; ++i) {
+    let foundAll = true;
+    for (j = 0; j < roots; ++j) {
+      pa = zr[j];
+      pb = zi[j];
+
+      a = 1.0;
+      b = 0.0;
+      for (k = 0; k < roots; ++k) {
+        if (k === j) {
+          continue;
+        }
+        qa = pa - zr[k];
+        qb = pb - zi[k];
+        if (qa < epsilon && qa > negativeEpsilon && qb < epsilon && qb > negativeEpsilon) {
+          continue;
+        }
+        k1 = qa * (a + b);
+        k2 = a * (qb - qa);
+        k3 = b * (qa + qb);
+        a = k1 - k3;
+        b = k1 + k2;
+      }
+
+      na = real[roots];
+      nb = im[roots];
+      s1 = pb - pa;
+      s2 = pa + pb;
+      for (k = size - 2; k >= 0; --k) {
+        k1 = pa * (na + nb);
+        k2 = na * s1;
+        k3 = nb * s2;
+        na = k1 - k3 + real[k];
+        nb = k1 + k2 + im[k];
+      }
+
+      if (a > epsilon || a < negativeEpsilon || b > epsilon || b < negativeEpsilon) {
+        k1 = a * a + b * b;
+        a /= k1;
+        b /= -k1;
+      } else {
+        a = 1.0;
+        b = 0.0;
+      }
+
+      k1 = na * (a + b);
+      k2 = a * (nb - na);
+      k3 = b * (na + nb);
+
+      qa = k1 - k3;
+      qb = k1 + k2;
+
+      zr[j] = pa - qa;
+      zi[j] = pb - qb;
+
+      if (qa > epsilon || qa < negativeEpsilon || qb > epsilon || qb < negativeEpsilon) {
+        foundAll = false;
+      }
+    }
+
+    if (foundAll) {
+      break;
+    }
+  }
+
+  return [zr, zi];
+}
 /* transforms */
 
 function reset() {
-  return z=>{
+  return z => {
     return {
       re: 0.000001,
       im: 0.000002,
@@ -342,6 +507,134 @@ function disc() {
       ...z,
       re: Math.sin(r) * a,
       im: Math.cos(r) * a
+    }
+  }
+}
+
+function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, radial) {
+  bc *= 2;
+  const offsetB = 2 * Math.cos(Math.PI / divisorB),
+    offsetC = 2 * Math.cos(Math.PI / divisorC);
+  let real = 0,
+    im = 0;
+  let preOffsets = [];
+  let postOffsets = [];
+
+  if (bc === 0) {
+    real = 2 * Math.cos(Math.PI / multiplier / a);
+    preOffsets[0] = 0;
+    postOffsets[0] = 0;
+  } else {
+    let matrix = [
+        [1, 0],
+        [],
+        [],
+        [1, 0]
+      ],
+      n = a,
+      b = true,
+      i = 0,
+      currentOffset = 0,
+      offset;
+    for (let x = 0; x < bc; x++, n += a) {
+      while (n > 0) {
+        n -= bc;
+        matrix = multiplyMatrices([
+          [],
+          [1, 0],
+          [-1, 0],
+          [0, 0, 1, 0]
+        ], matrix);
+        preOffsets[i] = currentOffset;
+        postOffsets[i++] = currentOffset;
+      }
+      offset = b ? -offsetB : -offsetC;
+      matrix = multiplyMatrices([
+        [],
+        [1, 0],
+        [-1, 0],
+        [0, offset, 1, 0]
+      ], matrix);
+      preOffsets[i] = offset + currentOffset;
+      if (currentOffset !== 0) {
+        currentOffset = 0;
+      } else {
+        currentOffset = offset;
+      }
+      postOffsets[i++] = currentOffset;
+      b = !b;
+    }
+    const trace = addPoly(matrix[0], matrix[3]);
+    trace[0] -= 2 * Math.cos(Math.PI / multiplier);
+    const [realParts, imParts] = findRoots(trace);
+    for (let i = 0, len = realParts.length; i < len; i++) {
+      if (realParts[i] > real) {
+        real = realParts[i];
+        im = imParts[i];
+      }
+    }
+  }
+  for (let i = 0; i < preOffsets.length; i++) {
+    preOffsets[i] += im;
+  };
+
+  let current = 0,
+    rotate = true,
+    direct = true;
+  const rotationOffset = im - offsetB;
+  const length = preOffsets.length;
+
+  const offset = offsetB + offsetC;
+  return z => {
+    let x = z.re,
+      y = z.im;
+    if (Math.random() > horizontal) {
+      direct = Math.random() > 0.5;
+      current = Math.floor(Math.random() * length);
+      if (Math.random() > 0.5) {
+        rotate = !rotate;
+      }
+    }
+    if (Math.random() > radial) {
+      rotate = !rotate;
+      current = direct ? ++current % length : current == (current === 0) ? length - 1 : --current;
+    }
+    if (direct) {
+      if (rotate) {
+        y += preOffsets[current] - rotationOffset;
+      } else {
+        x = real - x;
+        y = preOffsets[current] - y;
+      }
+      const c = 1 / (x * x + y * y);
+      x = x * c;
+      y = postOffsets[current] - y * c;
+    } else {
+      if (rotate) {
+        x = real - x;
+        y = rotationOffset - y - postOffsets[current];
+      } else {
+        y -= postOffsets[current];
+      }
+      const c = 1 / (x * x + y * y);
+      x = real - x * c;
+      y = preOffsets[current] + y * c;
+    }
+    y += offset * (Math.round(Math.cos(Math.random() * Math.PI) * (1 / Math.sqrt(Math.random()) - Math.random()) * vertical / offset));
+    if (Math.random() > 0.5) {
+      return {
+        ...z,
+        re: real - x,
+        im: rotationOffset - y
+      }
+      rotate = false;
+    } else {
+      return {
+        ...z,
+        re: x,
+        im: y
+      }
+      rotate = true;
     }
   }
 }
@@ -654,9 +947,15 @@ function smartcrop(power, radius, roundstr, roundwidth, distortion, cropmode) {
       wwidth = roundwidth != 1 ? Math.exp(Math.log(xang * 2) * roundwidth) * roundcoeff : xang * 2 * roundcoeff;
       coeff1 = distortion == 0 ? 1 : roundstr != 0 ? Math.abs((1 - wwidth) * coeff0 + wwidth) : coeff0;
       coeff = distortion != 1 ? Math.exp(Math.log(coeff1) * distortion) : coeff1;
-      xr =  coeff * wradius;
+      xr = coeff * wradius;
       rdc = cropmode == -1 ? rad : xr
-      f = (rad > xr) == (mode == 1) ? cropmode != 0 ? multScalar({re: Math.cos(ang), im: Math.sin(ang)}, rdc) : {re: 0, im: 0} : z;
+      f = (rad > xr) == (mode == 1) ? cropmode != 0 ? multScalar({
+        re: Math.cos(ang),
+        im: Math.sin(ang)
+      }, rdc) : {
+        re: 0,
+        im: 0
+      } : z;
       return {
         ...z,
         ...f
@@ -838,17 +1137,17 @@ function lerp(colorA, colorB, weight = 0.5) {
   if (colorA.hasOwnProperty('h')) {
     if (colorB.hasOwnProperty('h')) {
       return hslToRgb(
-        Math.abs((colorA.h%1) - (colorB.h%1)) > 0.5 ?
-          (((colorA.h+(colorA.h%1>colorB.h?0:1)) * (1 - weight) + (colorB.h+(colorA.h%1>colorB.h?1:0)) * weight + 1)+1) % 1 :
-          colorA.h * (1 - weight) + colorB.h * weight,
+        Math.abs((colorA.h % 1) - (colorB.h % 1)) > 0.5 ?
+        (((colorA.h + (colorA.h % 1 > colorB.h ? 0 : 1)) * (1 - weight) + (colorB.h + (colorA.h % 1 > colorB.h ? 1 : 0)) * weight + 1) + 1) % 1 :
+        colorA.h * (1 - weight) + colorB.h * weight,
         colorA.s * (1 - weight) + colorB.s * weight,
         colorA.l * (1 - weight) + colorB.l * weight);
     } else {
       colorB = rgbToHsl(colorB.red, colorB.green, colorB.blue);
       return hslToRgb(
-        Math.abs((colorA.h%1) - (colorB.h%1)) > 0.5 ?
-          (((colorA.h+(colorA.h%1>colorB.h?0:1)) * (1 - weight) + (colorB.h+(colorA.h%1>colorB.h?1:0)) * weight + 1)+1) % 1 :
-          colorA.h * (1 - weight) + colorB.h * weight,
+        Math.abs((colorA.h % 1) - (colorB.h % 1)) > 0.5 ?
+        (((colorA.h + (colorA.h % 1 > colorB.h ? 0 : 1)) * (1 - weight) + (colorB.h + (colorA.h % 1 > colorB.h ? 1 : 0)) * weight + 1) + 1) % 1 :
+        colorA.h * (1 - weight) + colorB.h * weight,
         colorA.s * (1 - weight) + colorB.s * weight,
         colorA.l * (1 - weight) + colorB.l * weight);
     }
@@ -856,9 +1155,9 @@ function lerp(colorA, colorB, weight = 0.5) {
     if (colorB.hasOwnProperty('h')) {
       colorA = rgbToHsl(colorA.red, colorA.green, colorA.blue);
       return hslToRgb(
-        Math.abs((colorA.h%1) - (colorB.h%1)) > 0.5 ?
-          (((colorA.h+(colorA.h%1>colorB.h?0:1)) * (1 - weight) + (colorB.h+(colorA.h%1>colorB.h?1:0)) * weight + 1)+1) % 1 :
-          colorA.h * (1 - weight) + colorB.h * weight,
+        Math.abs((colorA.h % 1) - (colorB.h % 1)) > 0.5 ?
+        (((colorA.h + (colorA.h % 1 > colorB.h ? 0 : 1)) * (1 - weight) + (colorB.h + (colorA.h % 1 > colorB.h ? 1 : 0)) * weight + 1) + 1) % 1 :
+        colorA.h * (1 - weight) + colorB.h * weight,
         colorA.s * (1 - weight) + colorB.s * weight,
         colorA.l * (1 - weight) + colorB.l * weight);
     } else {
@@ -1016,9 +1315,9 @@ function lerpHSL(h, s, l, weight = 0.5) {
     return {
       ...z,
       ...hslToRgb(
-        Math.abs((hsl.h%1) - (h%1)) > 0.5 ?
-          (((hsl.h+(hsl.h%1>h%1?0:1)) * (1 - weight) + (h+(hsl.h%1>h%1?1:0)) * weight)+1)%1:
-          (hsl.h%1) * (1 - weight) + (h%1) * weight,
+        Math.abs((hsl.h % 1) - (h % 1)) > 0.5 ?
+        (((hsl.h + (hsl.h % 1 > h % 1 ? 0 : 1)) * (1 - weight) + (h + (hsl.h % 1 > h % 1 ? 1 : 0)) * weight) + 1) % 1 :
+        (hsl.h % 1) * (1 - weight) + (h % 1) * weight,
         hsl.s * (1 - weight) + s * weight,
         hsl.l * (1 - weight) + l * weight
       )
@@ -1050,8 +1349,8 @@ function normalizeColor() {
 function brightenRGB(color, amount) {
   return {
     red: Math.min(1, color.red * amount),
-    green:  Math.min(1, color.green * amount),
-    blue:  Math.min(1, color.blue * amount)
+    green: Math.min(1, color.green * amount),
+    blue: Math.min(1, color.blue * amount)
   }
 }
 
@@ -1142,6 +1441,7 @@ const BUILT_IN_TRANSFORMS = {
   cpow: cpow,
   cylinder: cylinder,
   disc: disc,
+  dragon: dragon,
   hypershape: hypershape,
   hypershift: hypershift,
   hypertile3: hypertile3,
@@ -1225,6 +1525,47 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   ],
   cylinder: [],
   disc: [],
+  dragon: [{
+      name: "a",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "b",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "c",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "bc",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "multiplier",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "horizontal",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "vertical",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "radial",
+      type: "number",
+      default: 0
+    }
+  ],
   hypershape: [{
     name: "pow",
     type: "number",
@@ -1355,7 +1696,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "real",
     type: "number",
     default: 1
-  },{
+  }, {
     name: "imaginary",
     type: "number",
     default: 1

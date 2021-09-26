@@ -12,6 +12,7 @@ circleInv
 cpow
 cylinder
 disc
+dragon
 hypershape
 hypershift
 hypertile3
