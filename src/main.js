@@ -67,7 +67,7 @@ let loadAnimation = "/-\\|";
 function incrementAnimation() {
   loads = (loads + 1) % loadAnimation.length;
   htmlConsole.children.item(htmlConsole.children.length - 1).innerText =
-    `Sample Level: ${Math.floor(Math.sqrt(samples / WIDTH / HEIGHT) * 1000) / 1000}\nrendering ${loadAnimation[loads]}`;
+    `Sample Level: ${Math.floor(Math.log2(samples / WIDTH / HEIGHT) * 1000) / 1000}\nrendering ${loadAnimation[loads]}`;
 }
 
 function updateImage(msg) {
