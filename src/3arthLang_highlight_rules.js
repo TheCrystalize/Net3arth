@@ -23,6 +23,7 @@ pointSymmetry
 rotate
 scale
 sinusoidal
+skew
 smartcrop
 smartshape
 splits
