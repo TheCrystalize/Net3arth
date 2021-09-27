@@ -34,7 +34,7 @@ function xaosStuff(stuff, val) {
   while(true) {
     //console.log(`${JSON.stringify(val)} - ${at}`);
     val = loopStuff(stuff[at][3], val);
-    if(stuff[at][1][1] && Math.random() < 0.5){
+    if(stuff[at][1][1] && Math.random() < 0.5) {
       return val;
     }
     let on = at;
@@ -64,10 +64,12 @@ function loopStuff(stuff, val) {
     return val;
   }
 
-  if(typeof stuff[0][0] === 'number'){
-    switch(stuff[0].length){
-      case 2: return switchStuff(stuff, val);
-      case 4: return xaosStuff(stuff, val);
+  if(typeof stuff[0][0] === 'number') {
+    switch (stuff[0].length) {
+      case 2:
+        return switchStuff(stuff, val);
+      case 4:
+        return xaosStuff(stuff, val);
     }
   }
 
@@ -96,16 +98,16 @@ function run() {
 
   let scl = [];
   if(WIDTH > HEIGHT) {
-    scl = [scale({
-      re: HEIGHT / WIDTH,
-      im: 1
-    })];
+    scl = [scale2(
+      HEIGHT / WIDTH,
+      1
+    )];
   }
   if(WIDTH < HEIGHT) {
-    scl = [scale({
-      re: 1,
-      im: WIDTH / HEIGHT
-    })];
+    scl = [scale2(
+      1,
+      WIDTH / HEIGHT
+    )];
   }
 
   let samples = 0;
@@ -128,7 +130,9 @@ function run() {
   }
 
   postMessage(buffer.buffer, [buffer.buffer]);
-  postMessage({steps: samples});
+  postMessage({
+    steps: samples
+  });
 
   stepsPerFrame = Math.min(stepsPerFrame * 4, 1e7);
 
@@ -164,9 +168,13 @@ function populateFunctions(job) {
   }
 
   if(typeof job[0][0] === 'number') {
-    switch(job[0].length){
-      case 2: populateFunctionsSwitch(job); break;
-      case 4: populateFunctionsXaos(job); break;
+    switch (job[0].length) {
+      case 2:
+        populateFunctionsSwitch(job);
+        break;
+      case 4:
+        populateFunctionsXaos(job);
+        break;
     }
     return;
   }

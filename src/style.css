@@ -87,7 +87,8 @@ body {
 
 .container__left {
   /* Initially, the left takes 1/4 width */
-  width: 50%;
+  width: calc(100vw - 1290px);
+  min-width: 10%;
   /* Misc */
   display: flex;
   flex-direction: column;
@@ -106,7 +107,8 @@ body {
 
 .container__top {
   /* Initial height */
-  height: 85%;
+  height: 720px;
+  max-height: 95%;
   /* Misc */
   display: flex;
   width: 100%;

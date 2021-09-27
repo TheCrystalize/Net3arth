@@ -1,5 +1,5 @@
-let WIDTH = 800;
-let HEIGHT = 800;
+let WIDTH = 1280;
+let HEIGHT = 720;
 let THREADS = (Math.max(navigator.hardwareConcurrency, 8) - 4) || 4;
 const STEPS_PER_CALL = WIDTH * HEIGHT / 2;
 

@@ -379,7 +379,7 @@ function _3arthError(word, lineNumber, line) {
   }
 }
 
-let verbose = true;
+let verbose = false;
 
 function parseEverything(code) {
   code = code.split('\n');
@@ -580,15 +580,10 @@ function parseEverything(code) {
           if(typeof txt !== 'string') {
             return txt;
           }
-          console.log(`~param~`);
           let ans = txt;
-          console.log(params);
-          console.log(values);
-          console.log(ans);
           for(let i = 0; i < values.length; i++) {
             ans = ans.replace(new RegExp('<!' + params[i].name + '!>', 'g'), values[i]);
           }
-          console.log(ans);
 
           if(ans.indexOf('<!') >= 0) {
             return ans;
