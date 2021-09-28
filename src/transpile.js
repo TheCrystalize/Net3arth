@@ -381,11 +381,27 @@ function _3arthError(word, lineNumber, line) {
 
 let verbose = true;
 
+function getPrecomputeString(preComputeStuff) {
+  let preComputeString = '';
+  for(let thing in preComputeStuff) {
+    switch (preComputeStuff[thing].is) {
+      case 'function':
+        preComputeString += `function ${preComputeStuff[thing].name}(${preComputeStuff[thing].params.map(p=>`${p.name}`).join(',')}){${preComputeStuff[thing].code}}`;
+        break;
+      case 'const':
+        preComputeString += `const ${preComputeStuff[thing].name} = ${preComputeStuff[thing].const};`;
+        break;
+    }
+  }
+  return preComputeString;
+}
+
 function parseEverything(code) {
   code = code.split('\n');
   let parseState = [{
     is: "top"
   }];
+  let preComputeStuff = [];
   let consts = {};
   let customFunctions = {};
   let transformTemplates = {};
@@ -436,12 +452,12 @@ function parseEverything(code) {
         }
 
         function evalValue(jsCode) {
-          if(verbose){
+          if(verbose) {
             console.log(`~~ eval value ~~`);
             console.log(typeof jsCode);
           }
           if(typeof jsCode !== 'string') {
-            if(typeof jsCode === 'object'){
+            if(typeof jsCode === 'object') {
               return {
                 code: `(${JSON.stringify(jsCode)})`,
                 isParam: false
@@ -475,15 +491,6 @@ function parseEverything(code) {
 
           if(verbose) {
             console.log(jsCode);
-          }
-
-          let loadCustomFunctions = '';
-          for(let f in customFunctions) {
-            loadCustomFunctions += `function ${f}(${customFunctions[f].params.map(p=>`${p.name}`).join(',')}){${customFunctions[f].code}}`;
-          }
-
-          for(let v in consts) {
-            loadCustomFunctions += `const ${v} = ${consts[v]};`;
           }
 
           let isParam = false;
@@ -521,9 +528,11 @@ function parseEverything(code) {
             }
           }
 
+          let preComputeString = getPrecomputeString(preComputeStuff);
+
           return {
-            code: '(_=>{' + loadCustomFunctions + 'return ' + testCode + '})()',
-            testCode: '(_=>{' + loadCustomFunctions + 'return ' + jsCode + '})()',
+            code: '(_=>{return ' + jsCode + '})()',
+            testCode: '(_=>{' + preComputeString + 'return ' + testCode + '})()',
             isParam: isParam
           };
         }
@@ -593,7 +602,7 @@ function parseEverything(code) {
             return ans;
           }
 
-          return eval(evalValue(ans).code);
+          return eval(evalValue(ans).testCode);
         }
 
         function postParams() {
@@ -830,15 +839,18 @@ function parseEverything(code) {
 
           try {
             console.log(jsCode);
+            console.log(`isParam: ${jsCode.isParam}`);
             if(jsCode.isParam) {
-              let test = eval(jsCode.code);
-              ans = jsCode.testCode;
+              let test = eval(jsCode.testCode);
+              ans = jsCode.code;
               parseState[0].testValue = test;
             } else {
-              ans = eval(jsCode.code);
+              ans = eval(jsCode.testCode);
             }
           } catch (e) {
-            console.log(JSON.stringify(parseState));
+            if(verbose) {
+              //console.log(JSON.stringify(parseState));
+            }
             if(parseState[1].is === 'custom transform params') {
               newGeneralError(`${parseState[1].transform} parameter error:\n` + e);
             } else {
@@ -894,8 +906,11 @@ function parseEverything(code) {
               }
             }
 
-            if(desiredType === 'complex' && typeof parseState[0].value === 'number'){
-              parseState[0].value = {re:parseState[0].value, im:0};
+            if(desiredType === 'complex' && typeof parseState[0].value === 'number') {
+              parseState[0].value = {
+                re: parseState[0].value,
+                im: 0
+              };
             }
 
             if(verbose) {
@@ -1209,23 +1224,23 @@ function parseEverything(code) {
               }
 
               try {
-                let loadCustomFunctions = '';
-                for(let f in customFunctions) {
-                  loadCustomFunctions += `function ${f}(${customFunctions[f].params.map(p=>`${p.name}`).join(',')}){${customFunctions[f].code}}`;
-                }
-
-                for(let v in consts) {
-                  loadCustomFunctions += `const ${v} = ${consts[v]};`;
-                }
                 {
-                  let testFunction = new Function(...parseState[0].params.map(a => a.name), loadCustomFunctions+jsCode);
+                  let preComputeString = getPrecomputeString(preComputeStuff);
+                  let testFunction = new Function(...parseState[0].params.map(a => a.name), preComputeString + jsCode);
                   let sampleParams = parseState[0].params.map(a => {
                     switch (a.type) {
-                      case 'string': return 'test';
-                      case 'boolean': return false;
-                      case 'number': return 0;
-                      case 'complex': return C(0,0);
-                      case 'object': return {red:0,green:0,blue:0,h:0,s:0,l:0,re:0,im:0,z:0,alpha:0};
+                      case 'string':
+                        return 'test';
+                      case 'boolean':
+                        return false;
+                      case 'number':
+                        return 0;
+                      case 'complex':
+                        return C(0, 0);
+                      case 'object':
+                        return {
+                          red: 0, green: 0, blue: 0, h: 0, s: 0, l: 0, re: 0, im: 0, z: 0, alpha: 0
+                        };
                       default:
                         return 0;
                     }
@@ -1254,10 +1269,12 @@ function parseEverything(code) {
               }
 
               customFunctions[parseState[0].name] = {
+                is: 'function',
                 name: parseState[0].name,
                 params: parseState[0].params,
                 code: jsCode,
               };
+              preComputeStuff.push(customFunctions[parseState[0].name]);
               parseState.shift();
             } else {
               newError('JavaScript function');
@@ -1538,7 +1555,7 @@ function parseEverything(code) {
           case 'variable param':
             let val = getValue();
             try {
-              if(verbose){
+              if(verbose) {
                 console.log(`~~ variable ~~`);
                 console.log(parseState[0].value);
                 console.log(evalValue(parseState[0].value).code);
@@ -1550,15 +1567,20 @@ function parseEverything(code) {
             }
             let cv = parseState[0].value;
 
-            switch(typeof cv){
+            switch (typeof cv) {
               case 'object':
                 cv = JSON.stringify(cv);
-              break;
+                break;
               default:
                 cv = cv + '';
             }
 
             consts[parseState[1].name] = cv;
+            preComputeStuff.push({
+              is: 'const',
+              name: parseState[1].name,
+              const: cv
+            });
             parseState.shift();
             parseState.shift();
             break;
@@ -1618,11 +1640,13 @@ function parseEverything(code) {
 
     parseState[0].customFunctions = customFunctions;
 
+    parseState[0].preCompute = preComputeStuff;
+
     if(verbose) {
       console.log('-- compiled --');
       console.log(JSON.stringify(parseState[0]));
     }
-    return parseState[0];
+    return JSON.parse(JSON.stringify(parseState[0]));
   }
   General3arthError({
     at: code[code.length - 2].length - 1

@@ -185,10 +185,17 @@ function populateFunctions(job) {
   return;
 }
 
-function loadCustomFunctions(functions) {
-  for(let f in functions) {
-    globalThis[functions[f].name] = new Function(...functions[f].params.map(a => a.name), functions[f].code);
-    functions[f] = globalThis[functions[f].name];
+function loadPreCompute(stuff) {
+  for(let thing in stuff) {
+    switch(stuff[thing].is){
+      case 'function':
+        globalThis[stuff[thing].name] = new Function(...stuff[thing].params.map(a => a.name), stuff[thing].code);
+        stuff[thing] = globalThis[stuff[thing].name];
+        break;
+      case 'const':
+        globalThis[stuff[thing].name] = eval(stuff[thing].const);
+        break;
+    }
   }
 }
 
@@ -208,7 +215,7 @@ function initialize(id, job, spf, width, height) {
   stuffToDo = job;
   stepsPerFrame = spf;
   customFunctions = stuffToDo.customFunctions;
-  loadCustomFunctions(customFunctions);
+  loadPreCompute(stuffToDo.preCompute);
   populateFunctions(stuffToDo.body);
   populateFunctions(stuffToDo.camera);
 }

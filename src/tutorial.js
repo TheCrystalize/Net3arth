@@ -43,8 +43,11 @@ camera:
 scale(0.5);
 
 /*
- ~continue to the next page~
-   ~Press Ctrl-? or Cmd-?~
+     ~continue to the next page~
+       ~Press Ctrl-? or Cmd-?~
+
+      ~go to the previous page~
+ ~Press Ctrl-Shift-? or Cmd-Shift-?~
  */
 `,
   `/*
@@ -69,16 +72,16 @@ transform halfway(number x, number y):
 
 /*
  As a simple demonstration, here's a circle
- that starts at (-0.4,-0.4) and moves towards (0.49,0.5)
+ that starts at (-0.4, 0) and moves towards (0.5, 0.5)
  */
 body:
 choose{
-  1: halfway(0.49, 0.5);
+  1: halfway(0.5, 0.5);
 
-  // this just draws a circle in the top left
+  // this just draws a circle at (-0.4, 0)
   1: blurCircle()
     -> scale(1/20)
-    -> translate(-0.4, -0.4);
+    -> translate(-0.4, 0);
 };
 
 /*
@@ -101,10 +104,10 @@ gamma(10);
 
 body:
 choose{
-  1: halfway(0.49, 0.5);
-  1: halfway(0.49, -0.5);
+  1: halfway(0.5, 0.5);
+  1: halfway(0.5, -0.5);
 
-  // this just draws a circle in the top left
+  // this just draws a circle at (-0.4, 0)
   1/4:
     blurCircle()
     -> scale(1/20)
@@ -128,11 +131,11 @@ choose{
 
 body:
 choose{
-  1: halfway(0.49, 0.5)  -> color(colorRGB(0, .5, 1));
-  1: halfway(0.49, -0.5) -> color(colorRGB(1,  0, 0));
+  1: halfway(0.5, 0.5)  -> color(colorRGB(0, .5, 1));
+  1: halfway(0.5, -0.5) -> color(colorRGB(1,  0, 0));
   1: halfway(-0.4, 0)    -> color(colorRGB(1,  1, 0));
 
-  // this just draws a circle in the top left
+  // this just draws a circle at (-0.4, 0)
   1:
     reset() // resets coordinates, color, and alpha
     -> blurCircle()
