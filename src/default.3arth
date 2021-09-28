@@ -8,8 +8,8 @@ const areaA = 2/5;
 
 const areaB = 1 - areaA;
 
-scaleFactor(number weight) {
-  return Math.sqrt(1 / weight) * weight;
+scaleFactor(number area) {
+  return Math.sqrt(1 / area) * area;
 }
 
 getAngle(number area) {
