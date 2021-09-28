@@ -379,7 +379,7 @@ function _3arthError(word, lineNumber, line) {
   }
 }
 
-let verbose = false;
+let verbose = true;
 
 function parseEverything(code) {
   code = code.split('\n');
@@ -387,7 +387,6 @@ function parseEverything(code) {
     is: "top"
   }];
   let consts = {};
-  let lets = {};
   let customFunctions = {};
   let transformTemplates = {};
   let customTransformParams = false;
@@ -403,7 +402,6 @@ function parseEverything(code) {
         if(verbose) {
           console.log('-- loop-top --');
           console.log(consts);
-          console.log(lets);
           console.log(transformTemplates);
           console.log(customFunctions);
           console.log(JSON.stringify(parseState));
@@ -438,31 +436,41 @@ function parseEverything(code) {
         }
 
         function evalValue(jsCode) {
+          if(verbose){
+            console.log(`~~ eval value ~~`);
+            console.log(typeof jsCode);
+          }
           if(typeof jsCode !== 'string') {
+            if(typeof jsCode === 'object'){
+              return {
+                code: `(${JSON.stringify(jsCode)})`,
+                isParam: false
+              }
+            }
             return {
-              code: '' + jsCode,
+              code: `(${jsCode})`,
               isParam: false
             }
           }
           jsCode = jsCode.replace(/console\.log/g, 'consolelog');
           jsCode = jsCode.replace(/console\.clear/g, 'consoleclear');
 
-          let match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+          let match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i/);
           while(match) {
             jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index + match[0].length);
-            match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+            match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i/);
           }
 
-          match = jsCode.match(/([+-]?[0-9.]+)([+-])i/);
+          match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-])i/);
           while(match) {
             jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index + match[0].length);
-            match = jsCode.match(/([+-]?[0-9.]+)([+-]+)i/);
+            match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-]+)i/);
           }
 
-          match = jsCode.match(/([-]?[0-9.]+)i/);
+          match = jsCode.match(/([-]?[0-9]+[0-9.]*)i/);
           while(match) {
             jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index + match[0].length);
-            match = jsCode.match(/([-]?[0-9.]+)i/);
+            match = jsCode.match(/([-]?[0-9]+[0-9.]*)i/);
           }
 
           if(verbose) {
@@ -476,10 +484,6 @@ function parseEverything(code) {
 
           for(let v in consts) {
             loadCustomFunctions += `const ${v} = ${consts[v]};`;
-          }
-
-          for(let v in lets) {
-            loadCustomFunctions += `let ${v} = ${lets[v]};`;
           }
 
           let isParam = false;
@@ -519,7 +523,7 @@ function parseEverything(code) {
 
           return {
             code: '(_=>{' + loadCustomFunctions + 'return ' + testCode + '})()',
-            testCode: jsCode,
+            testCode: '(_=>{' + loadCustomFunctions + 'return ' + jsCode + '})()',
             isParam: isParam
           };
         }
@@ -825,6 +829,7 @@ function parseEverything(code) {
           jsCode = evalValue(jsCode);
 
           try {
+            console.log(jsCode);
             if(jsCode.isParam) {
               let test = eval(jsCode.code);
               ans = jsCode.testCode;
@@ -1184,19 +1189,19 @@ function parseEverything(code) {
               let match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i/);
               while(match) {
                 jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index + match[0].length);
-                match = jsCode.match(/([+-]?[0-9.]+)([+-][0-9.]+)i/);
+                match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i/);
               }
 
               match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-])i/);
               while(match) {
                 jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index + match[0].length);
-                match = jsCode.match(/([+-]?[0-9.]+)([+-]+)i/);
+                match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-]+)i/);
               }
 
               match = jsCode.match(/([-]?[0-9]+[0-9.]*)i/);
               while(match) {
                 jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index + match[0].length);
-                match = jsCode.match(/([-]?[0-9.]+)i/);
+                match = jsCode.match(/([-]?[0-9]+[0-9.]*)i/);
               }
 
               if(verbose) {
@@ -1512,11 +1517,27 @@ function parseEverything(code) {
           case 'variable param':
             let val = getValue();
             try {
+              if(verbose){
+                console.log(`~~ variable ~~`);
+                console.log(parseState[0].value);
+                console.log(evalValue(parseState[0].value).code);
+                console.log(eval(evalValue(parseState[0].value).code));
+              }
               parseState[0].value = eval(evalValue(parseState[0].value).code);
             } catch (e) {
-              newGeneralError('variable param\n' + e);
+              newGeneralError('declaration error:\n' + e);
             }
-            consts[parseState[1].name] = parseState[0].value;
+            let cv = parseState[0].value;
+
+            switch(typeof cv){
+              case 'object':
+                cv = JSON.stringify(cv);
+              break;
+              default:
+                cv = cv + '';
+            }
+
+            consts[parseState[1].name] = cv;
             parseState.shift();
             parseState.shift();
             break;
