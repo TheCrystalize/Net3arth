@@ -950,7 +950,7 @@ function smartcrop(power, radius, roundstr, roundwidth, distortion, cropmode) {
     walpha = alpha;
     wcoeff = roundcoeff;
   }
-  return function(z) {
+  return z => {
     let ang = Math.atan2(z.im, z.re),
       rad = Math.sqrt(dot(z, z));
     let wedge, xang0, xang1, xang, coeff0, coeff1, coeff, xr, angle, wwidth, rdc;
@@ -974,18 +974,12 @@ function smartcrop(power, radius, roundstr, roundwidth, distortion, cropmode) {
       xang1 = xang0 - Math.floor(xang0);
       xang = xang1 < 0.5 ? xang1 : 1 - xang1;
       coeff0 = 1 / Math.cos(xang * walpha);
-      wwidth = roundwidth != 1 ? Math.exp(Math.log(xang * 2) * roundwidth) * roundcoeff : xang * 2 * roundcoeff;
+      wwidth = roundwidth != 1 ? Math.exp(Math.log(xang * 2) * roundwidth) * wcoeff : xang * 2 * wcoeff;
       coeff1 = distortion == 0 ? 1 : roundstr != 0 ? Math.abs((1 - wwidth) * coeff0 + wwidth) : coeff0;
       coeff = distortion != 1 ? Math.exp(Math.log(coeff1) * distortion) : coeff1;
       xr = coeff * wradius;
-      rdc = cropmode == -1 ? rad : xr
-      f = (rad > xr) == (mode == 1) ? cropmode != 0 ? multScalar({
-        re: Math.cos(ang),
-        im: Math.sin(ang)
-      }, rdc) : {
-        re: 0,
-        im: 0
-      } : z;
+      rdc = cropmode == -1 ? rad : xr;
+      f = (rad > xr) == (mode == 1) ? cropmode != 0 ? multScalar(C(Math.cos(ang), Math.sin(ang)), rdc) : C(0, 0) : z;
       return {
         ...z,
         ...f
@@ -1523,12 +1517,12 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   bent: [{
     name: "real",
     type: "number",
-    default: 0
+    default: 1
   },
   {
     name: "imaginary",
     type: "number",
-    default: 0
+    default: 1
   }],
   blurCircle: [],
   blurGasket: [],
@@ -1571,42 +1565,42 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   dragon: [{
       name: "a",
       type: "number",
-      default: 0
+      default: 3
     },
     {
       name: "b",
       type: "number",
-      default: 0
+      default: 3
     },
     {
       name: "c",
       type: "number",
-      default: 0
+      default: 3
     },
     {
       name: "bc",
       type: "number",
-      default: 0
+      default: 3
     },
     {
       name: "multiplier",
       type: "number",
-      default: 0
+      default: 1
     },
     {
       name: "horizontal",
       type: "number",
-      default: 0
+      default: 0.25
     },
     {
       name: "vertical",
       type: "number",
-      default: 0
+      default: 0.25
     },
     {
       name: "radial",
       type: "number",
-      default: 0
+      default: 0.5
     }
   ],
   flipX: [],
