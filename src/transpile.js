@@ -1209,8 +1209,29 @@ function parseEverything(code) {
               }
 
               try {
-                let testFunction = new Function(...parseState[0].params.map(a => a.name), jsCode);
-                let ans = testFunction(...parseState[0].params.map(a => a.default));
+                let loadCustomFunctions = '';
+                for(let f in customFunctions) {
+                  loadCustomFunctions += `function ${f}(${customFunctions[f].params.map(p=>`${p.name}`).join(',')}){${customFunctions[f].code}}`;
+                }
+
+                for(let v in consts) {
+                  loadCustomFunctions += `const ${v} = ${consts[v]};`;
+                }
+                {
+                  let testFunction = new Function(...parseState[0].params.map(a => a.name), loadCustomFunctions+jsCode);
+                  let sampleParams = parseState[0].params.map(a => {
+                    switch (a.type) {
+                      case 'string': return 'test';
+                      case 'boolean': return false;
+                      case 'number': return 0;
+                      case 'complex': return C(0,0);
+                      case 'object': return {red:0,green:0,blue:0,h:0,s:0,l:0,re:0,im:0,z:0,alpha:0};
+                      default:
+                        return 0;
+                    }
+                  });
+                  let ans = testFunction(...sampleParams);
+                }
                 if(typeof ans === 'function') {
                   ans = ans({
                     re: 1,
