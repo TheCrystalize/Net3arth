@@ -123,7 +123,7 @@ function customTransformsToString(transforms) {
   let ans = '';
   for(let f in transforms) {
     ans += transforms[f].name.replace(/ /g, '_') + '(' +
-      transforms[f].params.map(p => p.type + ' ' + p.name + ' = ' + p.default).
+      transforms[f].params.map(p => p.type + ' ' + p.name).
     join(',') + ') {\n  ' +
       transforms[f].code.replace(/consolelog/g, 'console.log').replace(/consoleclear/g, 'console.clear') + '}\n\n';
   }
@@ -903,6 +903,10 @@ function parseEverything(code) {
                   val = parseState[0].testValue;
                   i = Infinity;
                 }
+              }
+
+              if(desiredType === 'complex' && typeof val === 'number') {
+                parseState[0].value = 'C('+parseState[0].value+',0)';
               }
             }
 
