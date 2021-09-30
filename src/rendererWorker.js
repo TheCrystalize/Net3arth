@@ -56,7 +56,7 @@ function populateFunctions(job) {
       job[0] = BUILT_IN_TRANSFORMS[job[0]](...job[1]);
       return;
     } else if(customFunctions.hasOwnProperty(job[0])) {
-      job[0] = customFunctions[job[0]](...job[1]);
+      job[0] = globalThis[job[0]](...job[1]);
       return;
     }
     throw (`${job[0]} not supported`);

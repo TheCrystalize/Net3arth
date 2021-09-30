@@ -153,11 +153,12 @@ function populateFunctionsXaos(job) {
 
 function populateFunctions(job) {
   if(typeof job[0] === 'string') {
+    console.log(`JOB: ${job[0]}`);
     if(BUILT_IN_TRANSFORMS.hasOwnProperty(job[0])) {
       job[0] = BUILT_IN_TRANSFORMS[job[0]](...job[1]);
       return;
     } else if(customFunctions.hasOwnProperty(job[0])) {
-      job[0] = customFunctions[job[0]](...job[1]);
+      job[0] = globalThis[job[0]](...job[1]);
       return;
     }
     throw (`${job[0]} not supported`);
