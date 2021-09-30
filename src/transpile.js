@@ -906,7 +906,12 @@ function parseEverything(code) {
               }
 
               if(desiredType === 'complex' && typeof val === 'number') {
-                parseState[0].value = eval('C('+parseState[0].value+',0)');
+                if(typeof parseState[0].value === 'string' && parseState[0].value.indexOf('<!') >= 0){
+                  parseState[0].value = 'C('+parseState[0].value+',0)';
+                }
+                else{
+                  parseState[0].value = eval('C('+parseState[0].value+',0)');
+                }
               }
             }
 
