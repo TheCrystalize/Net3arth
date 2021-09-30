@@ -1572,7 +1572,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "split",
     type: "number",
     default: 0
-  }]
+  }],
   bubble: [],
   circleInv: [],
   cpow: [{
