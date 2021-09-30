@@ -466,7 +466,7 @@ function bTransform(rotate, power, move, split) {
     return {
       ...z,
       re: Math.sinh(tau2) / f,
-      im: Math.sin(simga2) / f
+      im: Math.sin(sigma2) / f
     }
   }
 }
