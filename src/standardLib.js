@@ -456,6 +456,21 @@ function blurSquare() {
   }
 }
 
+function bTransform(rotate, power, move, split) {
+  return z => {
+    let tau = 0.5 * (Math.log((z.re + 1) * (z.re + 1) + z.im * z.im) - Math.log((z.re - 1) * (z.re - 1) + z.im * z.im)) / power + move,
+      sigma = Math.PI - Math.atan2(2 * z.im, 1 - dot(z, z)) + rotate;
+    let sigma2 = (sigma + 2 * Math.PI * Math.floor(Math.random() * power)) / power;
+      tau2 = z.re >= 0 ? tau + split : tau - split;
+    let f = Math.cosh(tau2) - Math.cos(sigma2)
+    return {
+      ...z,
+      re: Math.sinh(tau2) / f,
+      im: Math.sin(sigma2) / f
+    }
+  }
+}
+
 function bubble() {
   return z => {
     let r = (dot(z, z) + 4)
@@ -1461,6 +1476,7 @@ const BUILT_IN_TRANSFORMS = {
   blurGaussian: blurGaussian,
   blurSine: blurSine,
   blurSquare: blurSquare,
+  bTransform: bTransform,
   bubble: bubble,
   circleInv: circleInv,
   cpow: cpow,
@@ -1537,6 +1553,26 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 1
   }],
   blurSquare: [],
+  bTransform: [{
+    name: "rotate",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "power",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "move",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "split",
+    type: "number",
+    default: 0
+  }],
   bubble: [],
   circleInv: [],
   cpow: [{

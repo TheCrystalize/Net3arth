@@ -8,6 +8,7 @@ blurGasket
 blurGaussian
 blurSine
 blurSquare
+bTransform
 bubble
 circleInv
 cpow
