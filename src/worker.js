@@ -119,6 +119,8 @@ function run() {
     //console.log(`do post: ${stuffToDo.post}`);
     let val = loopStuff(stuffToDo.camera, pointer);
     val = loopStuff(scl, val);
+    val.re += (Math.random()-0.5) / WIDTH;
+    val.im += (Math.random()-0.5) / HEIGHT;
 
     if(val.alpha > 0 && val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
       samples++;
