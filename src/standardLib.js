@@ -473,11 +473,11 @@ function bTransform(rotate, power, move, split) {
 
 function bubble() {
   return z => {
-    let r = (dot(z, z) + 4)
+    let r = 4 / (dot(z, z) + 4)
     return {
       ...z,
-      re: z.re / r,
-      im: -z.im / r
+      re: z.re * r,
+      im: -z.im * r
     }
   }
 }
@@ -840,6 +840,22 @@ function juliaq(pow, div) {
       ...z,
       re: cosa * r,
       im: sina * r
+    }
+  }
+}
+
+function juliascope(pow, dist) {
+  let ndist = dist / pow * 0.5;
+  return z => {
+    let root = Math.floor(pow * Math.random());
+    let rootd2 = Math.floor(root * 0.5);
+    let roots = root - rootd2 * 2 == 1 ? -1 : 1;
+    let a = (Math.atan2(z.im, z.re) * roots + root * 2 * Math.PI) / pow,
+      r = Math.pow(dot(z, z), ndist);
+    return {
+      ...z,
+      re: Math.cos(a) * r,
+      im: Math.sin(a) * r
     }
   }
 }
@@ -1490,6 +1506,7 @@ const BUILT_IN_TRANSFORMS = {
   hypertile3: hypertile3,
   julian: julian,
   juliaq: juliaq,
+  juliascope: juliascope,
   mobius: mobius,
   murl2: murl2,
   pointSymmetry: pointSymmetry,
@@ -1697,6 +1714,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 1
     }
   ],
+  juliascope: [{
+    name: "pow",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "dist",
+    type: "number",
+    default: 1
+  }],
   mobius: [{
       name: "a",
       type: "complex",

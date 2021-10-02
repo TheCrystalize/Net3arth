@@ -22,6 +22,7 @@ hypershift
 hypertile3
 julian
 juliaq
+juliascope
 mobius
 murl2
 pointSymmetry
