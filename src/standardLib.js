@@ -80,6 +80,10 @@ function sqrt(z) {
   }, 0.5 * Math.SQRT2);
 }
 
+function modulus(z) {
+  return Math.sqrt(z.re * z.re + z.im * z.im)
+}
+
 function log(z) {
   return {
     re: 0.5 * Math.log(z.re * z.re + z.im * z.im),
@@ -105,6 +109,20 @@ function exp(z) {
 
 function dot(z, c) {
   return (z.re * c.re + z.im * c.im)
+}
+
+function sin(z) {
+  const im = C(0, 1);
+  return add(multScalar(mult(im, exp(mult(neg(im), z))), 0.5), neg(multScalar(mult(im, exp(mult(im, z))), 0.5)))
+}
+
+function cos(z) {
+  const im = C(0, 1);
+  return add(multScalar(exp(mult(neg(im), z)), 0.5), multScalar(exp(mult(im, z)), 0.5))
+}
+
+function tan(z) {
+  return div(cos(z), sin(z))
 }
 
 function sinh(z) {
@@ -771,8 +789,8 @@ function hypertile3(p, q, r, shift) {
     }
 
     let m0 = div(add(z0, neg(c1)), addScalar(mult(neg(c1), z0), 1));
-    let r1 = mult(r01, m0);
-    let m0f = div(add(r1, c1), addScalar(mult(c1, r1), 1)),
+    m0 = mult(r01, m0);
+    m0 = div(add(m0, c1), addScalar(mult(c1, m0), 1)),
       m1 = div(add(z0, c2), addScalar(mult(neg(c2), z0), 1));
     let r2 = mult(r02, m1);
     let m1f = div(add(r2, neg(c2)), addScalar(mult(c2, r2), 1)),
@@ -890,6 +908,31 @@ function murl2(c, pow) {
       re: (z.re * re2 + z.im * im2) * r2,
       im: (z.im * re2 - z.re * im2) * r2
     };
+  }
+}
+
+nSplit(n, split, wedge) {
+  let regSize = Math.PI / n;
+
+  return z => {
+
+    let rad = Math.sqrt(dot(z,z));
+
+    let theta = Math.atan2(z.im, z.re);
+    let mTheta = (theta + Math.PI * 2) % regSize;
+
+    let region = Math.floor(theta / (Math.PI * 2) * n);
+
+    let newTheta = region * regSize + (mTheta - regSize * 0.5) * 2 * wedge;
+
+    let cosA = Math.cos(region/n * 2 * Math.PI) * split;
+    let sinA = Math.sin(region/n * 2 * Math.PI) * split;
+
+    return {
+      ...z,
+      re: Math.cos(newTheta + regSize * region) * rad + cosA,
+      im: Math.sin(newTheta + regSize * region) * rad + sinA
+    }
   }
 }
 
@@ -1093,6 +1136,7 @@ function tileHelp() {
 
 function tileLog(spread) {
   return z => {
+    spread = spread == 0 ? 1 / Math.sqrt(Math.abs(Math.random() - Math.random())) : spread;
     return {
       ...z,
       re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5),
@@ -1509,6 +1553,7 @@ const BUILT_IN_TRANSFORMS = {
   juliascope: juliascope,
   mobius: mobius,
   murl2: murl2,
+  nSplit: nSplit,
   pointSymmetry: pointSymmetry,
   rotate: rotate,
   scale: scale,
@@ -1766,6 +1811,22 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       name: "pow",
       type: "number",
       default: 2
+    }
+  ],
+  nSplit: [{
+      name: "n",
+      type: "number",
+      default: 3
+    },
+    {
+      name: "split",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "wedge",
+      type: "number",
+      default: 1
     }
   ],
   pointSymmetry: [{

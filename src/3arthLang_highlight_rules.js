@@ -25,6 +25,7 @@ juliaq
 juliascope
 mobius
 murl2
+nSplit
 pointSymmetry
 rotate
 scale
