@@ -911,7 +911,7 @@ function murl2(c, pow) {
   }
 }
 
-function Split(n, split, wedge) {
+function nSplit(n, split, wedge) {
   let regSize = Math.PI / n;
 
   return z => {
