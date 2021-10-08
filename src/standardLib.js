@@ -355,7 +355,31 @@ function findRoots(poly) {
 
   return [zr, zi];
 }
-/* transforms */
+
+function zeta(x) {
+  function sum(fn, lstRange) {
+    return lstRange.reduce(
+      function (lngSum, x) {
+        return lngSum + fn(x);
+      }, 0
+    );
+  }
+
+  function range(m, n) {
+    return Array.apply(null, Array(n - m + 1)).map(function (x, i) {
+      return m + i;
+    });
+  }
+
+
+  return sum(
+    function (x) {
+      return 1 / (x * x);
+    },
+    range(1, 1000)
+  );
+}
+
 
 function reset() {
   return z => {
@@ -789,26 +813,25 @@ function hypertile3(p, q, r, shift) {
     }
 
     let m0 = div(add(z0, neg(c1)), addScalar(mult(neg(c1), z0), 1));
-    m0 = mult(r01, m0);
-    m0 = div(add(m0, c1), addScalar(mult(c1, m0), 1)),
-      m1 = div(add(z0, c2), addScalar(mult(neg(c2), z0), 1));
-    let r2 = mult(r02, m1);
-    let m1f = div(add(r2, neg(c2)), addScalar(mult(c2, r2), 1)),
-
-      m2 = div(add(z0, neg(c3)), addScalar(mult(c3, z0), 1));
-    let r3 = mult(r03, m2);
-    let m2f = div(add(r3, c3), addScalar(mult(neg(c3), r3), 1));
+      m0 = mult(r01, m0);
+      m0 = div(add(m0, c1), addScalar(mult(c1, m0), 1));
+    let m1 = div(add(z0, c2), addScalar(mult(neg(c2), z0), 1));
+      m1 = mult(r02, m1);
+      m1 = div(add(m1, neg(c2)), addScalar(mult(c2, m1), 1));
+    let m2 = div(add(z0, neg(c3)), addScalar(mult(c3, z0), 1));
+      m2 = mult(r03, m2);
+      m2 = div(add(m2, c3), addScalar(mult(neg(c3), m2), 1));
 
     let fr = Math.floor(Math.random() * n) * pfr,
       rnd = Math.random(),
       f3, f0, f;
 
     if (rnd < 1 / 3) {
-      f3 = m0f
+      f3 = m0
     } else if (rnd < 2 / 3) {
-      f3 = m1f
+      f3 = m1
     } else {
-      f3 = m2f
+      f3 = m2
     }
 
     if (shift < 0.25) {
@@ -911,27 +934,25 @@ function murl2(c, pow) {
   }
 }
 
-function nSplit(n, split, wedge) {
-  let regSize = Math.PI / n;
+function nSplit (n, split, wedge) {
+  let regSize = Math.PI * 2 / n;
 
   return z => {
+    let rad = Math.hypot(z.re, z.im);
 
-    let rad = Math.sqrt(dot(z,z));
-
-    let theta = Math.atan2(z.im, z.re);
-    let mTheta = (theta + Math.PI * 2) % regSize;
-
+    let theta = Math.atan2(z.im, z.re) + Math.PI;
     let region = Math.floor(theta / (Math.PI * 2) * n);
+    let mTheta = theta - regSize * region;
 
-    let newTheta = region * regSize + (mTheta - regSize * 0.5) * 2 * wedge;
+    let newTheta = region * regSize + regSize/2 + (mTheta - regSize/2) * wedge;
 
-    let cosA = Math.cos(region/n * 2 * Math.PI) * split;
-    let sinA = Math.sin(region/n * 2 * Math.PI) * split;
+    let cosA = Math.cos((region + 0.5) / n * 2 * Math.PI) * split;
+    let sinA = Math.sin((region + 0.5) / n * 2 * Math.PI) * split;
 
     return {
       ...z,
-      re: Math.cos(newTheta + regSize * region) * rad + cosA,
-      im: Math.sin(newTheta + regSize * region) * rad + sinA
+      re: Math.cos(newTheta) * rad + cosA,
+      im: Math.sin(newTheta) * rad + sinA
     }
   }
 }
