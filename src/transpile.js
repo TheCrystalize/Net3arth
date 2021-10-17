@@ -892,8 +892,10 @@ function parseEverything(code) {
           jsCode = evalValue(jsCode);
 
           try {
-            console.log(jsCode);
-            console.log(`isParam: ${jsCode.isParam}`);
+            if(verbose){
+              console.log(jsCode);
+              console.log(`isParam: ${jsCode.isParam}`);
+            }
             if(jsCode.isParam) {
               let test = eval(jsCode.testCode);
               ans = jsCode.code;
@@ -1350,7 +1352,7 @@ function parseEverything(code) {
               case 'xaos':
                 parseState.unshift({
                   is: `${wordType} items`,
-                  items: [wordType]
+                  items: []
                 });
                 parseState.unshift({
                   is: '{'
@@ -1594,10 +1596,10 @@ function parseEverything(code) {
                 }
                 switch (parseState[1].is) {
                   case 'transform':
-                    parseState[1].transforms.push(JSON.parse(JSON.stringify(parseState[0].items)).map(row => {
+                    parseState[1].transforms.push(['xaos',...JSON.parse(JSON.stringify(parseState[0].items)).map(row => {
                       let newWeights = row[2].map((sub, index) => parseState[0].items[index][0] * sub);
                       return [newWeights.reduce((a, b) => a + b), row[1], newWeights, row[3]];
-                    }));
+                    })]);
                     parseState.shift();
                     parseState.unshift({
                       is: 'after transform'

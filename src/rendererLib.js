@@ -51,19 +51,21 @@ function switchStuff(stuff, val) {
 
 function xaosStuff(stuff, val) {
   let total = 0;
-  for(let i = 0; i < stuff.length; i++) {
+  for(let i = 1; i < stuff.length; i++) {
     total += stuff[i][1][0];
   }
   let rand = Math.random() * total;
   let at = 0;
-  for(let i = 0; i < stuff.length; i++) {
+  for(let i = 1; i < stuff.length; i++) {
     at += stuff[i][1][0];
     if(rand < at) {
       at = i;
       i = Infinity;
     }
   }
+
   //console.log(`start`);
+  //console.log(stuff);
   while(true) {
     //console.log(`${JSON.stringify(val)} - ${at}`);
     val = loopStuff(stuff[at][3], val);
@@ -98,7 +100,7 @@ function loopStuff(stuff, val) {
       case 'choose':
         return switchStuff(stuff, val);
       case 'xaos':
-        return xaosStuff(stuff, val);
+        return xaosStuff(stuff.slice(1), val);
     }
   }
 
@@ -145,7 +147,7 @@ const ITERATORY_FUNCTIONS = {
 
 function populateFunctions(job) {
   if(typeof job[0] === 'string') {
-    console.log(`JOB: ${job[0]}`);
+    //console.log(`JOB: ${job[0]}`);
     if(ITERATORY_FUNCTIONS.hasOwnProperty(job[0])) {
       ITERATORY_FUNCTIONS[job[0]](job);
       return;
