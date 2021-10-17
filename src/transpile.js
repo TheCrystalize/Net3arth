@@ -381,7 +381,7 @@ function _3arthError(word, lineNumber, line) {
   }
 }
 
-let verbose = false;
+let verbose = true;
 
 function getPrecomputeString(preComputeStuff) {
   let preComputeString = '';
@@ -1349,6 +1349,14 @@ function parseEverything(code) {
               case 'sum':
               case 'product':
               case 'choose':
+                parseState.unshift({
+                  is: `${wordType} items`,
+                  items: [wordType]
+                });
+                parseState.unshift({
+                  is: '{'
+                });
+                break;
               case 'xaos':
                 parseState.unshift({
                   is: `${wordType} items`,
