@@ -94,7 +94,7 @@ function log(z) {
 function pow(z, p) {
   const n = p * Math.atan2(z.im, z.re);
   return {
-    re: Math.cos(n),
+    re: Math.cos(n) * Math.exp(p * Math.log(z.re * z.re + z.im * z.im)),
     im: Math.sin(n) * Math.exp(p * Math.log(z.re * z.re + z.im * z.im))
   }
 }
@@ -380,6 +380,7 @@ function zeta(x) {
   );
 }
 
+/*transforms*/
 
 function reset() {
   return z => {
