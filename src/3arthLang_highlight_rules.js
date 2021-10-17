@@ -26,6 +26,7 @@ juliascope
 mobius
 murl2
 nSplit
+pdj
 pointSymmetry
 rotate
 scale

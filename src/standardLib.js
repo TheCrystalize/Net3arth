@@ -958,6 +958,20 @@ function nSplit (n, split, wedge) {
   }
 }
 
+function pdj(a, b, c, d) {
+  return z => {
+    let ny1 = Math.sin(a * z.im);
+    let nx1 = Math.cos(b * z.im);
+    let nx2 = Math.sin(c * z.im);
+    let ny2 = Math.cos(d * z.im);
+    return {
+      ...z,
+      re: ny1 - nx1,
+      im: nx2 - ny2
+    }
+  }
+}
+
 function pointSymmetry(centerX, centerY, order) {
   return z => {
     let idr = Math.floor(Math.random() * order),
@@ -1576,6 +1590,7 @@ const BUILT_IN_TRANSFORMS = {
   mobius: mobius,
   murl2: murl2,
   nSplit: nSplit,
+  pdj: pdj,
   pointSymmetry: pointSymmetry,
   rotate: rotate,
   scale: scale,
@@ -1847,6 +1862,27 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     },
     {
       name: "wedge",
+      type: "number",
+      default: 1
+    }
+  ],
+  pdj: [{
+      name: "a",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "b",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "c",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "d",
       type: "number",
       default: 1
     }
