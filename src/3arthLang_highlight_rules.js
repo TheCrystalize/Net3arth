@@ -320,7 +320,7 @@ var EarthLangHighlightRules = function(options) {
             comments("earthLangTransform"),
             {
                 token: "keyword.control",
-                regex: "(choose)\\b",
+                regex: "(choose|sum|product)\\b",
                 next: "earthLangChoose"
             },
             {

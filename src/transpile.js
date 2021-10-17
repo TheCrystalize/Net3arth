@@ -173,6 +173,8 @@ function getTypeOfWord(word) {
     case (word === 'shader'):
     case (word === 'choose'):
     case (word === 'xaos'):
+    case (word === 'sum'):
+    case (word === 'product'):
       return word;
     case (word === 'const'):
       return 'const';
@@ -379,7 +381,7 @@ function _3arthError(word, lineNumber, line) {
   }
 }
 
-let verbose = true;
+let verbose = false;
 
 function getPrecomputeString(preComputeStuff) {
   let preComputeString = '';
@@ -546,16 +548,45 @@ function parseEverything(code) {
         }
 
         function customChoose(params, values, transform) {
-          let ans = [];
-          for(let i = 0; i < transform.length; i++) {
-            ans.push([replaceParam(params, values, transform[i][0]), customTransform(params, values, transform[i][1])]);
+          let ans = ['choose'];
+          for(let i = 1; i < transform.length; i++) {
+            ans.push([
+              replaceParam(params, values, transform[i][0]),
+              customTransform(params, values, transform[i][1])
+            ]);
           }
           return ans;
         }
 
         function customXaos(params, values, transform) {
-          let ans = [];
-          for(let i = 0; i < transform.length; i++) {
+          let ans = ['xaos'];
+          for(let i = 1; i < transform.length; i++) {
+            ans.push([
+              replaceParam(params, values, transform[i][0]),
+              transform[i][1],
+              replaceParam(params, values, transform[i][2]),
+              customTransform(params, values, transform[i][3])
+            ]);
+          }
+          return ans;
+        }
+
+        function customSum(params, values, transform) {
+          let ans = ['sum'];
+          for(let i = 1; i < transform.length; i++) {
+            ans.push([
+              replaceParam(params, values, transform[i][0]),
+              transform[i][1],
+              replaceParam(params, values, transform[i][2]),
+              customTransform(params, values, transform[i][3])
+            ]);
+          }
+          return ans;
+        }
+
+        function customProduct(params, values, transform) {
+          let ans = ['product'];
+          for(let i = 1; i < transform.length; i++) {
             ans.push([
               replaceParam(params, values, transform[i][0]),
               transform[i][1],
@@ -573,7 +604,26 @@ function parseEverything(code) {
           if(!transform[0]) {
             return '';
           }
+          if(typeof transform[0][0] === 'string') {
+            switch (transform[0][0]) {
+              case 'choose':
+                return customChoose(params, values, transform);
+                break;
+              case 'xaos':
+                return customXaos(params, values, transform);
+                break;
+              case 'sum':
+                return customSum(params, values, transform);
+                break;
+              case 'product':
+                return customProduct(params, values, transform);
+                break;
+            }
+          }
           if(typeof transform[0][0] === 'number') {
+            console.log(transform);
+            console.log(transform[0]);
+            throw 'bad number';
             switch (transform[0].length) {
               case 2:
                 return customChoose(params, values, transform);
@@ -693,6 +743,8 @@ function parseEverything(code) {
               }
               parseState[2].weight = parseState[0].value;
               switch (parseState[2].is) {
+                case 'sum items':
+                case 'product items':
                 case 'choose items':
                   parseState.shift();
                   parseState.shift();
@@ -724,6 +776,8 @@ function parseEverything(code) {
                       break;
                   }
                   break;
+                default:
+                  newGeneralError(`Unhandeled endWeight for "${parseState[2].is}" "${parseState[0].is}"`, parseState);
               }
               break;
             default:
@@ -906,11 +960,10 @@ function parseEverything(code) {
               }
 
               if(desiredType === 'complex' && typeof val === 'number') {
-                if(typeof parseState[0].value === 'string' && parseState[0].value.indexOf('<!') >= 0){
-                  parseState[0].value = 'C('+parseState[0].value+',0)';
-                }
-                else{
-                  parseState[0].value = eval('C('+parseState[0].value+',0)');
+                if(typeof parseState[0].value === 'string' && parseState[0].value.indexOf('<!') >= 0) {
+                  parseState[0].value = 'C(' + parseState[0].value + ',0)';
+                } else {
+                  parseState[0].value = eval('C(' + parseState[0].value + ',0)');
                 }
               }
             }
@@ -1291,19 +1344,13 @@ function parseEverything(code) {
             break;
           case 'transform':
             switch (wordType) {
+              case 'sum':
+              case 'product':
               case 'choose':
-                parseState.unshift({
-                  is: 'choose items',
-                  items: []
-                });
-                parseState.unshift({
-                  is: '{'
-                });
-                break;
               case 'xaos':
                 parseState.unshift({
-                  is: 'xaos items',
-                  items: []
+                  is: `${wordType} items`,
+                  items: [wordType]
                 });
                 parseState.unshift({
                   is: '{'
@@ -1436,6 +1483,8 @@ function parseEverything(code) {
                     parseState.shift();
                     parseState.shift();
                     break;
+                  case 'sum items':
+                  case 'product items':
                   case 'choose items':
                     parseState[2].items.push([parseState[2].weight, parseState[1].transforms]);
                     delete parseState[2].weight;
@@ -1474,18 +1523,20 @@ function parseEverything(code) {
                     parseState.shift();
                     break;
                   default:
-                    newGeneralError(`Unhandeled state transition from "${parseState[1].is}" to "${parseState[2].is}"`, parseState);
+                    newGeneralError(`Unhandeled state transition after "${parseState[1].is}" to "${parseState[2].is}"`, parseState);
                 }
                 break;
               default:
                 newError('";" or "->"');
             }
             break;
+          case 'sum items':
+          case 'product items':
           case 'choose items':
             switch (wordType) {
               case '}':
                 switch (parseState[1].is) {
-                  case 'choose items':
+                  case parseState[0].is:
                     parseState[1].items.push([parseState[1].weight, parseState[0].items]);
                     delete parseState[1].weight;
                     parseState.shift();

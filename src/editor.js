@@ -23,7 +23,9 @@ var customWordCompleter = {
       ["SHADER", ["shader"]],
       ["XAOS", ["xaos{}"]],
       ["CHOOSE", ["choose{}"]],
-      ["keyword", ["choose", "xaos"]],
+      ["SUM", ["sum{}"]],
+      ["PRODUCT", ["product{}"]],
+      ["keyword", ["choose", "sum", "product", "xaos"]],
       ["type", ["complex", "number", "string", "bool", "array", "object"]],
       ["constructor", StandardLibConstructorNamesArray],
       ["transform", StandardLibNamesArray.map(a=>a+'()')],
@@ -51,6 +53,12 @@ var customWordCompleter = {
             break;
           case "CHOOSE":
             post = "choose{\n  1:\n}";
+            break;
+          case "SUM":
+            post = "sum{\n  1:\n}";
+            break;
+          case "PRODUCT":
+            post = "product{\n  1:\n}";
             break;
           case "type":
             post += " n = ";
