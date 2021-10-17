@@ -80,6 +80,10 @@ function sqrt(z) {
   }, 0.5 * Math.SQRT2);
 }
 
+function modulus(z) {
+  return Math.sqrt(z.re * z.re + z.im * z.im)
+}
+
 function log(z) {
   return {
     re: 0.5 * Math.log(z.re * z.re + z.im * z.im),
@@ -105,6 +109,20 @@ function exp(z) {
 
 function dot(z, c) {
   return (z.re * c.re + z.im * c.im)
+}
+
+function sin(z) {
+  const im = C(0, 1);
+  return add(multScalar(mult(im, exp(mult(neg(im), z))), 0.5), neg(multScalar(mult(im, exp(mult(im, z))), 0.5)))
+}
+
+function cos(z) {
+  const im = C(0, 1);
+  return add(multScalar(exp(mult(neg(im), z)), 0.5), multScalar(exp(mult(im, z)), 0.5))
+}
+
+function tan(z) {
+  return div(cos(z), sin(z))
 }
 
 function sinh(z) {
@@ -337,7 +355,31 @@ function findRoots(poly) {
 
   return [zr, zi];
 }
-/* transforms */
+
+function zeta(x) {
+  function sum(fn, lstRange) {
+    return lstRange.reduce(
+      function (lngSum, x) {
+        return lngSum + fn(x);
+      }, 0
+    );
+  }
+
+  function range(m, n) {
+    return Array.apply(null, Array(n - m + 1)).map(function (x, i) {
+      return m + i;
+    });
+  }
+
+
+  return sum(
+    function (x) {
+      return 1 / (x * x);
+    },
+    range(1, 1000)
+  );
+}
+
 
 function reset() {
   return z => {
@@ -473,11 +515,11 @@ function bTransform(rotate, power, move, split) {
 
 function bubble() {
   return z => {
-    let r = (dot(z, z) + 4)
+    let r = 4 / (dot(z, z) + 4)
     return {
       ...z,
-      re: z.re / r,
-      im: -z.im / r
+      re: z.re * r,
+      im: -z.im * r
     }
   }
 }
@@ -771,26 +813,25 @@ function hypertile3(p, q, r, shift) {
     }
 
     let m0 = div(add(z0, neg(c1)), addScalar(mult(neg(c1), z0), 1));
-    let r1 = mult(r01, m0);
-    let m0f = div(add(r1, c1), addScalar(mult(c1, r1), 1)),
-      m1 = div(add(z0, c2), addScalar(mult(neg(c2), z0), 1));
-    let r2 = mult(r02, m1);
-    let m1f = div(add(r2, neg(c2)), addScalar(mult(c2, r2), 1)),
-
-      m2 = div(add(z0, neg(c3)), addScalar(mult(c3, z0), 1));
-    let r3 = mult(r03, m2);
-    let m2f = div(add(r3, c3), addScalar(mult(neg(c3), r3), 1));
+      m0 = mult(r01, m0);
+      m0 = div(add(m0, c1), addScalar(mult(c1, m0), 1));
+    let m1 = div(add(z0, c2), addScalar(mult(neg(c2), z0), 1));
+      m1 = mult(r02, m1);
+      m1 = div(add(m1, neg(c2)), addScalar(mult(c2, m1), 1));
+    let m2 = div(add(z0, neg(c3)), addScalar(mult(c3, z0), 1));
+      m2 = mult(r03, m2);
+      m2 = div(add(m2, c3), addScalar(mult(neg(c3), m2), 1));
 
     let fr = Math.floor(Math.random() * n) * pfr,
       rnd = Math.random(),
       f3, f0, f;
 
     if (rnd < 1 / 3) {
-      f3 = m0f
+      f3 = m0
     } else if (rnd < 2 / 3) {
-      f3 = m1f
+      f3 = m1
     } else {
-      f3 = m2f
+      f3 = m2
     }
 
     if (shift < 0.25) {
@@ -844,6 +885,22 @@ function juliaq(pow, div) {
   }
 }
 
+function juliascope(pow, dist) {
+  let ndist = dist / pow * 0.5;
+  return z => {
+    let root = Math.floor(pow * Math.random());
+    let rootd2 = Math.floor(root * 0.5);
+    let roots = root - rootd2 * 2 == 1 ? -1 : 1;
+    let a = (Math.atan2(z.im, z.re) * roots + root * 2 * Math.PI) / pow,
+      r = Math.pow(dot(z, z), ndist);
+    return {
+      ...z,
+      re: Math.cos(a) * r,
+      im: Math.sin(a) * r
+    }
+  }
+}
+
 function mobius(a, b, c, d) {
   return z => {
     return {
@@ -874,6 +931,29 @@ function murl2(c, pow) {
       re: (z.re * re2 + z.im * im2) * r2,
       im: (z.im * re2 - z.re * im2) * r2
     };
+  }
+}
+
+function nSplit (n, split, wedge) {
+  let regSize = Math.PI * 2 / n;
+
+  return z => {
+    let rad = Math.hypot(z.re, z.im);
+
+    let theta = Math.atan2(z.im, z.re) + Math.PI;
+    let region = Math.floor(theta / (Math.PI * 2) * n);
+    let mTheta = theta - regSize * region;
+
+    let newTheta = region * regSize + regSize/2 + (mTheta - regSize/2) * wedge;
+
+    let cosA = Math.cos((region + 0.5) / n * 2 * Math.PI) * split;
+    let sinA = Math.sin((region + 0.5) / n * 2 * Math.PI) * split;
+
+    return {
+      ...z,
+      re: Math.cos(newTheta) * rad + cosA,
+      im: Math.sin(newTheta) * rad + sinA
+    }
   }
 }
 
@@ -1077,6 +1157,7 @@ function tileHelp() {
 
 function tileLog(spread) {
   return z => {
+    spread = spread == 0 ? 1 / Math.sqrt(Math.abs(Math.random() - Math.random())) : spread;
     return {
       ...z,
       re: z.re + Math.floor(Math.log(Math.random()) * (Math.random() < 0.5 ? spread : -spread) + 0.5),
@@ -1490,8 +1571,10 @@ const BUILT_IN_TRANSFORMS = {
   hypertile3: hypertile3,
   julian: julian,
   juliaq: juliaq,
+  juliascope: juliascope,
   mobius: mobius,
   murl2: murl2,
+  nSplit: nSplit,
   pointSymmetry: pointSymmetry,
   rotate: rotate,
   scale: scale,
@@ -1697,6 +1780,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 1
     }
   ],
+  juliascope: [{
+    name: "pow",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "dist",
+    type: "number",
+    default: 1
+  }],
   mobius: [{
       name: "a",
       type: "complex",
@@ -1739,6 +1832,22 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       name: "pow",
       type: "number",
       default: 2
+    }
+  ],
+  nSplit: [{
+      name: "n",
+      type: "number",
+      default: 3
+    },
+    {
+      name: "split",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "wedge",
+      type: "number",
+      default: 1
     }
   ],
   pointSymmetry: [{
