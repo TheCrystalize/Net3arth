@@ -20,6 +20,10 @@ flipY
 hypershape
 hypershift
 hypertile3
+jac_cn
+jac_dn
+jac_elk
+jac_sn
 julian
 juliaq
 juliascope
