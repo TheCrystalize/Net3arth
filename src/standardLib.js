@@ -157,6 +157,172 @@ function gaussRnd() {
   return (Math.random() + Math.random()) * 2.0 - 2.0;
 }
 
+function sign(s) {
+  return s < 0 ? -1 : s > 0 ? 1 : 0;
+}
+
+function intpow(x, p) {
+  let ipret = 1;
+  let mulf = x;
+  let i;
+  let power = Math.floor(p * sign(p));
+
+  if (p < 0) {
+    mulf = 1.0 / 1e-8 + Math.abs(mulf);
+  }
+
+  for (i = 1; i < power; i++) {
+    ipret *= mulf;
+  }
+
+  return ipret;
+}
+
+function nonz(nz) {
+  if (Math.abs(nz) <= Number.EPSILON) {
+    return Number.EPSILON * sign(nz);
+  }
+  return nz;
+}
+
+function sacot(angle) {
+  if (Math.abs(angle) <= Number.EPSILON) {
+    return 0;
+  }
+  return Math.atan2(1.0, angle);
+}
+
+function scot(angle) {
+  return Math.cos(angle) / nonz(Math.sin(angle));
+}
+
+function stan(angle) {
+  return Math.sin(angle) / nonz(Math.cos(angle));
+}
+
+function ssqr(s) {
+  return s * s;
+}
+
+function ssqrt(ssq) {
+  return sign(ssq) * Math.sqrt(Math.abs(ssq));
+}
+
+function ssqrt2(ssq) {
+  return Math.sqrt(Math.abs(ssq));
+}
+
+function carlsonRF(x, y, z) {
+  let result = 0;
+  let a = 0;
+  let lambda = 0;
+  let dx = 0;
+  let dy = 0;
+  let dz = 0;
+  let minError = 1e-5;
+  let mIt = 25;
+  let itC = 0;
+
+  do {
+    lambda = Math.sqrt(x * y) + Math.sqrt(y * z) + Math.sqrt(z * x);
+    x = (x + lambda) * 0.25;
+    y = (y + lambda) * 0.25;
+    z = (z + lambda) * 0.25;
+
+    a = (x + y + z) / 3;
+
+    dx = 1 - x / a;
+    dy = 1 - y / a;
+    dz = 1 - z / a;
+    itC++;
+    if (itC >= mIt) {
+      break;
+    }
+  } while (Math.max(Math.max(Math.abs(dx), Math.abs(dy)), Math.abs(dz)) > minError);
+
+  let e2 = dx * dy + dy * dz + dz * dx;
+  let e3 = dy * dx * dz;
+
+  result = 1 - 0.1 * e2 + (1 / 14) * e3 + (1 / 24) * intpow(e2, 2) - (3 / 44) * e2 * e3 - (5 / 208) * intpow(e2, 3) + (3 / 104) * intpow(e3, 2) + (0.0625) * intpow(e2, 2) * e3;
+  result *= (1 / Math.sqrt(a));
+  return result;
+}
+
+function jacElliptic(u, emc) {
+  let ca = 0.0003;
+  let a, b, c, d;
+  let em = [8];
+  let en = [8];
+  let bo, i, ii, I;
+  let sn, cn, dn;
+
+  if (emc != 0.0) {
+    bo = 0;
+    if(emc < 0) {
+      bo = 1;
+    }
+
+    if (bo != 0) {
+      d = 1 - emc;
+      emc = -emc / d;
+      d = Math.sqrt(d);
+      u = d * u;
+    }
+    a = 1;
+    dn = 1;
+
+    for (i = 0; i < 8; i++) {
+      I = i;
+      em[i] = a;
+      emc = Math.sqrt(emc);
+      en[i] = emc;
+      c = 0.5 * (a + emc);
+
+      if (Math.abs(a - emc) <= ca * a) {
+        u = c*u;
+        sn = Math.sin(u);
+        cn = Math.cos(u);
+
+        if (sn == 0) {
+          if(bo != 0) {
+            a = dn;
+            dn = cn;
+            cn = a;
+            sn = sn/d;
+          }
+          break;
+        }
+
+        a = cn / sn;
+        c = a * c;
+        for (ii = 1; ii >= 0; --ii) {
+          b = em[ii];
+          a = c * a;
+          c = dn * c;
+          dn = (en[ii] + a) / (b + a);
+          a = c / b;
+        }
+
+        a = 1/Math.sqrt(c * c + 1);
+        if (sn < 0) {
+          sn = -a;
+        } else {
+          sn = a;
+        }
+        cn = c * sn
+        break;
+      }
+      emc = a * emc;
+      a = c;
+    }
+  } else {
+    cn = 1 / Math.cosh(u);
+    dn = cn;
+    sn = Math.tanh(u);
+  }
+  return {s: sn, c: cn, d: dn};
+}
+
 function jacobiAm(u, x, k) {
   let a = new Array(31),
     g = new Array(31),
@@ -868,6 +1034,99 @@ function hypertile3(p, q, r, shift) {
     return {
       ...z,
       ...f
+    }
+  }
+}
+
+function jac_cn(k) {
+  return z => {
+    let jx = jacElliptic(z.re, k);
+    let jy = jacElliptic(z.im, 1 - k);
+
+    let numx = jx.c * jy.c;
+    let numy = jx.d * jx.s * jy.d * jy.s;
+
+    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
+    denom = 1/(denom);
+
+    return {
+      ...z,
+      re: denom * numx,
+      im: denom * numy
+    }
+  }
+}
+
+function jac_dn(k) {
+  return z => {
+    let jx = jacElliptic(z.re, k);
+    let jy = jacElliptic(z.im, 1 - k);
+
+    let numx = jx.d * jy.c * jy.d;
+    let numy = jx.c * jx.s * jy.s * k;
+
+    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
+    denom = 1/(denom);
+
+    return {
+      ...z,
+      re: denom * numx,
+      im: denom * numy
+    }
+  }
+}
+
+function jac_elk(k) {
+  let ephi, epsi, sinA, cosA, phi, psi;
+  let result = 0;
+
+  return z => {
+    phi = z.re;
+    psi = z.im;
+
+    let cotphi2 = ssqr(scot(phi));
+
+    let b = -(cotphi2 + k * ssqr(Math.sinh(psi) / (Number.EPSILON + Math.sin(phi))) - 1 + k);
+    b = b * 0.5;
+
+    let c = -(1 - k) * cotphi2;
+    c = ssqrt2(ssqr(b) - c);
+
+    let x1 = Math.max(-b + c, -b - c);
+    let mu = ssqrt2((x1 / nonz(cotphi2) - 1) / nonz(k));
+    mu = sign(psi) * mu;
+    let lambda = sign(phi) * ssqrt2(x1);
+
+    sinA = sign(lambda) / Math.sqrt(ssqr(lambda) + 1);
+    cosA = lambda * sinA;
+    ephi = sinA * carlsonRF(ssqr(cosA), 1 - k * ssqr(sinA), 1);
+
+    cosA = 1 / Math.sqrt(ssqr(mu) + 1);
+    sinA = mu * cosA;
+    epsi = sinA * carlsonRF(ssqr(cosA), 1 - (1 - k) * ssqr(sinA), 1);
+    return {
+      ...z,
+      re: ephi,
+      im: epsi
+    }
+  }
+}
+
+function jac_sn(k) {
+  return z => {
+    let jx = jacElliptic(z.re, k);
+    let jy = jacElliptic(z.im, 1 - k);
+
+    let numx = jx.s * jy.d;
+    let numy = jx.c * jx.d * jy.c * jy.s;
+
+    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
+    denom = 1/(denom);
+
+    return {
+      ...z,
+      re: denom * numx,
+      im: denom * numy
     }
   }
 }
@@ -1940,6 +2199,10 @@ const BUILT_IN_TRANSFORMS = {
   hypershape: hypershape,
   hypershift: hypershift,
   hypertile3: hypertile3,
+  jac_cn: jac_cn,
+  jac_dn: jac_dn,
+  jac_elk: jac_elk,
+  jac_sn: jac_sn,
   julian: julian,
   juliaq: juliaq,
   juliascope: juliascope,
@@ -2175,6 +2438,26 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0.5
     }
   ],
+  jac_cn: [{
+    name: "k",
+    type: "number",
+    default: 0.5
+  }],
+  jac_dn: [{
+    name: "k",
+    type: "number",
+    default: 0.5
+  }],
+  jac_elk: [{
+    name: "k",
+    type: "number",
+    default: 0.5
+  }],
+  jac_sn: [{
+    name: "k",
+    type: "number",
+    default: 0.5
+  }],
   julian: [{
       name: "pow",
       type: "number",
