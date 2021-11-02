@@ -29,14 +29,14 @@ canvas.style.minHeight = HEIGHT + 'px';
 canvas.style.maxHeight = HEIGHT + 'px';
 canvas.height = HEIGHT;
 
-let buffer;
+let mainBuffer;
 let img;
 
 function getBrightest() {
   let brightest = 0;
   for(let i = 0; i < WIDTH * HEIGHT * 3; i++) {
-    if(buffer[i] > brightest) {
-      brightest = buffer[i];
+    if(mainBuffer[i] > brightest) {
+      brightest = mainBuffer[i];
     }
   }
   return brightest;

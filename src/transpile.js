@@ -892,7 +892,7 @@ function parseEverything(code) {
           jsCode = evalValue(jsCode);
 
           try {
-            if(verbose){
+            if(verbose) {
               console.log(jsCode);
               console.log(`isParam: ${jsCode.isParam}`);
             }
@@ -1287,7 +1287,18 @@ function parseEverything(code) {
                 console.log(jsCode);
               }
 
+              if(parseState[0].name === 'buffer') {
+                parseState[0].params = [{
+                  name: "oldBuffer",
+                  type: "object",
+                }, {
+                  name: "newBuffer",
+                  type: "object"
+                }];
+              }
+
               try {
+                let ans;
                 {
                   let preComputeString = getPrecomputeString(preComputeStuff);
                   let testFunction = new Function(...parseState[0].params.map(a => a.name), preComputeString + jsCode);
@@ -1309,15 +1320,14 @@ function parseEverything(code) {
                         return 0;
                     }
                   });
-                  let ans = testFunction(...sampleParams);
+                  ans = testFunction(...sampleParams);
                 }
-                if(typeof ans === 'function') {
-                  ans = ans({
-                    re: 1,
-                    im: 2
-                  });
+                if(parseState[0].name === 'buffer') {
+                  if(!ans.hasOwnProperty('red') || !ans.hasOwnProperty('green') || !ans.hasOwnProperty('blue') || !ans.hasOwnProperty('z')) {
+                    throw `buffer must return at least {red, green, blue, z}\ngot:\n${typeof ans === 'object'?JSON.stringify(ans,0,2):ans}`;
+                  }
                 } else {
-                  // determine type of result
+                  // TODO: determine type of result?
                 }
               } catch (e) {
                 consolelog(`In ${parseState[0].name}()\n` + e, "red");
@@ -1604,7 +1614,7 @@ function parseEverything(code) {
                 }
                 switch (parseState[1].is) {
                   case 'transform':
-                    parseState[1].transforms.push(['xaos',...JSON.parse(JSON.stringify(parseState[0].items)).map(row => {
+                    parseState[1].transforms.push(['xaos', ...JSON.parse(JSON.stringify(parseState[0].items)).map(row => {
                       let newWeights = row[2].map((sub, index) => parseState[0].items[index][0] * sub);
                       return [newWeights.reduce((a, b) => a + b), row[1], newWeights, row[3]];
                     })]);

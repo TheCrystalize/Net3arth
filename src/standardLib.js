@@ -1,4 +1,24 @@
+//default buffer
+function buffer(oldBuffer, newBuffer) {
+  return {
+    red: oldBuffer.red + newBuffer.red * newBuffer.alpha,
+    green: oldBuffer.green + newBuffer.green * newBuffer.alpha,
+    blue: oldBuffer.blue + newBuffer.blue * newBuffer.alpha,
+    z: 0
+  }
+}
+
 /* helper functions */
+if (!Math.hypot){
+  Math.hypot = function () {
+    var y = 0,
+      i = arguments.length;
+    while (i--) y += arguments[i] * arguments[i];
+    return Math.sqrt(y);
+  };
+}
+
+const DEGREE = Math.PI / 180;
 
 function C(real, imaginary) {
   return {
@@ -78,10 +98,6 @@ function sqrt(z) {
     re: Math.sqrt(s + z.re),
     im: sgn * Math.sqrt(s - z.re)
   }, 0.5 * Math.SQRT2);
-}
-
-function modulus(z) {
-  return Math.sqrt(z.re * z.re + z.im * z.im)
 }
 
 function log(z) {
@@ -773,8 +789,6 @@ function hypershift(p) {
 }
 
 function hypertile3(p, q, r, shift) {
-  let rad = Math.PI / 180;
-
   let o = Math.acosh((Math.cos(Math.PI / p) + Math.cos(Math.PI / q) * Math.cos(Math.PI / r)) / (Math.sin(Math.PI / q) * Math.sin(Math.PI / r)));
   let a = Math.asinh(Math.sin(Math.PI / q) / Math.sin(Math.PI / p) * Math.sinh(o));
   let b = Math.asinh(Math.sin(Math.PI / r) * Math.sinh(a)),
@@ -782,9 +796,9 @@ function hypertile3(p, q, r, shift) {
   let h = Math.tanh(b / 2),
     b1 = Math.tanh(Math.acosh(Math.cosh(c) / Math.cosh(b)) / 2),
     b2 = Math.tanh(Math.acosh(Math.cosh(a) / Math.cosh(b)) / 2),
-    rot1 = 360 / p * rad,
-    rot2 = 360 / q * rad,
-    rot3 = 360 / r * rad;
+    rot1 = 360 / p * DEGREE,
+    rot2 = 360 / q * DEGREE,
+    rot3 = 360 / r * DEGREE;
   let r01 = C(Math.cos(rot1), Math.sin(rot1)),
     r02 = C(Math.cos(rot2), Math.sin(rot2)),
     r03 = C(Math.cos(rot3), Math.sin(rot3));
@@ -990,7 +1004,7 @@ function pointSymmetry(centerX, centerY, order) {
 }
 
 function rotate(theta) {
-  const rad = Math.PI / 180 * theta;
+  const rad = DEGREE * theta;
   const sinTheta = -Math.sin(rad);
   const cosTheta = -Math.cos(rad);
   return z => {
@@ -1523,7 +1537,6 @@ function repeatingGradient(colors) {
   }
 }
 
-
 function gradient(colors) {
   if (colors.length < 1) {
     throw "not enough colors";
@@ -1560,9 +1573,352 @@ function gamma(gamma) {
   }
 }
 
-/* description s*/
+/* matrix math */
+const IDENTITY_MATRIX = [
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, 0, 1
+];
 
+function toRadian(a) {
+ return a * DEGREE;
+}
+
+function applyMatrix(point, matrix) {
+  let x = point[0],
+    y = point[1],
+    z = point[2];
+  let hom = x * matrix[12] + y * matrix[13] + z * matrix[14] + matrix[15];
+  return ([
+    (x * matrix[0] + y * matrix[1] + z * matrix[2] + matrix[3]) / hom,
+    (x * matrix[4] + y * matrix[5] + z * matrix[6] + matrix[7]) / hom,
+    (x * matrix[8] + y * matrix[9] + z * matrix[10] + matrix[11]) / hom,
+    1
+  ]);
+}
+
+function multiplyMatrixAndPoint(matrix, point) {
+  // Give a simple variable name to each part of the matrix, a column and row number
+  let c0r0 = matrix[ 0], c1r0 = matrix[ 1], c2r0 = matrix[ 2], c3r0 = matrix[ 3];
+  let c0r1 = matrix[ 4], c1r1 = matrix[ 5], c2r1 = matrix[ 6], c3r1 = matrix[ 7];
+  let c0r2 = matrix[ 8], c1r2 = matrix[ 9], c2r2 = matrix[10], c3r2 = matrix[11];
+  let c0r3 = matrix[12], c1r3 = matrix[13], c2r3 = matrix[14], c3r3 = matrix[15];
+
+  // Now set some simple names for the point
+  let x = point[0];
+  let y = point[1];
+  let z = point[2];
+  let w = point[3];
+
+  // Multiply the point against each part of the 1st column, then add together
+  let resultX = (x * c0r0) + (y * c0r1) + (z * c0r2) + (w * c0r3);
+
+  // Multiply the point against each part of the 2nd column, then add together
+  let resultY = (x * c1r0) + (y * c1r1) + (z * c1r2) + (w * c1r3);
+
+  // Multiply the point against each part of the 3rd column, then add together
+  let resultZ = (x * c2r0) + (y * c2r1) + (z * c2r2) + (w * c2r3);
+
+  // Multiply the point against each part of the 4th column, then add together
+  let resultW = (x * c3r0) + (y * c3r1) + (z * c3r2) + (w * c3r3);
+
+  return [resultX, resultY, resultZ, resultW];
+}
+
+function matrixMultiply(a, b) {
+  let a00 = a[0],
+    a01 = a[1],
+    a02 = a[2],
+    a03 = a[3];
+  let a10 = a[4],
+    a11 = a[5],
+    a12 = a[6],
+    a13 = a[7];
+  let a20 = a[8],
+    a21 = a[9],
+    a22 = a[10],
+    a23 = a[11];
+  let a30 = a[12],
+    a31 = a[13],
+    a32 = a[14],
+    a33 = a[15];
+
+  // Cache only the current line of the second matrix
+  let b0 = b[0],
+    b1 = b[1],
+    b2 = b[2],
+    b3 = b[3];
+
+  let out = new Array(16);
+  out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+  out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+  out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+  out[3] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+  b0 = b[4];
+  b1 = b[5];
+  b2 = b[6];
+  b3 = b[7];
+  out[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+  out[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+  out[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+  out[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+  b0 = b[8];
+  b1 = b[9];
+  b2 = b[10];
+  b3 = b[11];
+  out[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+  out[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+  out[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+  out[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+
+  b0 = b[12];
+  b1 = b[13];
+  b2 = b[14];
+  b3 = b[15];
+  out[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+  out[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+  out[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
+  out[15] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
+  return out;
+}
+
+function crossProduct(p1, p2) {
+  return ([
+    p1[1] * p2[2] - p1[2] * p2[1],
+    p1[2] * p2[0] - p1[0] * p2[2],
+    p1[0] * p2[1] - p1[1] * p2[0]
+  ]);
+}
+
+function dotProduct(a, b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+}
+
+function lerp4(a, b, t) {
+  let ax = a[0];
+  let ay = a[1];
+  let az = a[2];
+  let aw = a[3];
+  let out = new Array(4);
+  out[0] = ax + t * (b[0] - ax);
+  out[1] = ay + t * (b[1] - ay);
+  out[2] = az + t * (b[2] - az);
+  out[3] = aw + t * (b[3] - aw);
+  return out;
+}
+
+function normalize3(a) {
+  let x = a[0];
+  let y = a[1];
+  let z = a[2];
+  let len = x * x + y * y + z * z;
+  if (len > 0) {
+    len = 1 / Math.sqrt(len);
+  }
+  let out = new Array(3);
+  out[0] = x * len;
+  out[1] = y * len;
+  out[2] = z * len;
+  return out;
+}
+
+function normalOf3Points(p1, p2, p3){
+  let dir =
+    crossProduct(
+      [
+        p1[0] - p2[0],
+        p1[1] - p2[1],
+        p1[2] - p2[2]
+      ],
+      [
+        p1[0] - p3[0],
+        p1[1] - p3[1],
+        p1[2] - p3[2]
+      ]
+    );
+  return normalize3(dir);
+}
+
+function matrixTranslate(x, y, z) {
+  return ([
+    1, 0, 0, x,
+    0, 1, 0, y,
+    0, 0, 1, z,
+    0, 0, 0, 1,
+  ]);
+}
+
+function matrixScale(x, y, z) {
+  return ([
+    x, 0, 0, 0,
+    0, y, 0, 0,
+    0, 0, z, 0,
+    0, 0, 0, 1,
+  ]);
+}
+
+function matrixRotateX(t) {
+  return ([
+    1, 0, 0, 0,
+    0, Math.cos(t), -Math.sin(t), 0,
+    0, Math.sin(t), Math.cos(t), 0,
+    0, 0, 0, 1,
+  ]);
+}
+
+function matrixRotateY(t) {
+  return ([
+    Math.cos(t), 0, Math.sin(t), 0,
+    0, 1, 0, 0,
+    -Math.sin(t), 0, Math.cos(t), 0,
+    0, 0, 0, 1,
+  ]);
+}
+
+function matrixRotateZ(t) {
+  return ([
+    Math.cos(t), -Math.sin(t), 0, 0,
+    Math.sin(t), Math.cos(t), 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+  ]);
+}
+
+function matrixPerspectiveProjection(n, f) {
+  return ([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, (n + f) / n, 1 / n,
+    0, 0, -f, 0,
+  ]);
+}
+
+/* 3D */
+let logged = 0;
+function getNormal(z){
+  if(z.re <= 0 || z.im <= 0 || z.re+1 >= z.width || z.im+1 >= z.height){
+    return [0,0,0];
+  }
+  let unit = 0.5/Math.min(z.width,z.height);
+  let n1 = normalOf3Points(
+    [0,0,z.z],
+    [-unit,0,z.zBuffer[(z.re-1)+z.im*z.width]],
+    [0,-unit,z.zBuffer[z.re+(z.im-1)*z.width]]);
+  let n2 = normalOf3Points(
+    [0,0,z.z],
+    [0,-unit,z.zBuffer[z.re+(z.im-1)*z.width]],
+    [ unit,0,z.zBuffer[(z.re+1)+z.im*z.width]]);
+  let n3 = normalOf3Points(
+    [0,0,z.z],
+    [0, unit,z.zBuffer[z.re+(z.im+1)*z.width]],
+    [-unit,0,z.zBuffer[(z.re-1)+z.im*z.width]]);
+  let n4 = normalOf3Points(
+    [0,0,z.z],
+    [unit,0,z.zBuffer[(z.re+1)+z.im*z.width]],
+    [0,unit,z.zBuffer[z.re+(z.im+1)*z.width]]);
+  return normalize3([
+    n1[0]+n2[0]+n3[0]+n4[0],
+    n1[1]+n2[1]+n3[1]+n4[1],
+    n1[2]+n2[2]+n3[2]+n4[2]
+  ]);
+}
+
+function blurSphere() {
+  return z => {
+    let u = Math.random();
+    let v = Math.random();
+    let theta = 2 * Math.PI * u;
+    let phi = Math.acos(2 * v - 1);
+    return {
+      ...z,
+      re: Math.sin(phi) * Math.cos(theta),
+      im: Math.sin(phi) * Math.sin(theta),
+      z: Math.cos(phi)
+    }
+  }
+}
+
+function scale3D(s) {
+  return z => {
+    return {
+      ...z,
+      re: z.re * s,
+      im: z.im * s,
+      z: z.z * s
+    }
+  }
+}
+
+function translate3D(x, y, z) {
+  return _z => {
+    return {
+      ..._z,
+      re: _z.re + x,
+      im: _z.im + y,
+      z: _z.z + z
+    }
+  }
+}
+
+function rotate3D(pitch, roll, yaw) {
+  let cosa = Math.cos(yaw);
+  let sina = Math.sin(yaw);
+
+  let cosb = Math.cos(pitch);
+  let sinb = Math.sin(pitch);
+
+  let cosc = Math.cos(roll);
+  let sinc = Math.sin(roll);
+
+  let Axx = cosa * cosb;
+  let Axy = cosa * sinb * sinc - sina * cosc;
+  let Axz = cosa * sinb * cosc + sina * sinc;
+
+  let Ayx = sina * cosb;
+  let Ayy = sina * sinb * sinc + cosa * cosc;
+  let Ayz = sina * sinb * cosc - cosa * sinc;
+
+  let Azx = -sinb;
+  let Azy = cosb * sinc;
+  let Azz = cosb * cosc;
+
+  return z => {
+    let px = z.re;
+    let py = z.im;
+    let pz = z.z;
+    return {
+      ...z,
+      re: Axx * px + Axy * py + Axz * pz,
+      im: Ayx * px + Ayy * py + Ayz * pz,
+      z: Azx * px + Azy * py + Azz * pz,
+    }
+  }
+}
+
+function perspective3D(n, f) {
+  let perspectiveMatrix = matrixMultiply(IDENTITY_MATRIX, matrixPerspectiveProjection(n, f));
+  return z=>{
+    let result = applyMatrix(perspectiveMatrix);
+    return {
+      ...z,
+      re: result[0],
+      im: result[1],
+    }
+  }
+}
+
+/* description s*/
 const BUILT_IN_TRANSFORMS = {
+  //3D transforms
+  blurSphere: blurSphere,
+  scale3D: scale3D,
+  translate3D: translate3D,
+  rotate3D: rotate3D,
+  perspective3D: perspective3D,
+  //2D transforms
   reset: reset,
   arcsinh: arcsinh,
   arctanh: arctanh,
@@ -1626,19 +1982,63 @@ const BUILT_IN_TRANSFORMS = {
 };
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
+    //3D transforms
+    blurSphere: [],
+    scale3D: [{
+      name: "scale",
+      type: "number",
+      default: 1
+    }],
+    translate3D: [{
+      name: "X",
+      type: "number",
+      default: 0
+    }, {
+      name: "Y",
+      type: "number",
+      default: 0
+    }, {
+      name: "Z",
+      type: "number",
+      default: 0
+    }],
+    rotate3D: [{
+      name: "Pitch",
+      type: "number",
+      default: 0
+    }, {
+      name: "Roll",
+      type: "number",
+      default: 0
+    }, {
+      name: "Yaw",
+      type: "number",
+      default: 0
+    }],
+  perspective3D: [{
+      name: "n",
+      type: "number",
+      default: 1
+    },{
+      name: "f",
+      type: "number",
+      default: 0
+    }],
+  //2D transforms
   reset: [],
   arcsinh: [],
   arctanh: [],
   bent: [{
-    name: "real",
-    type: "number",
-    default: 1
-  },
-  {
-    name: "imaginary",
-    type: "number",
-    default: 1
-  }],
+      name: "real",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "imaginary",
+      type: "number",
+      default: 1
+    }
+  ],
   blurCircle: [],
   blurGasket: [],
   blurGaussian: [{
@@ -1653,25 +2053,26 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   }],
   blurSquare: [],
   bTransform: [{
-    name: "rotate",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "power",
-    type: "number",
-    default: 1
-  },
-  {
-    name: "move",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "split",
-    type: "number",
-    default: 0
-  }],
+      name: "rotate",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "power",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "move",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "split",
+      type: "number",
+      default: 0
+    }
+  ],
   bubble: [],
   circleInv: [],
   cpow: [{
@@ -1797,15 +2198,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     }
   ],
   juliascope: [{
-    name: "pow",
-    type: "number",
-    default: 1
-  },
-  {
-    name: "dist",
-    type: "number",
-    default: 1
-  }],
+      name: "pow",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "dist",
+      type: "number",
+      default: 1
+    }
+  ],
   mobius: [{
       name: "a",
       type: "complex",

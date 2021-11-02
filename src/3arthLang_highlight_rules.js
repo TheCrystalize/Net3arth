@@ -1,5 +1,10 @@
 const StandardLibNamesArray =
-`reset
+`blurSphere
+scale3D
+translate3D
+rotate3D
+perspective3D
+reset
 arcsinh
 arctanh
 bent
@@ -77,21 +82,57 @@ log
 pow
 exp
 dot
+sin
+cos
+tan
 sinh
 cosh
 tanh
-gaussRnd`.split('\n');
+gaussRnd
+jacobiAm
+jacobiAmA
+jacobiAmM
+jacobiAmK
+addPoly
+multiplyPoly
+multiplyMatrices
+findRoots
+zeta
+toRadian
+applyMatrix
+multiplyMatrixAndPoint
+matrixMultiply
+crossProduct
+dotProduct
+lerp4
+normalOf3Points
+normalize3
+matrixTranslate
+matrixScale
+matrixRotateX
+matrixRotateY
+matrixRotateZ
+matrixPerspectiveProjection
+getNormal
+`.split('\n');
 
 const StandardLibConstructorNamesArray =
 `C
 colorRGB
 colorHSL`.split('\n');
 
+
+const StandardLibConstantsNamesArray =
+`DEGREE
+IDENTITY_MATRIX`.split('\n');
+
 let StandardLibNames = StandardLibNamesArray.join('|');
 
 let StandardLibHelperNames = StandardLibHelperNamesArray.join('|');
 
 let StandardLibConstructorNames = StandardLibConstructorNamesArray.join('|');
+
+let StandardLibConstantsNames = StandardLibConstantsNamesArray.join('|');
 
 // helful resource:
 // https://github.com/ajaxorg/ace/wiki/Creating-or-Extending-an-Edit-Mode#common-tokens
@@ -150,7 +191,7 @@ var EarthLangHighlightRules = function(options) {
             "SyntaxError|TypeError|URIError|"                                          +
             "decodeURI|decodeURIComponent|encodeURI|encodeURIComponent|eval|isFinite|" + // Non-constructor functions
             "isNaN|parseFloat|parseInt|"                                               +
-            "JSON|Math|"                                                               + // Other
+            "JSON|Math|oldBuffer|newBuffer|"                                           + // Other
             "this|arguments|prototype|window|document"                                 , // Pseudo
         "keyword":
             "const|yield|import|get|set|async|await|" +
@@ -165,7 +206,9 @@ var EarthLangHighlightRules = function(options) {
             "null|Infinity|NaN|undefined",
         "support.function":
             "alert",
-        "constant.language.boolean": "true|false"
+        "constant.language.boolean": "true|false",
+        "constant.language": StandardLibConstantsNames,
+        "support.function": StandardLibHelperNames,
     }, "identifier");
 
     // keywords which can be followed by regular expressions
@@ -309,10 +352,6 @@ var EarthLangHighlightRules = function(options) {
             {
                 token: "support.class",
                 regex: "(?:" + StandardLibConstructorNames + ")\\b"
-            },
-            {
-                token: "support.function",
-                regex: "(?:" + StandardLibHelperNames + ")\\b"
             },
             {
                 token: "entity.function.name",

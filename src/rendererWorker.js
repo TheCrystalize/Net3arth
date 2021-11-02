@@ -2,7 +2,8 @@
 importScripts('standardLib.js');
 importScripts('rendererLib.js');
 
-let buffer;
+let mainBuffer;
+let zBuffer;
 let img;
 
 let canvas;
@@ -10,9 +11,9 @@ let ctx;
 
 function getBrightest() {
   let brightest = 0;
-  for(let i = 0; i < WIDTH * HEIGHT * 3; i++) {
-    if(buffer[i] > brightest) {
-      brightest = buffer[i];
+  for(let i = WIDTH * HEIGHT * 3 - 1; i >= 0; i--) {
+    if(mainBuffer[i] > brightest) {
+      brightest = mainBuffer[i];
     }
   }
   return brightest;
@@ -24,10 +25,8 @@ function refreshRender(width, height) {
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
 
-  buffer = new Uint32Array(WIDTH * HEIGHT * 3);
-  for(let i = 0; i < buffer.length; i++) {
-    buffer[i] = 0;
-  }
+  mainBuffer = new Uint32Array(WIDTH * HEIGHT * 3);
+  zBuffer = new Float64Array(WIDTH * HEIGHT);
 
   img = new ImageData(WIDTH, HEIGHT);
   for(let i = 3; i < WIDTH * HEIGHT * 4; i += 4) {
@@ -39,31 +38,48 @@ function refreshRender(width, height) {
 
 function updateImage(msg) {
   let m = new Float64Array(msg.data);
-  let id = m[WIDTH * HEIGHT * 3];
+  let id = m[WIDTH * HEIGHT * 4];
 
-  if(m.length - 1 !== buffer.length) {
+  if((m.length - 1)*0.75 !== mainBuffer.length) {
+    console.error(`missmatched buffer size: ${(m.length-1)/4} != ${mainBuffer.length/3}`);
     return;
   }
 
-  for(let i = 0; i < buffer.length - 1; i++) {
-    buffer[i] += m[i];
-    buffer[i + 1] += m[i + 1];
-    buffer[i + 2] += m[i + 2];
+  for(let i = WIDTH * HEIGHT - 1; i >= 0; i--) {
+    let result = buffer({
+      red: mainBuffer[i * 3],
+      green: mainBuffer[i * 3 + 1],
+      blue: mainBuffer[i * 3 + 2],
+      alpha: 1,
+      z: zBuffer[i]
+    }, {
+      red: m[i * 4],
+      green: m[i * 4 + 1],
+      blue: m[i * 4 + 2],
+      alpha: 1,
+      z: m[i * 4 + 3]
+    });
+    mainBuffer[i * 3] = result.red;
+    mainBuffer[i * 3 + 1] = result.green;
+    mainBuffer[i * 3 + 2] = result.blue;
+    zBuffer[i] = result.z;
   }
 
   // draw onto canvas
   const brightest = getBrightest();
 
-  for(let b, i = 0; i < WIDTH * HEIGHT; i++) {
-    b = buffer[i];
+  for(let i = WIDTH * HEIGHT - 1; i >= 0; i--) {
     let shaderResult = loopStuff(stuffToDo.shader, {
       re: i % WIDTH,
       im: (i / WIDTH) >> 0,
-      z: 0,
-      red: buffer[i * 3] / brightest,
-      green: buffer[i * 3 + 1] / brightest,
-      blue: buffer[i * 3 + 2] / brightest,
+      z: zBuffer[i],
+      red: mainBuffer[i * 3] / brightest,
+      green: mainBuffer[i * 3 + 1] / brightest,
+      blue: mainBuffer[i * 3 + 2] / brightest,
       alpha: 1,
+      zBuffer: zBuffer,
+      width: WIDTH,
+      height: HEIGHT
     });
     img.data[i * 4] = shaderResult.red * 255 >> 0;
     img.data[i * 4 + 1] = shaderResult.green * 255 >> 0;

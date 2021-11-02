@@ -3,9 +3,9 @@ importScripts('standardLib.js');
 importScripts('rendererLib.js');
 
 function run() {
-  let buffer = new Float64Array(WIDTH * HEIGHT * 3 + 1);
+  let mainBuffer = new Float64Array(WIDTH * HEIGHT * 4 + 1);
 
-  buffer[WIDTH * HEIGHT * 3] = ID;
+  mainBuffer[WIDTH * HEIGHT * 4] = ID;
 
   let scl = [];
   if(WIDTH > HEIGHT) {
@@ -34,13 +34,21 @@ function run() {
     if(val.alpha > 0 && val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
       samples++;
       let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * HEIGHT >> 0) * WIDTH;
-      buffer[index * 3] += val.red * val.alpha;
-      buffer[index * 3 + 1] += val.green * val.alpha;
-      buffer[index * 3 + 2] += val.blue * val.alpha;
+      let result = buffer({
+        red: mainBuffer[index * 4],
+        green: mainBuffer[index * 4 + 1],
+        blue: mainBuffer[index * 4 + 2],
+        alpha: 1,
+        z: mainBuffer[index * 4 + 3]
+      }, val);
+      mainBuffer[index * 4] = result.red;
+      mainBuffer[index * 4 + 1] = result.green;
+      mainBuffer[index * 4 + 2] = result.blue;
+      mainBuffer[index * 4 + 3] = result.z;
     }
   }
 
-  postMessage(buffer.buffer, [buffer.buffer]);
+  postMessage(mainBuffer.buffer, [mainBuffer.buffer]);
   postMessage({
     steps: samples
   });
