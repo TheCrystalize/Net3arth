@@ -118,7 +118,9 @@ matrixRotateY
 matrixRotateZ
 matrixPerspectiveProjection
 getNormal
-`.split('\n');
+normalMap
+heightMap
+basicLighting`.split('\n');
 
 const StandardLibConstructorNamesArray =
 `C

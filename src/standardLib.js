@@ -629,7 +629,8 @@ function blurCircle() {
     return {
       ...z,
       re: Math.cos(a) * r,
-      im: Math.sin(a) * r
+      im: Math.sin(a) * r,
+      z: 0,
     }
   }
 }
@@ -676,7 +677,8 @@ function blurSquare() {
     return {
       ...z,
       re: Math.random() - 0.5,
-      im: Math.random() - 0.5
+      im: Math.random() - 0.5,
+      z: 0,
     }
   }
 }
@@ -1844,6 +1846,10 @@ function toRadian(a) {
  return a * DEGREE;
 }
 
+function fix3DZero(n) {
+  return n === 0 ? -Number.MAX_SAFE_INTEGER : n;
+}
+
 function applyMatrix(point, matrix) {
   let x = point[0],
     y = point[1],
@@ -1990,12 +1996,12 @@ function normalOf3Points(p1, p2, p3){
       [
         p1[0] - p2[0],
         p1[1] - p2[1],
-        p1[2] - p2[2]
+        fix3DZero(p1[2]) - fix3DZero(p2[2])
       ],
       [
         p1[0] - p3[0],
         p1[1] - p3[1],
-        p1[2] - p3[2]
+        fix3DZero(p1[2]) - fix3DZero(p3[2])
       ]
     );
   return normalize3(dir);
@@ -2059,7 +2065,7 @@ function matrixPerspectiveProjection(n, f) {
 let logged = 0;
 function getNormal(z){
   if(z.re <= 0 || z.im <= 0 || z.re+1 >= z.width || z.im+1 >= z.height){
-    return [0,0,0];
+    return [0,0,1];
   }
   let unit = 0.5/Math.min(z.width,z.height);
   let n1 = normalOf3Points(
@@ -2169,8 +2175,64 @@ function perspective3D(n, f) {
   }
 }
 
+function normalMap(){
+  return z=>{
+    let normal = getNormal(z);
+    return {
+      ...z,
+      red: (normal[0]+1)/2,
+      green: (normal[0]+1)/2,
+      blue: (normal[0]+1)/2,
+    }
+  }
+}
+
+function heightMap(zRange){
+  return z=>{
+    let height = z.z === 0 ? 0 : (z.z + zRange) / (2*zRange);
+    return {
+      ...z,
+      red: height,
+      green: height,
+      blue: height,
+    }
+  }
+}
+
+function basicLighting(theta, diffuse) {
+  let sinTheta = Math.sin(theta * DEGREE);
+  let cosTheta = Math.cos(theta * DEGREE);
+
+  return z=>{
+    let normal = getNormal(z);
+    let brightness =
+    (normal[2]*sinTheta+
+    normal[0]*cosTheta)*(1-diffuse)+diffuse;
+    return {
+      ...z,
+      red: z.red * brightness,
+      green: z.green * brightness,
+      blue: z.blue * brightness,
+    };
+  };
+}
+
+function ambientAclusion(minZ, maxZ){
+  return z=>{
+    return {
+      ...z,
+
+    }
+  }
+}
+
 /* description s*/
 const BUILT_IN_TRANSFORMS = {
+  //shaders
+  gamma: gamma,
+  normalMap: normalMap,
+  heightMap: heightMap,
+  basicLighting: basicLighting,
   //3D transforms
   blurSphere: blurSphere,
   scale3D: scale3D,
@@ -2231,7 +2293,6 @@ const BUILT_IN_TRANSFORMS = {
   //color transfomrs
   brighten: brighten,
   color: color,
-  gamma: gamma,
   gradient: gradient,
   repeatingGradient: repeatingGradient,
   hslShift: hslShift,
@@ -2245,27 +2306,48 @@ const BUILT_IN_TRANSFORMS = {
 };
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
-    //3D transforms
-    blurSphere: [],
-    scale3D: [{
-      name: "scale",
-      type: "number",
-      default: 1
-    }],
-    translate3D: [{
-      name: "X",
-      type: "number",
-      default: 0
-    }, {
-      name: "Y",
-      type: "number",
-      default: 0
-    }, {
-      name: "Z",
-      type: "number",
-      default: 0
-    }],
-    rotate3D: [{
+  //shaders
+  gamma: [{
+    name: "gamma",
+    type: "number",
+    default: 2.2
+  }],
+  normalMap: [],
+  heightMap: [{
+    name: "z range",
+    type: "number",
+    default: 1
+  }],
+  basicLighting: [{
+    name: "theta",
+    type: "number",
+    default: 90,
+  },{
+    name: "diffuse",
+    type: "number",
+    default: 0.3,
+  }],
+  //3D transforms
+  blurSphere: [],
+  scale3D: [{
+    name: "scale",
+    type: "number",
+    default: 1
+  }],
+  translate3D: [{
+    name: "X",
+    type: "number",
+    default: 0
+  }, {
+    name: "Y",
+    type: "number",
+    default: 0
+  }, {
+    name: "Z",
+    type: "number",
+    default: 0
+  }],
+  rotate3D: [{
       name: "Pitch",
       type: "number",
       default: 0
@@ -2724,11 +2806,6 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       s: 1,
       l: 0.5
     }
-  }],
-  gamma: [{
-    name: "gamma",
-    type: "number",
-    default: "2.2"
   }],
   gradient: [{
     name: "colorA",
