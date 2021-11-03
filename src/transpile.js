@@ -381,7 +381,7 @@ function _3arthError(word, lineNumber, line) {
   }
 }
 
-let verbose = true;
+let verbose = false;
 
 function getPrecomputeString(preComputeStuff) {
   let preComputeString = '';
@@ -1263,7 +1263,10 @@ function parseEverything(code) {
               }
 
               jsCode = jsCode.replace(/console\.log/g, 'consolelog');
-              jsCode = jsCode.replace(/console\.clear/g, 'consoleclear');
+              jsCode = jsCode.replace(/console\.log/g, 'consolelog');
+              jsCode = jsCode.replace(/\bzBuffer\( *\)/g, 'zBuffer(oldBuffer, newBuffer)');
+              jsCode = jsCode.replace(/\bfirstBuffer\( *\)/g, 'firstBuffer(oldBuffer, newBuffer)');
+              jsCode = jsCode.replace(/\blastBuffer\( *\)/g, 'lastBuffer(oldBuffer, newBuffer)');
 
               let match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i/);
               while(match) {

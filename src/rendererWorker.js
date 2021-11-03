@@ -3,7 +3,7 @@ importScripts('standardLib.js');
 importScripts('rendererLib.js');
 
 let mainBuffer;
-let zBuffer;
+let mainZBuffer;
 let img;
 
 let canvas;
@@ -26,7 +26,7 @@ function refreshRender(width, height) {
   canvas.height = HEIGHT;
 
   mainBuffer = new Uint32Array(WIDTH * HEIGHT * 3);
-  zBuffer = new Float64Array(WIDTH * HEIGHT);
+  mainZBuffer = new Float64Array(WIDTH * HEIGHT);
 
   img = new ImageData(WIDTH, HEIGHT);
   for(let i = 3; i < WIDTH * HEIGHT * 4; i += 4) {
@@ -40,29 +40,31 @@ function updateImage(msg) {
   let m = new Float64Array(msg.data);
   let id = m[WIDTH * HEIGHT * 4];
 
-  if((m.length - 1)*0.75 !== mainBuffer.length) {
+  if((m.length - 1) * 0.75 !== mainBuffer.length) {
     console.error(`missmatched buffer size: ${(m.length-1)/4} != ${mainBuffer.length/3}`);
     return;
   }
 
   for(let i = WIDTH * HEIGHT - 1; i >= 0; i--) {
-    let result = buffer({
-      red: mainBuffer[i * 3],
-      green: mainBuffer[i * 3 + 1],
-      blue: mainBuffer[i * 3 + 2],
-      alpha: 1,
-      z: zBuffer[i]
-    }, {
-      red: m[i * 4],
-      green: m[i * 4 + 1],
-      blue: m[i * 4 + 2],
-      alpha: 1,
-      z: m[i * 4 + 3]
-    });
-    mainBuffer[i * 3] = result.red;
-    mainBuffer[i * 3 + 1] = result.green;
-    mainBuffer[i * 3 + 2] = result.blue;
-    zBuffer[i] = result.z;
+    if(m[i * 4] !== 0 || m[i * 4 + 1] !== 0 || m[i * 4 + 2] !== 0 || m[i * 4 + 3] !== 0) {
+      let result = buffer({
+        red: mainBuffer[i * 3],
+        green: mainBuffer[i * 3 + 1],
+        blue: mainBuffer[i * 3 + 2],
+        alpha: 1,
+        z: mainZBuffer[i]
+      }, {
+        red: m[i * 4],
+        green: m[i * 4 + 1],
+        blue: m[i * 4 + 2],
+        alpha: 1,
+        z: m[i * 4 + 3]
+      });
+      mainBuffer[i * 3] = result.red;
+      mainBuffer[i * 3 + 1] = result.green;
+      mainBuffer[i * 3 + 2] = result.blue;
+      mainZBuffer[i] = result.z;
+    }
   }
 
   // draw onto canvas
@@ -72,12 +74,12 @@ function updateImage(msg) {
     let shaderResult = loopStuff(stuffToDo.shader, {
       re: i % WIDTH,
       im: (i / WIDTH) >> 0,
-      z: zBuffer[i],
+      z: mainZBuffer[i],
       red: mainBuffer[i * 3] / brightest,
       green: mainBuffer[i * 3 + 1] / brightest,
       blue: mainBuffer[i * 3 + 2] / brightest,
       alpha: 1,
-      zBuffer: zBuffer,
+      zBuffer: mainZBuffer,
       width: WIDTH,
       height: HEIGHT
     });

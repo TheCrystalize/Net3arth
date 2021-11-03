@@ -1,3 +1,4 @@
+/*buffers*/
 //default buffer
 function buffer(oldBuffer, newBuffer) {
   return {
@@ -8,12 +9,45 @@ function buffer(oldBuffer, newBuffer) {
   }
 }
 
+function firstBuffer(oldBuffer, newBuffer) {
+  if(oldBuffer.z !== 0) {
+    return oldBuffer;
+  }
+  return {
+    red: newBuffer.red * newBuffer.alpha,
+    green: newBuffer.green * newBuffer.alpha,
+    blue: newBuffer.blue * newBuffer.alpha,
+    z: 1
+  }
+}
+
+function lastBuffer(oldBuffer, newBuffer) {
+  return {
+    red: newBuffer.red * newBuffer.alpha,
+    green: newBuffer.green * newBuffer.alpha,
+    blue: newBuffer.blue * newBuffer.alpha,
+    z: 1
+  }
+}
+
+function zBuffer(oldBuffer, newBuffer) {
+  if(oldBuffer.z !== 0 && oldBuffer.z > newBuffer.z) {
+    return oldBuffer;
+  }
+  return {
+    red: newBuffer.red * newBuffer.alpha,
+    green: newBuffer.green * newBuffer.alpha,
+    blue: newBuffer.blue * newBuffer.alpha,
+    z: newBuffer.z
+  };
+}
+
 /* helper functions */
-if (!Math.hypot){
-  Math.hypot = function () {
+if(!Math.hypot) {
+  Math.hypot = function() {
     var y = 0,
       i = arguments.length;
-    while (i--) y += arguments[i] * arguments[i];
+    while(i--) y += arguments[i] * arguments[i];
     return Math.sqrt(y);
   };
 }
@@ -167,11 +201,11 @@ function intpow(x, p) {
   let i;
   let power = Math.floor(p * sign(p));
 
-  if (p < 0) {
+  if(p < 0) {
     mulf = 1.0 / 1e-8 + Math.abs(mulf);
   }
 
-  for (i = 1; i < power; i++) {
+  for(i = 1; i < power; i++) {
     ipret *= mulf;
   }
 
@@ -179,14 +213,14 @@ function intpow(x, p) {
 }
 
 function nonz(nz) {
-  if (Math.abs(nz) <= Number.EPSILON) {
+  if(Math.abs(nz) <= Number.EPSILON) {
     return Number.EPSILON * sign(nz);
   }
   return nz;
 }
 
 function sacot(angle) {
-  if (Math.abs(angle) <= Number.EPSILON) {
+  if(Math.abs(angle) <= Number.EPSILON) {
     return 0;
   }
   return Math.atan2(1.0, angle);
@@ -235,10 +269,10 @@ function carlsonRF(x, y, z) {
     dy = 1 - y / a;
     dz = 1 - z / a;
     itC++;
-    if (itC >= mIt) {
+    if(itC >= mIt) {
       break;
     }
-  } while (Math.max(Math.max(Math.abs(dx), Math.abs(dy)), Math.abs(dz)) > minError);
+  } while(Math.max(Math.max(Math.abs(dx), Math.abs(dy)), Math.abs(dz)) > minError);
 
   let e2 = dx * dy + dy * dz + dz * dx;
   let e3 = dy * dx * dz;
@@ -256,13 +290,13 @@ function jacElliptic(u, emc) {
   let bo, i, ii, I;
   let sn, cn, dn;
 
-  if (emc != 0.0) {
+  if(emc != 0.0) {
     bo = 0;
     if(emc < 0) {
       bo = 1;
     }
 
-    if (bo != 0) {
+    if(bo != 0) {
       d = 1 - emc;
       emc = -emc / d;
       d = Math.sqrt(d);
@@ -271,31 +305,31 @@ function jacElliptic(u, emc) {
     a = 1;
     dn = 1;
 
-    for (i = 0; i < 8; i++) {
+    for(i = 0; i < 8; i++) {
       I = i;
       em[i] = a;
       emc = Math.sqrt(emc);
       en[i] = emc;
       c = 0.5 * (a + emc);
 
-      if (Math.abs(a - emc) <= ca * a) {
-        u = c*u;
+      if(Math.abs(a - emc) <= ca * a) {
+        u = c * u;
         sn = Math.sin(u);
         cn = Math.cos(u);
 
-        if (sn == 0) {
+        if(sn == 0) {
           if(bo != 0) {
             a = dn;
             dn = cn;
             cn = a;
-            sn = sn/d;
+            sn = sn / d;
           }
           break;
         }
 
         a = cn / sn;
         c = a * c;
-        for (ii = 1; ii >= 0; --ii) {
+        for(ii = 1; ii >= 0; --ii) {
           b = em[ii];
           a = c * a;
           c = dn * c;
@@ -303,8 +337,8 @@ function jacElliptic(u, emc) {
           a = c / b;
         }
 
-        a = 1/Math.sqrt(c * c + 1);
-        if (sn < 0) {
+        a = 1 / Math.sqrt(c * c + 1);
+        if(sn < 0) {
           sn = -a;
         } else {
           sn = a;
@@ -320,7 +354,11 @@ function jacElliptic(u, emc) {
     dn = cn;
     sn = Math.tanh(u);
   }
-  return {s: sn, c: cn, d: dn};
+  return {
+    s: sn,
+    c: cn,
+    d: dn
+  };
 }
 
 function jacobiAm(u, x, k) {
@@ -328,7 +366,7 @@ function jacobiAm(u, x, k) {
     g = new Array(31),
     c = new Array(31);
 
-  if (k == 1) {
+  if(k == 1) {
     return 2 * Math.atan(Math.exp(u)) - Math.PI * 2;
   }
 
@@ -337,8 +375,8 @@ function jacobiAm(u, x, k) {
   c[0] = k;
 
   let two_n = 1;
-  for (let n = 0; n < 30; n++) {
-    if (Math.abs(a[n] - g[n]) < (a[n] * Math.EPSILON)) break;
+  for(let n = 0; n < 30; n++) {
+    if(Math.abs(a[n] - g[n]) < (a[n] * Math.EPSILON)) break;
     two_n += two_n;
     a[n + 1] = 0.5 * (a[n] + g[n]);
     g[n + 1] = Math.sqrt(a[n] * g[n]);
@@ -346,28 +384,28 @@ function jacobiAm(u, x, k) {
   }
   let phi = two_n * a[n] * u;
 
-  for (let n = 30; n > 0; n--) {
+  for(let n = 30; n > 0; n--) {
     phi = 0.5 * (phi + Math.asin(c[n] * Math.sin(phi) / a[n]));
   }
   return phi;
 }
 
 function jacobiAmA(u, x) {
-  if (x == 0) {
+  if(x == 0) {
     return u;
   }
   jacobiAm(u, x, Math.abs(x));
 }
 
 function jacobiAmM(u, x) {
-  if (x == 0) {
+  if(x == 0) {
     return u;
   }
   return jacobiAm(u, x, Math.sqrt(Math.abs(x)));
 }
 
 function jacobiAmK(u, x) {
-  if (x == 0) {
+  if(x == 0) {
     return u;
   }
   return jacobiAm(u, x, Math.sin(Math.abs(x)));
@@ -375,17 +413,17 @@ function jacobiAmK(u, x) {
 
 
 function addPoly(a, b) {
-  if (a.length < b.length) {
+  if(a.length < b.length) {
     [a, b] = [b, a];
   }
   const max = a.length;
   const min = b.length;
   const result = new Array(max);
   let i = 0;
-  for (; i < min; i++) {
+  for(; i < min; i++) {
     result[i] = a[i] + b[i];
   }
-  for (; i < max; i++) {
+  for(; i < max; i++) {
     result[i] = a[i];
   }
   return result;
@@ -393,21 +431,21 @@ function addPoly(a, b) {
 
 function multiplyPoly(a, b) {
   const al = a.length;
-  if (al === 0) {
+  if(al === 0) {
     return [];
   }
   const bl = b.length;
-  if (bl === 0) {
+  if(bl === 0) {
     return [];
   }
   const size = al + bl - 2;
   const result = new Array(size).fill(0);
   let ai, bi, ri;
   let are, aim, bre, bim;
-  for (ai = 0; ai < al; ai += 2) {
+  for(ai = 0; ai < al; ai += 2) {
     are = a[ai];
     aim = a[ai + 1];
-    for (bi = 0; bi < bl; bi += 2) {
+    for(bi = 0; bi < bl; bi += 2) {
       bre = b[bi];
       bim = b[bi + 1];
       ri = ai + bi;
@@ -422,11 +460,11 @@ function multiplyMatrices(a, b) {
   const length = a.length;
   const size = Math.sqrt(length);
   const result = new Array(length);
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
+  for(let r = 0; r < size; r++) {
+    for(let c = 0; c < size; c++) {
       let x = [];
       const offset = r * size;
-      for (let i = 0; i < size; i++) {
+      for(let i = 0; i < size; i++) {
         x = addPoly(x, multiplyPoly(a[offset + i], b[i * size + c]));
       }
       result[offset + c] = x;
@@ -443,7 +481,7 @@ function findRoots(poly) {
   const roots = size - 1;
   const real = new Array(size);
   const im = new Array(size);
-  for (let i = 0, j = 0; i < size; i++, j += 2) {
+  for(let i = 0, j = 0; i < size; i++, j += 2) {
     real[i] = poly[j];
     im[i] = poly[j + 1];
   }
@@ -454,7 +492,7 @@ function findRoots(poly) {
   ic /= -m;
   let c1, c2, c3, dc = ic - rc,
     sc = rc + ic;
-  for (let i = 0; i < roots; ++i) {
+  for(let i = 0; i < roots; ++i) {
     c1 = rc * (real[i] + im[i]);
     c2 = real[i] * dc;
     c3 = im[i] * sc;
@@ -465,26 +503,26 @@ function findRoots(poly) {
   im[roots] = 0.0;
   const zr = new Array(roots);
   const zi = new Array(roots).fill(0);
-  for (let i = 0; i < roots; ++i) {
+  for(let i = 0; i < roots; ++i) {
     zr[i] = i / 10;
   }
 
   let j, k, a, b, na, nb, pa, pb, qa, qb, k1, k2, k3, s1, s2, t;
-  for (let i = 0; i < 1000; ++i) {
+  for(let i = 0; i < 1000; ++i) {
     let foundAll = true;
-    for (j = 0; j < roots; ++j) {
+    for(j = 0; j < roots; ++j) {
       pa = zr[j];
       pb = zi[j];
 
       a = 1.0;
       b = 0.0;
-      for (k = 0; k < roots; ++k) {
-        if (k === j) {
+      for(k = 0; k < roots; ++k) {
+        if(k === j) {
           continue;
         }
         qa = pa - zr[k];
         qb = pb - zi[k];
-        if (qa < epsilon && qa > negativeEpsilon && qb < epsilon && qb > negativeEpsilon) {
+        if(qa < epsilon && qa > negativeEpsilon && qb < epsilon && qb > negativeEpsilon) {
           continue;
         }
         k1 = qa * (a + b);
@@ -498,7 +536,7 @@ function findRoots(poly) {
       nb = im[roots];
       s1 = pb - pa;
       s2 = pa + pb;
-      for (k = size - 2; k >= 0; --k) {
+      for(k = size - 2; k >= 0; --k) {
         k1 = pa * (na + nb);
         k2 = na * s1;
         k3 = nb * s2;
@@ -506,7 +544,7 @@ function findRoots(poly) {
         nb = k1 + k2 + im[k];
       }
 
-      if (a > epsilon || a < negativeEpsilon || b > epsilon || b < negativeEpsilon) {
+      if(a > epsilon || a < negativeEpsilon || b > epsilon || b < negativeEpsilon) {
         k1 = a * a + b * b;
         a /= k1;
         b /= -k1;
@@ -525,12 +563,12 @@ function findRoots(poly) {
       zr[j] = pa - qa;
       zi[j] = pb - qb;
 
-      if (qa > epsilon || qa < negativeEpsilon || qb > epsilon || qb < negativeEpsilon) {
+      if(qa > epsilon || qa < negativeEpsilon || qb > epsilon || qb < negativeEpsilon) {
         foundAll = false;
       }
     }
 
-    if (foundAll) {
+    if(foundAll) {
       break;
     }
   }
@@ -541,21 +579,21 @@ function findRoots(poly) {
 function zeta(x) {
   function sum(fn, lstRange) {
     return lstRange.reduce(
-      function (lngSum, x) {
+      function(lngSum, x) {
         return lngSum + fn(x);
       }, 0
     );
   }
 
   function range(m, n) {
-    return Array.apply(null, Array(n - m + 1)).map(function (x, i) {
+    return Array.apply(null, Array(n - m + 1)).map(function(x, i) {
       return m + i;
     });
   }
 
 
   return sum(
-    function (x) {
+    function(x) {
       return 1 / (x * x);
     },
     range(1, 1000)
@@ -688,7 +726,7 @@ function bTransform(rotate, power, move, split) {
     let tau = 0.5 * (Math.log((z.re + 1) * (z.re + 1) + z.im * z.im) - Math.log((z.re - 1) * (z.re - 1) + z.im * z.im)) / power + move,
       sigma = Math.PI - Math.atan2(2 * z.im, 1 - dot(z, z)) + rotate;
     let sigma2 = (sigma + 2 * Math.PI * Math.floor(Math.random() * power)) / power;
-      tau2 = z.re >= 0 ? tau + split : tau - split;
+    tau2 = z.re >= 0 ? tau + split : tau - split;
     let f = Math.cosh(tau2) - Math.cos(sigma2)
     return {
       ...z,
@@ -774,7 +812,7 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
   let preOffsets = [];
   let postOffsets = [];
 
-  if (bc === 0) {
+  if(bc === 0) {
     real = 2 * Math.cos(Math.PI / multiplier / a);
     preOffsets[0] = 0;
     postOffsets[0] = 0;
@@ -790,8 +828,8 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
       i = 0,
       currentOffset = 0,
       offset;
-    for (let x = 0; x < bc; x++, n += a) {
-      while (n > 0) {
+    for(let x = 0; x < bc; x++, n += a) {
+      while(n > 0) {
         n -= bc;
         matrix = multiplyMatrices([
           [],
@@ -810,7 +848,7 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
         [0, offset, 1, 0]
       ], matrix);
       preOffsets[i] = offset + currentOffset;
-      if (currentOffset !== 0) {
+      if(currentOffset !== 0) {
         currentOffset = 0;
       } else {
         currentOffset = offset;
@@ -821,14 +859,14 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
     const trace = addPoly(matrix[0], matrix[3]);
     trace[0] -= 2 * Math.cos(Math.PI / multiplier);
     const [realParts, imParts] = findRoots(trace);
-    for (let i = 0, len = realParts.length; i < len; i++) {
-      if (realParts[i] > real) {
+    for(let i = 0, len = realParts.length; i < len; i++) {
+      if(realParts[i] > real) {
         real = realParts[i];
         im = imParts[i];
       }
     }
   }
-  for (let i = 0; i < preOffsets.length; i++) {
+  for(let i = 0; i < preOffsets.length; i++) {
     preOffsets[i] += im;
   };
 
@@ -842,19 +880,19 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
   return z => {
     let x = z.re,
       y = z.im;
-    if (Math.random() > horizontal) {
+    if(Math.random() > horizontal) {
       direct = Math.random() > 0.5;
       current = Math.floor(Math.random() * length);
-      if (Math.random() > 0.5) {
+      if(Math.random() > 0.5) {
         rotate = !rotate;
       }
     }
-    if (Math.random() > radial) {
+    if(Math.random() > radial) {
       rotate = !rotate;
       current = direct ? ++current % length : ((current === 0) ? length - 1 : --current);
     }
-    if (direct) {
-      if (rotate) {
+    if(direct) {
+      if(rotate) {
         y += preOffsets[current] - rotationOffset;
       } else {
         x = real - x;
@@ -864,7 +902,7 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
       x = x * c;
       y = postOffsets[current] - y * c;
     } else {
-      if (rotate) {
+      if(rotate) {
         x = real - x;
         y = rotationOffset - y - postOffsets[current];
       } else {
@@ -875,7 +913,7 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
       y = preOffsets[current] + y * c;
     }
     y += offset * (Math.round(Math.cos(Math.random() * Math.PI) * (1 / Math.sqrt(Math.random()) - Math.random()) * vertical / offset));
-    if (Math.random() > 0.5) {
+    if(Math.random() > 0.5) {
       return {
         ...z,
         re: real - x,
@@ -921,7 +959,7 @@ function hypershape(n) {
     let za0 = Math.floor(da);
     let xa0 = da - za0,
       xa1, za, si;
-    if (xa0 > 0.5) {
+    if(xa0 > 0.5) {
       xa1 = 1 - xa0;
       za = za0 + 1;
       si = -1;
@@ -977,15 +1015,15 @@ function hypertile3(p, q, r, shift) {
 
   return z => {
     let n, pfr, z0;
-    if (shift < 0.25) {
+    if(shift < 0.25) {
       n = 0;
       pfr = 0;
       z0 = z;
-    } else if (shift < 0.5) {
+    } else if(shift < 0.5) {
       n = p;
       pfr = rot1;
       z0 = div(add(z, c1), addScalar(mult(c1, z), 1));
-    } else if (shift < 0.75) {
+    } else if(shift < 0.75) {
       n = q;
       pfr = rot2;
       z0 = div(add(z, neg(c2)), addScalar(mult(c2, z), 1));
@@ -996,38 +1034,38 @@ function hypertile3(p, q, r, shift) {
     }
 
     let m0 = div(add(z0, neg(c1)), addScalar(mult(neg(c1), z0), 1));
-      m0 = mult(r01, m0);
-      m0 = div(add(m0, c1), addScalar(mult(c1, m0), 1));
+    m0 = mult(r01, m0);
+    m0 = div(add(m0, c1), addScalar(mult(c1, m0), 1));
     let m1 = div(add(z0, c2), addScalar(mult(neg(c2), z0), 1));
-      m1 = mult(r02, m1);
-      m1 = div(add(m1, neg(c2)), addScalar(mult(c2, m1), 1));
+    m1 = mult(r02, m1);
+    m1 = div(add(m1, neg(c2)), addScalar(mult(c2, m1), 1));
     let m2 = div(add(z0, neg(c3)), addScalar(mult(c3, z0), 1));
-      m2 = mult(r03, m2);
-      m2 = div(add(m2, c3), addScalar(mult(neg(c3), m2), 1));
+    m2 = mult(r03, m2);
+    m2 = div(add(m2, c3), addScalar(mult(neg(c3), m2), 1));
 
     let fr = Math.floor(Math.random() * n) * pfr,
       rnd = Math.random(),
       f3, f0, f;
 
-    if (rnd < 1 / 3) {
+    if(rnd < 1 / 3) {
       f3 = m0
-    } else if (rnd < 2 / 3) {
+    } else if(rnd < 2 / 3) {
       f3 = m1
     } else {
       f3 = m2
     }
 
-    if (shift < 0.25) {
+    if(shift < 0.25) {
       f0 = f3
-    } else if (shift < 0.5) {
+    } else if(shift < 0.5) {
       f0 = div(add(f3, neg(c1)), addScalar(mult(neg(c1), f3), 1))
-    } else if (shift < 0.75) {
+    } else if(shift < 0.75) {
       f0 = div(add(f3, c2), addScalar(mult(neg(c2), f3), 1))
     } else {
       f0 = div(add(f3, neg(c3)), addScalar(mult(c3, f3), 1))
     }
 
-    if (shift < 0.25) {
+    if(shift < 0.25) {
       f = f0
     } else {
       f = mult(C(Math.cos(fr), Math.sin(fr)), f0)
@@ -1048,8 +1086,8 @@ function jac_cn(k) {
     let numx = jx.c * jy.c;
     let numy = jx.d * jx.s * jy.d * jy.s;
 
-    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
-    denom = 1/(denom);
+    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
+    denom = 1 / (denom);
 
     return {
       ...z,
@@ -1067,8 +1105,8 @@ function jac_dn(k) {
     let numx = jx.d * jy.c * jy.d;
     let numy = jx.c * jx.s * jy.s * k;
 
-    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
-    denom = 1/(denom);
+    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
+    denom = 1 / (denom);
 
     return {
       ...z,
@@ -1122,8 +1160,8 @@ function jac_sn(k) {
     let numx = jx.s * jy.d;
     let numy = jx.c * jx.d * jy.c * jy.s;
 
-    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
-    denom = 1/(denom);
+    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
+    denom = 1 / (denom);
 
     return {
       ...z,
@@ -1210,7 +1248,7 @@ function murl2(c, pow) {
   }
 }
 
-function nSplit (n, split, wedge) {
+function nSplit(n, split, wedge) {
   let regSize = Math.PI * 2 / n;
 
   return z => {
@@ -1220,7 +1258,7 @@ function nSplit (n, split, wedge) {
     let region = Math.floor(theta / (Math.PI * 2) * n);
     let mTheta = theta - regSize * region;
 
-    let newTheta = region * regSize + regSize/2 + (mTheta - regSize/2) * wedge;
+    let newTheta = region * regSize + regSize / 2 + (mTheta - regSize / 2) * wedge;
 
     let cosA = Math.cos((region + 0.5) / n * 2 * Math.PI) * split;
     let sinA = Math.sin((region + 0.5) / n * 2 * Math.PI) * split;
@@ -1324,7 +1362,7 @@ function smartcrop(power, radius, roundstr, roundwidth, distortion, cropmode) {
   let roundcoeff = roundstr / Math.sin(alpha * 0.5) / pow * 2,
     wradius = Math.abs(radius),
     radial, wpower, walpha, wcoeff;
-  if (pow < 2) {
+  if(pow < 2) {
     radial = 1;
     wpower = pow * Math.PI;
     walpha = 0;
@@ -1339,11 +1377,11 @@ function smartcrop(power, radius, roundstr, roundwidth, distortion, cropmode) {
     let ang = Math.atan2(z.im, z.re),
       rad = Math.sqrt(dot(z, z));
     let wedge, xang0, xang1, xang, coeff0, coeff1, coeff, xr, angle, wwidth, rdc;
-    if (radial == 1) {
+    if(radial == 1) {
       xang0 = ang / (2 * Math.PI) + 1;
       xang = (xang0 - Math.floor(xang0)) * 2 * Math.PI;
       angle = Math.floor(Math.random() * 2) != 0 ? wpower : 0;
-      if ((xang > wpower) == (mode != 1)) {
+      if((xang > wpower) == (mode != 1)) {
         return {
           ...z,
           re: Math.cos(angle) * rad,
@@ -1387,7 +1425,7 @@ function smartshape(power, roundstr, roundwidth, distortion, compensation) {
     let xang1 = dang - zang1,
       xang2, zang, sign, xang;
 
-    if (xang1 > 0.5) {
+    if(xang1 > 0.5) {
       xang2 = 1 - xang1;
       zang = zang1 + 1;
       sign = -1;
@@ -1396,7 +1434,7 @@ function smartshape(power, roundstr, roundwidth, distortion, compensation) {
       zang = zang1;
       sign = 1;
     }
-    if (comp == 1 && distortion >= 1) {
+    if(comp == 1 && distortion >= 1) {
       xang = Math.atan(xang2 * alphacoeff) / alpha;
     } else {
       xang = xang2;
@@ -1432,7 +1470,7 @@ function tileHelp() {
     let x = z.re;
     let val = Math.cos((x > 0 ? x - Math.floor(x) : x + Math.floor(-x)) * Math.PI),
       fpx;
-    if (val < Math.random() * 2 - 1) {
+    if(val < Math.random() * 2 - 1) {
       fpx = x > 0 ? -1 : 1
     } else {
       fpx = 0
@@ -1527,9 +1565,9 @@ function unbubble() {
 
 function color(color) {
   let col = color;
-  if (color.hasOwnProperty('h')) {
+  if(color.hasOwnProperty('h')) {
     col = hslToRgb(color.h, color.s, color.l);
-  } else if (!color.hasOwnProperty('red')) {
+  } else if(!color.hasOwnProperty('red')) {
     col = colorRGB(...arguments);
   }
   return z => {
@@ -1544,8 +1582,8 @@ function color(color) {
 
 function lerp(colorA, colorB, weight = 0.5) {
   weight = Math.max(0, Math.min(1, weight));
-  if (colorA.hasOwnProperty('h')) {
-    if (colorB.hasOwnProperty('h')) {
+  if(colorA.hasOwnProperty('h')) {
+    if(colorB.hasOwnProperty('h')) {
       return hslToRgb(
         Math.abs((colorA.h % 1) - (colorB.h % 1)) > 0.5 ?
         (((colorA.h + (colorA.h % 1 > colorB.h ? 0 : 1)) * (1 - weight) + (colorB.h + (colorA.h % 1 > colorB.h ? 1 : 0)) * weight + 1) + 1) % 1 :
@@ -1562,7 +1600,7 @@ function lerp(colorA, colorB, weight = 0.5) {
         colorA.l * (1 - weight) + colorB.l * weight);
     }
   } else {
-    if (colorB.hasOwnProperty('h')) {
+    if(colorB.hasOwnProperty('h')) {
       colorA = rgbToHsl(colorA.red, colorA.green, colorA.blue);
       return hslToRgb(
         Math.abs((colorA.h % 1) - (colorB.h % 1)) > 0.5 ?
@@ -1602,18 +1640,18 @@ function colorHSL(h, s, l) {
 }
 
 function hue2rgb(p, q, t) {
-  if (t < 0) t += 1;
-  if (t > 1) t -= 1;
-  if (t < 1 / 6) return p + (q - p) * 6 * t;
-  if (t < 1 / 2) return q;
-  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+  if(t < 0) t += 1;
+  if(t > 1) t -= 1;
+  if(t < 1 / 6) return p + (q - p) * 6 * t;
+  if(t < 1 / 2) return q;
+  if(t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
   return p;
 }
 
 function hslToRgb(h, s, l) {
   let r, g, b;
 
-  if (s == 0) {
+  if(s == 0) {
     r = g = b = l; // achromatic
   } else {
     let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
@@ -1636,7 +1674,7 @@ function rgbToHsl(r, g, b) {
     min = Math.min(r, g, b);
   let h, s, l = (max + min) / 2;
 
-  if (max == min) {
+  if(max == min) {
     h = s = 0; // achromatic
   } else {
     let d = max - min;
@@ -1680,6 +1718,15 @@ function setHue(hue) {
     return {
       ...z,
       ...hslToRgb(hue, hsl.s, hsl.l)
+    }
+  }
+}
+
+function setAlpha(alpha) {
+  return z => {
+    return {
+      ...z,
+      alpha: alpha
     }
   }
 }
@@ -1774,12 +1821,12 @@ function brighten(amount) {
 }
 
 function repeatingGradient(colors) {
-  if (colors.length < 1) {
+  if(colors.length < 1) {
     throw "not enough colors";
   }
-  if (colors.length === 1) {
+  if(colors.length === 1) {
     let col = colors[0];
-    if (colors[0].hasOwnProperty('h')) {
+    if(colors[0].hasOwnProperty('h')) {
       col = hslToRgb(colors[0].h, colors[0].s, colors[0].l);
     }
     return z => {
@@ -1799,12 +1846,12 @@ function repeatingGradient(colors) {
 }
 
 function gradient(colors) {
-  if (colors.length < 1) {
+  if(colors.length < 1) {
     throw "not enough colors";
   }
-  if (colors.length === 1) {
+  if(colors.length === 1) {
     let col = colors[0];
-    if (colors[0].hasOwnProperty('h')) {
+    if(colors[0].hasOwnProperty('h')) {
       col = hslToRgb(colors[0].h, colors[0].s, colors[0].l);
     }
     return z => {
@@ -1843,7 +1890,7 @@ const IDENTITY_MATRIX = [
 ];
 
 function toRadian(a) {
- return a * DEGREE;
+  return a * DEGREE;
 }
 
 function fix3DZero(n) {
@@ -1865,10 +1912,22 @@ function applyMatrix(point, matrix) {
 
 function multiplyMatrixAndPoint(matrix, point) {
   // Give a simple variable name to each part of the matrix, a column and row number
-  let c0r0 = matrix[ 0], c1r0 = matrix[ 1], c2r0 = matrix[ 2], c3r0 = matrix[ 3];
-  let c0r1 = matrix[ 4], c1r1 = matrix[ 5], c2r1 = matrix[ 6], c3r1 = matrix[ 7];
-  let c0r2 = matrix[ 8], c1r2 = matrix[ 9], c2r2 = matrix[10], c3r2 = matrix[11];
-  let c0r3 = matrix[12], c1r3 = matrix[13], c2r3 = matrix[14], c3r3 = matrix[15];
+  let c0r0 = matrix[0],
+    c1r0 = matrix[1],
+    c2r0 = matrix[2],
+    c3r0 = matrix[3];
+  let c0r1 = matrix[4],
+    c1r1 = matrix[5],
+    c2r1 = matrix[6],
+    c3r1 = matrix[7];
+  let c0r2 = matrix[8],
+    c1r2 = matrix[9],
+    c2r2 = matrix[10],
+    c3r2 = matrix[11];
+  let c0r3 = matrix[12],
+    c1r3 = matrix[13],
+    c2r3 = matrix[14],
+    c3r3 = matrix[15];
 
   // Now set some simple names for the point
   let x = point[0];
@@ -1980,7 +2039,7 @@ function normalize3(a) {
   let y = a[1];
   let z = a[2];
   let len = x * x + y * y + z * z;
-  if (len > 0) {
+  if(len > 0) {
     len = 1 / Math.sqrt(len);
   }
   let out = new Array(3);
@@ -1990,7 +2049,7 @@ function normalize3(a) {
   return out;
 }
 
-function normalOf3Points(p1, p2, p3){
+function normalOf3Points(p1, p2, p3) {
   let dir =
     crossProduct(
       [
@@ -2062,32 +2121,51 @@ function matrixPerspectiveProjection(n, f) {
 }
 
 /* 3D */
-let logged = 0;
-function getNormal(z){
-  if(z.re <= 0 || z.im <= 0 || z.re+1 >= z.width || z.im+1 >= z.height){
-    return [0,0,1];
+function viewSphere(x, y, _z, radius) {
+  let rst = reset();
+  return z => {
+    if(Math.hypot(z.re - x, z.im - y, z.z - _z) > radius) {
+      return rst(z);
+    }
+    return z;
   }
-  let unit = 0.5/Math.min(z.width,z.height);
+}
+
+function viewBox(x, y, _z, radius) {
+  let rst = reset();
+  return z => {
+    if(z.re - x > radius || z.im - y > radius || z.z - _z > radius) {
+      return rst(z);
+    }
+    return z;
+  }
+}
+
+function getNormal(z) {
+  if(z.z === 0 || z.re <= 0 || z.im <= 0 || z.re + 1 >= z.width || z.im + 1 >= z.height) {
+    return [0, 0, 1];
+  }
+  let unit = 0.5 / Math.min(z.width, z.height);
   let n1 = normalOf3Points(
-    [0,0,z.z],
-    [-unit,0,z.zBuffer[(z.re-1)+z.im*z.width]],
-    [0,-unit,z.zBuffer[z.re+(z.im-1)*z.width]]);
+    [0, 0, z.z],
+    [-unit, 0, z.zBuffer[(z.re - 1) + z.im * z.width]],
+    [0, -unit, z.zBuffer[z.re + (z.im - 1) * z.width]]);
   let n2 = normalOf3Points(
-    [0,0,z.z],
-    [0,-unit,z.zBuffer[z.re+(z.im-1)*z.width]],
-    [ unit,0,z.zBuffer[(z.re+1)+z.im*z.width]]);
+    [0, 0, z.z],
+    [0, -unit, z.zBuffer[z.re + (z.im - 1) * z.width]],
+    [unit, 0, z.zBuffer[(z.re + 1) + z.im * z.width]]);
   let n3 = normalOf3Points(
-    [0,0,z.z],
-    [0, unit,z.zBuffer[z.re+(z.im+1)*z.width]],
-    [-unit,0,z.zBuffer[(z.re-1)+z.im*z.width]]);
+    [0, 0, z.z],
+    [0, unit, z.zBuffer[z.re + (z.im + 1) * z.width]],
+    [-unit, 0, z.zBuffer[(z.re - 1) + z.im * z.width]]);
   let n4 = normalOf3Points(
-    [0,0,z.z],
-    [unit,0,z.zBuffer[(z.re+1)+z.im*z.width]],
-    [0,unit,z.zBuffer[z.re+(z.im+1)*z.width]]);
+    [0, 0, z.z],
+    [unit, 0, z.zBuffer[(z.re + 1) + z.im * z.width]],
+    [0, unit, z.zBuffer[z.re + (z.im + 1) * z.width]]);
   return normalize3([
-    n1[0]+n2[0]+n3[0]+n4[0],
-    n1[1]+n2[1]+n3[1]+n4[1],
-    n1[2]+n2[2]+n3[2]+n4[2]
+    n1[0] + n2[0] + n3[0] + n4[0],
+    n1[1] + n2[1] + n3[1] + n4[1],
+    n1[2] + n2[2] + n3[2] + n4[2]
   ]);
 }
 
@@ -2102,6 +2180,58 @@ function blurSphere() {
       re: Math.sin(phi) * Math.cos(theta),
       im: Math.sin(phi) * Math.sin(theta),
       z: Math.cos(phi)
+    }
+  }
+}
+
+function blurCube() {
+  return z => {
+    let face = Math.random() * 6 >> 0;
+    let x = Math.random() - 0.5;
+    let y = Math.random() - 0.5;
+    switch (face) {
+      case 0:
+        return {
+          ...z,
+          re: x,
+            im: y,
+            z: -0.5
+        };
+      case 1:
+        return {
+          ...z,
+          re: x,
+            im: y,
+            z: 0.5
+        };
+      case 2:
+        return {
+          ...z,
+          re: x,
+            im: -0.5,
+            z: y
+        };
+      case 3:
+        return {
+          ...z,
+          re: x,
+            im: 0.5,
+            z: y
+        };
+      case 4:
+        return {
+          ...z,
+          re: -0.5,
+            im: x,
+            z: y
+        };
+      case 5:
+        return {
+          ...z,
+          re: 0.5,
+            im: x,
+            z: y
+        };
     }
   }
 }
@@ -2165,7 +2295,7 @@ function rotate3D(pitch, roll, yaw) {
 
 function perspective3D(n, f) {
   let perspectiveMatrix = matrixMultiply(IDENTITY_MATRIX, matrixPerspectiveProjection(n, f));
-  return z=>{
+  return z => {
     let result = applyMatrix(perspectiveMatrix);
     return {
       ...z,
@@ -2175,21 +2305,21 @@ function perspective3D(n, f) {
   }
 }
 
-function normalMap(){
-  return z=>{
+function normalMap() {
+  return z => {
     let normal = getNormal(z);
     return {
       ...z,
-      red: (normal[0]+1)/2,
-      green: (normal[0]+1)/2,
-      blue: (normal[0]+1)/2,
+      red: (normal[0] + 1) / 2,
+      green: (normal[1] + 1) / 2,
+      blue: (normal[2] + 1) / 2,
     }
   }
 }
 
-function heightMap(zRange){
-  return z=>{
-    let height = z.z === 0 ? 0 : (z.z + zRange) / (2*zRange);
+function heightMap(zRange) {
+  return z => {
+    let height = z.z === 0 ? 0 : (z.z + zRange) / (2 * zRange);
     return {
       ...z,
       red: height,
@@ -2203,11 +2333,11 @@ function basicLighting(theta, diffuse) {
   let sinTheta = Math.sin(theta * DEGREE);
   let cosTheta = Math.cos(theta * DEGREE);
 
-  return z=>{
+  return z => {
     let normal = getNormal(z);
     let brightness =
-    (normal[2]*sinTheta+
-    normal[0]*cosTheta)*(1-diffuse)+diffuse;
+      Math.max(0, (normal[2] * sinTheta +
+        normal[0] * cosTheta)) * (1 - diffuse) + diffuse;
     return {
       ...z,
       red: z.red * brightness,
@@ -2217,11 +2347,15 @@ function basicLighting(theta, diffuse) {
   };
 }
 
-function ambientAclusion(minZ, maxZ){
-  return z=>{
+function mist(startZ, halfLength, mistColor) {
+  let t = 0;
+  return z => {
+    let brightness = z.z === 0 ? 0 : halfLength / (halfLength + Math.max(0, (-z.z + startZ) / startZ));
     return {
       ...z,
-
+      red: z.red * brightness + (1 - brightness) * mistColor.red,
+      green: z.green * brightness + (1 - brightness) * mistColor.green,
+      blue: z.blue * brightness + (1 - brightness) * mistColor.blue,
     }
   }
 }
@@ -2233,12 +2367,16 @@ const BUILT_IN_TRANSFORMS = {
   normalMap: normalMap,
   heightMap: heightMap,
   basicLighting: basicLighting,
+  mist: mist,
   //3D transforms
   blurSphere: blurSphere,
+  blurCube: blurCube,
   scale3D: scale3D,
   translate3D: translate3D,
   rotate3D: rotate3D,
   perspective3D: perspective3D,
+  viewBox: viewBox,
+  viewSphere: viewSphere,
   //2D transforms
   reset: reset,
   arcsinh: arcsinh,
@@ -2301,6 +2439,7 @@ const BUILT_IN_TRANSFORMS = {
   lerpRGB: lerpRGB,
   normalizeColor: normalizeColor,
   setHue: setHue,
+  setAlpha: setAlpha,
   setSaturation: setSaturation,
   setLightness: setLightness,
 };
@@ -2322,13 +2461,31 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "theta",
     type: "number",
     default: 90,
-  },{
+  }, {
     name: "diffuse",
     type: "number",
     default: 0.3,
   }],
+  mist: [{
+    name: "startZ",
+    type: "number",
+    default: 0,
+  }, {
+    name: "halfLength",
+    type: "number",
+    default: 0.5,
+  }, {
+    name: "mistColor",
+    type: "object",
+    default: {
+      red: 0.7,
+      green: 0.7,
+      blue: 0.8
+    },
+  }],
   //3D transforms
   blurSphere: [],
+  blurCube: [],
   scale3D: [{
     name: "scale",
     type: "number",
@@ -2348,27 +2505,61 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 0
   }],
   rotate3D: [{
-      name: "Pitch",
-      type: "number",
-      default: 0
-    }, {
-      name: "Roll",
-      type: "number",
-      default: 0
-    }, {
-      name: "Yaw",
-      type: "number",
-      default: 0
-    }],
+    name: "Pitch",
+    type: "number",
+    default: 0
+  }, {
+    name: "Roll",
+    type: "number",
+    default: 0
+  }, {
+    name: "Yaw",
+    type: "number",
+    default: 0
+  }],
   perspective3D: [{
-      name: "n",
-      type: "number",
-      default: 1
-    },{
-      name: "f",
-      type: "number",
-      default: 0
-    }],
+    name: "n",
+    type: "number",
+    default: 1
+  }, {
+    name: "f",
+    type: "number",
+    default: 0
+  }],
+  viewBox: [{
+    name: "x",
+    type: "number",
+    default: 0
+  },{
+    name: "y",
+    type: "number",
+    default: 0
+  },{
+    name: "z",
+    type: "number",
+    default: 0
+  },{
+    name: "radius",
+    type: "number",
+    default: 1
+  },],
+  viewSphere: [{
+    name: "x",
+    type: "number",
+    default: 0
+  },{
+    name: "y",
+    type: "number",
+    default: 0
+  },{
+    name: "z",
+    type: "number",
+    default: 0
+  },{
+    name: "radius",
+    type: "number",
+    default: 1
+  },],
   //2D transforms
   reset: [],
   arcsinh: [],
@@ -2904,6 +3095,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "hue",
     type: "number",
     default: 0
+  }],
+  setAlpha: [{
+    name: "alpha",
+    type: "number",
+    default: 255
   }],
   setSaturation: [{
     name: "saturation",

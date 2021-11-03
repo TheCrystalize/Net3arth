@@ -1,9 +1,12 @@
 const StandardLibNamesArray =
 `blurSphere
+blurCube
 scale3D
 translate3D
 rotate3D
 perspective3D
+viewBox
+viewSphere
 reset
 arcsinh
 arctanh
@@ -65,8 +68,13 @@ lerpHSL
 lerpRGB
 normalizeColor
 setHue
+setAlpha
 setSaturation
-setLightness`.split('\n');
+setLightness
+normalMap
+heightMap
+basicLighting
+mist`.split('\n');
 
 const StandardLibHelperNamesArray =
 `rgbToHsl
@@ -118,9 +126,9 @@ matrixRotateY
 matrixRotateZ
 matrixPerspectiveProjection
 getNormal
-normalMap
-heightMap
-basicLighting`.split('\n');
+zBuffer
+firstBuffer
+lastBuffer`.split('\n');
 
 const StandardLibConstructorNamesArray =
 `C
