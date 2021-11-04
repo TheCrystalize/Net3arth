@@ -2123,7 +2123,7 @@ function matrixPerspectiveProjection(n, f) {
 /* 3D */
 function matrix3D(matrix){
   return z => {
-    let result = applyMatrix([z.re,z.im,z.z], perspectiveMatrix);
+    let result = applyMatrix([z.re,z.im,z.z], matrix);
     return {
       ...z,
       re: result[0],
