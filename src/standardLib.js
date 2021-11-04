@@ -2115,12 +2115,24 @@ function matrixPerspectiveProjection(n, f) {
   return ([
     1, 0, 0, 0,
     0, 1, 0, 0,
-    0, 0, (n + f) / n, 1 / n,
-    0, 0, -f, 0,
+    0, 0, (n + f) / n, -f,
+    0, 0, 1/n, 0,
   ]);
 }
 
 /* 3D */
+function matrix3D(matrix){
+  return z => {
+    let result = applyMatrix([z.re,z.im,z.z], perspectiveMatrix);
+    return {
+      ...z,
+      re: result[0],
+      im: result[1],
+      z: result[2],
+    }
+  }
+}
+
 function viewSphere(x, y, _z, radius) {
   let rst = reset();
   return z => {
@@ -2247,6 +2259,17 @@ function scale3D(s) {
   }
 }
 
+function scale3D3(x,y,_z) {
+  return z => {
+    return {
+      ...z,
+      re: z.re * x,
+      im: z.im * y,
+      z: z.z * _z
+    }
+  }
+}
+
 function translate3D(x, y, z) {
   return _z => {
     return {
@@ -2296,11 +2319,12 @@ function rotate3D(pitch, roll, yaw) {
 function perspective3D(n, f) {
   let perspectiveMatrix = matrixMultiply(IDENTITY_MATRIX, matrixPerspectiveProjection(n, f));
   return z => {
-    let result = applyMatrix(perspectiveMatrix);
+    let result = applyMatrix([z.re,z.im,z.z], perspectiveMatrix);
     return {
       ...z,
       re: result[0],
       im: result[1],
+      z: -Math.sqrt(Math.hypot(z.re,z.im,z.z))
     }
   }
 }
@@ -2348,9 +2372,8 @@ function basicLighting(theta, diffuse) {
 }
 
 function mist(startZ, halfLength, mistColor) {
-  let t = 0;
   return z => {
-    let brightness = z.z === 0 ? 0 : halfLength / (halfLength + Math.max(0, (-z.z + startZ) / startZ));
+    let brightness = z.z === 0 ? 0 : halfLength / (halfLength + Math.max(0, (z.z - startZ) / startZ));
     return {
       ...z,
       red: z.red * brightness + (1 - brightness) * mistColor.red,
@@ -2369,9 +2392,11 @@ const BUILT_IN_TRANSFORMS = {
   basicLighting: basicLighting,
   mist: mist,
   //3D transforms
+  matrix3D: matrix3D,
   blurSphere: blurSphere,
   blurCube: blurCube,
   scale3D: scale3D,
+  scale3D3: scale3D3,
   translate3D: translate3D,
   rotate3D: rotate3D,
   perspective3D: perspective3D,
@@ -2484,10 +2509,28 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     },
   }],
   //3D transforms
+  matrix3D: [{
+    name: "matrix",
+    type: "array",
+    default: IDENTITY_MATRIX
+  }],
   blurSphere: [],
   blurCube: [],
   scale3D: [{
     name: "scale",
+    type: "number",
+    default: 1
+  }],
+  scale3D3: [{
+    name: "x",
+    type: "number",
+    default: 1
+  },{
+    name: "y",
+    type: "number",
+    default: 1
+  },{
+    name: "z",
     type: "number",
     default: 1
   }],

@@ -1,7 +1,9 @@
 const StandardLibNamesArray =
 `blurSphere
 blurCube
+matrix3D
 scale3D
+scale3D3
 translate3D
 rotate3D
 perspective3D
