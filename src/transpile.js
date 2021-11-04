@@ -1268,22 +1268,22 @@ function parseEverything(code) {
               jsCode = jsCode.replace(/\bfirstBuffer\( *\)/g, 'firstBuffer(oldBuffer, newBuffer)');
               jsCode = jsCode.replace(/\blastBuffer\( *\)/g, 'lastBuffer(oldBuffer, newBuffer)');
 
-              let match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i/);
+              let match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i\b/);
               while(match) {
                 jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index + match[0].length);
-                match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i/);
+                match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i\b/);
               }
 
-              match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-])i/);
+              match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-])i\b/);
               while(match) {
                 jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index + match[0].length);
-                match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-]+)i/);
+                match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-]+)i\b/);
               }
 
-              match = jsCode.match(/([-]?[0-9]+[0-9.]*)i/);
+              match = jsCode.match(/([-]?[0-9]+[0-9.]*)i\b/);
               while(match) {
                 jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index + match[0].length);
-                match = jsCode.match(/([-]?[0-9]+[0-9.]*)i/);
+                match = jsCode.match(/([-]?[0-9]+[0-9.]*)i\b/);
               }
 
               if(verbose) {

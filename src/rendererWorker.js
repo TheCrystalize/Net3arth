@@ -8,6 +8,7 @@ let img;
 
 let canvas;
 let ctx;
+let queue = 0;
 
 function getBrightest() {
   let brightest = 0;
@@ -36,7 +37,12 @@ function refreshRender(width, height) {
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 }
 
-function updateImage(msg) {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function updateImage(msg) {
+  queue++;
   let m = new Float64Array(msg.data);
   let id = m[WIDTH * HEIGHT * 4];
 
@@ -68,6 +74,11 @@ function updateImage(msg) {
   }
 
   // draw onto canvas
+  if(queue > 1){
+    queue--;
+    return;
+  }
+  await sleep(100);
   const brightest = getBrightest();
 
   for(let i = WIDTH * HEIGHT - 1; i >= 0; i--) {
@@ -80,6 +91,7 @@ function updateImage(msg) {
       blue: mainBuffer[i * 3 + 2] / brightest,
       alpha: 1,
       zBuffer: mainZBuffer,
+      mainBuffer: mainBuffer,
       width: WIDTH,
       height: HEIGHT
     });
@@ -89,6 +101,7 @@ function updateImage(msg) {
   }
   ctx.putImageData(img, 0, 0);
   postMessage(0);
+  queue--;
 }
 
 onmessage = function(msg) {

@@ -76,6 +76,7 @@ setLightness
 normalMap
 heightMap
 basicLighting
+advancedLighting
 mist`.split('\n');
 
 const StandardLibHelperNamesArray =

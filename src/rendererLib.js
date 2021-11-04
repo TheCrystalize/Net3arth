@@ -1,13 +1,21 @@
 function sumStuff(stuff, val) {
   let total = {
     re: 0,
-    im: 0
+    im: 0,
+    z: 0,
+    red: 0,
+    green: 0,
+    blue: 0
   };
   for(let i = 1; i < stuff.length; i++) {
     let thisVal = loopStuff(stuff[i][1], val);
     total = {
       re: total.re + thisVal.re * stuff[i][0],
-      im: total.im + thisVal.im * stuff[i][0]
+      im: total.im + thisVal.im * stuff[i][0],
+      z: total.z + thisVal.z * stuff[i][0],
+      red: total.red + thisVal.red * stuff[i][0],
+      green: total.green + thisVal.green * stuff[i][0],
+      blue: total.blue + thisVal.blue * stuff[i][0]
     };
   }
   return {
@@ -19,13 +27,21 @@ function sumStuff(stuff, val) {
 function productStuff(stuff, val) {
   let total = {
     re: 1,
-    im: 1
+    im: 1,
+    z: 1,
+    red: 1,
+    green: 1,
+    blue: 1
   };
   for(let i = 1; i < stuff.length; i++) {
     let thisVal = loopStuff(stuff[i][1], val);
     total = {
-      re: total.re * (thisVal.re * stuff[i][0]),
-      im: total.im * (thisVal.im * stuff[i][0])
+      re: total.re * thisVal.re * stuff[i][0],
+      im: total.im * thisVal.im * stuff[i][0],
+      z: total.z * thisVal.z * stuff[i][0],
+      red: total.red * thisVal.red * stuff[i][0],
+      green: total.green * thisVal.green * stuff[i][0],
+      blue: total.blue * thisVal.blue * stuff[i][0]
     };
   }
   return {

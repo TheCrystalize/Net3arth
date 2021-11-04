@@ -107,7 +107,7 @@ function refreshRender(refreshCanvas = true) {
       height: HEIGHT,
       stuffToDo: stuffToDo
     });
-  } else {
+  } else{
     rendererThread.postMessage({
       stuffToDo: stuffToDo
     });

@@ -2116,14 +2116,14 @@ function matrixPerspectiveProjection(n, f) {
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, (n + f) / n, -f,
-    0, 0, 1/n, 0,
+    0, 0, 1 / n, 0,
   ]);
 }
 
 /* 3D */
-function matrix3D(matrix){
+function matrix3D(matrix) {
   return z => {
-    let result = applyMatrix([z.re,z.im,z.z], matrix);
+    let result = applyMatrix([z.re, z.im, z.z], matrix);
     return {
       ...z,
       re: result[0],
@@ -2259,7 +2259,7 @@ function scale3D(s) {
   }
 }
 
-function scale3D3(x,y,_z) {
+function scale3D3(x, y, _z) {
   return z => {
     return {
       ...z,
@@ -2319,12 +2319,12 @@ function rotate3D(pitch, roll, yaw) {
 function perspective3D(n, f) {
   let perspectiveMatrix = matrixMultiply(IDENTITY_MATRIX, matrixPerspectiveProjection(n, f));
   return z => {
-    let result = applyMatrix([z.re,z.im,z.z], perspectiveMatrix);
+    let result = applyMatrix([z.re, z.im, z.z], perspectiveMatrix);
     return {
       ...z,
       re: result[0],
       im: result[1],
-      z: -Math.sqrt(Math.hypot(z.re,z.im,z.z))
+      z: -Math.sqrt(Math.hypot(z.re, z.im, z.z))
     }
   }
 }
@@ -2383,6 +2383,214 @@ function mist(startZ, halfLength, mistColor) {
   }
 }
 
+// TODO: maybe use textures instead
+function enviormentLight(x, y, z, lights) {
+  let left = 1;
+  let sum = 0;
+  for(let i = 0; i < lights.length; i++) {
+    let d = Math.hypot(x - lights[i][0][0], y + lights[i][0][1], z - lights[i][0][2]);
+    if(d < lights[i][1] + Math.SQRT2) {
+      let t = Math.min(1, (lights[i][1] + Math.SQRT2 - d) / Math.SQRT2);
+      sum += left * t * lights[i][2];;
+      left -= left * t;
+    }
+  }
+  return sum;
+}
+
+function lightRoomEnviorment(x, y, z) {
+  let lights = [
+    [normalize3([3, 3, 1]), 0.4, 1],
+    [normalize3([-3, 3, 1]), 0.4, 1],
+  ];
+  for(let i = 0; i < lights.length; i++) {
+    if(Math.hypot(x - lights[i][0][0], y + lights[i][0][1], z - lights[i][0][2]) < lights[i][1]) {
+      return {
+        red: lights[i][2],
+        green: lights[i][2],
+        blue: lights[i][2]
+      }
+    }
+  }
+  let backdrop = normalize3([0, -1, -1]);
+  if(y > 0.2 || Math.hypot(x - backdrop[0], y + backdrop[1], z - backdrop[2]) < 1.2) {
+    let c = Math.max(0.2, y) * 0.5 + 0.3;
+    return {
+      red: c,
+      green: c,
+      blue: c
+    };
+  }
+  if(y < -0.3) {
+    return {
+      red: y * 0.1 + 0.2,
+      green: y * 0.1 + 0.2,
+      blue: y * 0.1 + 0.2
+    }
+  }
+  let c = 0.2 + 0.1 - Math.abs(y + 0.05) * 0.4;
+  return {
+    red: c,
+    green: c,
+    blue: c
+  }
+}
+
+function lightRoomLights(x, y, z) {
+  return enviormentLight(x, y, z, [
+    [normalize3([3, 3, 1]), 0.4, 1],
+    [normalize3([-3, 3, 1]), 0.4, 1],
+  ]);
+}
+
+function dayEnviorment(x, y, z) {
+  let lights = [
+    [normalize3([-1, 2, 1]), 0.2, 1],
+    [normalize3([3, 2, 2]), 0.2, 0.9],
+    [normalize3([3.75, 2.5, 0.5]), 0.3, 0.9],
+    [normalize3([3.5, 2, -0.5]), 0.23, 0.9],
+  ];
+  for(let i = 0; i < lights.length; i++) {
+    if(Math.hypot(x - lights[i][0][0], y + lights[i][0][1], z - lights[i][0][2]) < lights[i][1]) {
+      return {
+        red: lights[i][2],
+        green: lights[i][2],
+        blue: lights[i][2]
+      }
+    }
+  }
+  if(y < 0.2) {
+    let c = -y * 0.2 + 0.8;
+    return {
+      red: c * 0.8,
+      green: c * 0.9,
+      blue: c * 1
+    }
+  }
+  if(y < 0.3) {
+    let c = -y * 0.2 + 0.7;
+    return {
+      red: c * 0.8,
+      green: c * 0.8,
+      blue: c * 1
+    }
+  }
+  let c1 = y;
+  let c2 = 1 - y;
+  return {
+    red: c1 * 0.3 + c2 * 0.5,
+    green: c1 * 0.7 + c2 * 0.4,
+    blue: c1 * 0.2 + c2 * 0.7
+  };
+}
+
+function dayLights(x, y, z) {
+  return enviormentLight(x, y, z, [
+    [normalize3([-1, 2, 1]), 0.2, 1],
+    [normalize3([3, 2, 2]), 0.2, 0.4],
+    [normalize3([3.75, 2.5, 0.5]), 0.3, 0.4],
+    [normalize3([3.5, 2, -0.5]), 0.23, 0.4],
+  ]);
+}
+
+function schlick(ior, normal) {
+  let theta = dotProduct(
+    [normal[0], normal[1], normal[2], 0],
+    [0, 0, 1, 0]
+  );
+  let val = (1 - ior) / (1 + ior);
+  let r0 = val * val;
+  return (r0 + (1 - r0) * Math.pow(1 - theta, 5));
+}
+
+function advancedLighting(theta1, theta2, ior, enviorment) {
+  let skyBox = [lightRoomEnviorment, dayEnviorment][enviorment];
+  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+  let rotation1 = rotate3D(theta1, 0, 0);
+  let rotation2 = rotate3D(0, theta2, 0);
+
+  return z => {
+    if(z.z === 0){
+      return z;
+    }
+    let normal = getNormal(z);
+    let _normal = normal;
+    let n = rotation1(rotation2({
+      re: normal[0],
+      im: normal[1],
+      z: normal[2]
+    }));
+    let brightness = skyBoxLights(n.re, n.im, n.z);
+    if(normal[0] === 0 || normal[1] === 0 || !normal[2]) {
+      return {
+        ...z,
+        ...lerp(
+          {red: 0, green: 0, blue: 0},
+          lerp(
+            z,
+            skyBox(n.re, n.im, n.z),
+            schlick(ior, _normal)),
+          brightness)
+      };
+    }
+    let amp = Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
+    normal = [normal[0] / amp, normal[1] / amp, (normal[2] / amp) / Math.min(z.width, z.height) * Math.abs(z.z)];
+    let _at = [z.re, z.im, z.z];
+
+    while(true) {
+      _at = [_at[0] + normal[0], _at[1] + normal[1], _at[2] + normal[2]];
+      let at = [Math.round(_at[0]), Math.round(_at[1]), _at[2]];
+      if(at[0] < 0 || at[1] < 0 || at[0] + 1 >= z.width || at[1] + 1 >= z.height) {
+        return {
+          ...z,
+          ...lerp(
+            {red: 0, green: 0, blue: 0},
+            lerp(
+              z,
+              skyBox(n.re, n.im, n.z),
+              schlick(ior, _normal)),
+            brightness)
+        };
+      }
+      let sample = z.zBuffer[at[0] + at[1] * z.width];
+      if(sample !== 0 && sample > at[2]) {
+        let bounceNormal = getNormal({
+          ...z,
+          re: at[0],
+          im: at[1],
+          z: sample
+        })
+        newN = rotation1(rotation2({
+          re: bounceNormal[0],
+          im: bounceNormal[1],
+          z: bounceNormal[2]
+        }));
+        let bounceBrightness = skyBoxLights(n.re, n.im, n.z);
+        return {
+          ...z,
+          ...lerp(
+            {red: 0, green: 0, blue: 0},
+            lerp(
+              z,
+              lerp(
+                {red: 0, green: 0, blue: 0},
+                lerp(
+                  {
+                    red: z.mainBuffer[(at[0] + at[1] * z.width) * 3] / 255,
+                    green: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 1] / 255,
+                    blue: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 2] / 255
+                  },
+                  skyBox(newN.re, newN.im, newN.z),
+                  schlick(ior, bounceNormal)),
+                bounceBrightness),
+              schlick(ior, _normal)),
+            brightness)
+        }
+      }
+    }
+  }
+}
+
 /* description s*/
 const BUILT_IN_TRANSFORMS = {
   //shaders
@@ -2390,6 +2598,7 @@ const BUILT_IN_TRANSFORMS = {
   normalMap: normalMap,
   heightMap: heightMap,
   basicLighting: basicLighting,
+  advancedLighting: advancedLighting,
   mist: mist,
   //3D transforms
   matrix3D: matrix3D,
@@ -2485,11 +2694,28 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   basicLighting: [{
     name: "theta",
     type: "number",
-    default: 90,
+    default: "90*DEGREE",
   }, {
     name: "diffuse",
     type: "number",
     default: 0.3,
+  }],
+  advancedLighting: [{
+    name: "theta",
+    type: "number",
+    default: "20*DEGREE",
+  }, {
+    name: "theta",
+    type: "number",
+    default: "30*DEGREE",
+  }, {
+    name: "index of refraction",
+    type: "number",
+    default: 1.4,
+  }, {
+    name: "enviorment",
+    type: "number",
+    default: 0,
   }],
   mist: [{
     name: "startZ",
@@ -2525,11 +2751,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "x",
     type: "number",
     default: 1
-  },{
+  }, {
     name: "y",
     type: "number",
     default: 1
-  },{
+  }, {
     name: "z",
     type: "number",
     default: 1
@@ -2573,36 +2799,36 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "x",
     type: "number",
     default: 0
-  },{
+  }, {
     name: "y",
     type: "number",
     default: 0
-  },{
+  }, {
     name: "z",
     type: "number",
     default: 0
-  },{
+  }, {
     name: "radius",
     type: "number",
     default: 1
-  },],
+  }, ],
   viewSphere: [{
     name: "x",
     type: "number",
     default: 0
-  },{
+  }, {
     name: "y",
     type: "number",
     default: 0
-  },{
+  }, {
     name: "z",
     type: "number",
     default: 0
-  },{
+  }, {
     name: "radius",
     type: "number",
     default: 1
-  },],
+  }, ],
   //2D transforms
   reset: [],
   arcsinh: [],
