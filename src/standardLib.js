@@ -2528,17 +2528,17 @@ function ambientOcclusion(s) {
   let weights = [];
   let maxP = 0;
   for(let i = -s; i <= s; i++) {
-    weights[i+s] = [];
+    weights[i + s] = [];
     for(let j = -s; j <= s; j++) {
       if(!(i === 0 && j === 0)) {
         let d = 1 / Math.sqrt(i * i + j * j);
-        weights[i+s][j+s] = d;
+        weights[i + s][j + s] = d;
         maxP += d;
       }
     }
   }
   return z => {
-    if(z.z === 0){
+    if(z.z === 0) {
       return z;
     }
     let acc = 0;
@@ -2546,7 +2546,7 @@ function ambientOcclusion(s) {
       for(let j = -s; j <= s; j++) {
         if(z.re + i >= 0 || z.re + i < 0 || z.im + j < z.width || z.im + j < z.height) {
           if(!(i === 0 && j === 0)) {
-            let d = weights[i+s][j+s];
+            let d = weights[i + s][j + s];
             let sample = z.zBuffer[z.re + i + (z.im + j) * z.width];
             if(sample === 0 || sample < z.z) {
               acc += d;
@@ -2568,6 +2568,38 @@ function ambientOcclusion(s) {
 function reflect(vector, normal) {
   // v - 2 * (v dot n) * n
   return vectorSum(vector, vectorTimes(normal, -2 * dotProduct(vector.concat(1), normal.concat(1))));
+}
+
+function specular(theta1, theta2, ior, enviorment, p) {
+  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+  let rotation1 = rotate3D(theta1, 0, 0);
+  let rotation2 = rotate3D(0, theta2, 0);
+
+  return z => {
+    if(z.z === 0) {
+      return z;
+    }
+    let normal = getNormal(z);
+    let n = rotation1(rotation2({
+      re: normal[0],
+      im: normal[1],
+      z: normal[2]
+    }));
+    let brightness = Math.pow(skyBoxLights(n.re, n.im, n.z), p);
+    return {
+      ...z,
+      ...lerp({
+          red: 0,
+          green: 0,
+          blue: 0
+        }, {
+          red: 1,
+          green: 1,
+          blue: 1
+        },
+        brightness * schlick(ior, normal))
+    };
+  }
 }
 
 function basicEnviorment(theta1, theta2, ior, enviorment) {
@@ -2724,8 +2756,9 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
 /* description s*/
 const BUILT_IN_TRANSFORMS = {
   //shaders
-  ambientOcclusion: ambientOcclusion,
   gamma: gamma,
+  ambientOcclusion: ambientOcclusion,
+  specular: specular,
   normalMap: normalMap,
   heightMap: heightMap,
   basicLighting: basicLighting,
@@ -2812,15 +2845,36 @@ const BUILT_IN_TRANSFORMS = {
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
   //shaders
+  gamma: [{
+    name: "gamma",
+    type: "number",
+    default: 2.2
+  }],
   ambientOcclusion: [{
     name: "sample size",
     type: "number",
     default: 5
   }],
-  gamma: [{
-    name: "gamma",
+  specular: [{
+    name: "theta",
     type: "number",
-    default: 2.2
+    default: "20*DEGREE",
+  }, {
+    name: "theta",
+    type: "number",
+    default: "30*DEGREE",
+  }, {
+    name: "index of refraction",
+    type: "number",
+    default: 0.1,
+  }, {
+    name: "enviorment",
+    type: "number",
+    default: 0,
+  }, {
+    name: "power",
+    type: "number",
+    default: 20,
   }],
   normalMap: [],
   heightMap: [{

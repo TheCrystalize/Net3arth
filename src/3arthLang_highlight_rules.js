@@ -79,7 +79,8 @@ basicLighting
 basicEnviorment
 advancedLighting
 mist
-ambientOcclusion`.split('\n');
+ambientOcclusion
+specular`.split('\n');
 
 const StandardLibHelperNamesArray =
 `rgbToHsl
