@@ -2021,6 +2021,14 @@ function dotProduct(a, b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
 }
 
+function vectorTimes(m, n) {
+  return [m[0] * n, m[1] * n, m[2] * n];
+}
+
+function vectorSum(m1, m2) {
+  return [m1[0] + m2[0], m1[1] + m2[1], m1[2] + m2[2]];
+}
+
 function lerp4(a, b, t) {
   let ax = a[0];
   let ay = a[1];
@@ -2373,7 +2381,11 @@ function basicLighting(theta, diffuse) {
 
 function mist(startZ, halfLength, mistColor) {
   return z => {
-    let brightness = z.z === 0 ? 0 : halfLength / (halfLength + Math.max(0, (z.z - startZ) / startZ));
+    let brightness =
+      z.z === 0 ? 0 :
+      halfLength /
+      (halfLength + Math.max(0, (-z.z - startZ) / startZ));
+    brightness = brightness * brightness;
     return {
       ...z,
       red: z.red * brightness + (1 - brightness) * mistColor.red,
@@ -2504,12 +2516,54 @@ function schlick(ior, normal) {
 }
 
 function inverseProjection(z, u, v) {
-  let _z = z*z;
+  let _z = z * z;
   return [
     _z / 1 * u,
     _z / 1 * v,
     _z
   ];
+}
+
+function ambientOcclusion(s) {
+  let weights = [];
+  let maxP = 0;
+  for(let i = -s; i <= s; i++) {
+    weights[i+s] = [];
+    for(let j = -s; j <= s; j++) {
+      if(!(i === 0 && j === 0)) {
+        let d = 1 / Math.sqrt(i * i + j * j);
+        weights[i+s][j+s] = d;
+        maxP += d;
+      }
+    }
+  }
+  return z => {
+    let acc = 0;
+    for(let i = -s; i <= s; i++) {
+      for(let j = -s; j <= s; j++) {
+        if(z.re + i >= 0 || z.re + i < 0 || z.im + j < z.width || z.im + j < z.height) {
+          if(!(i === 0 && j === 0)) {
+            let d = weights[i+s][j+s];
+            if(z.zBuffer[z.re + i + (z.im + j) * z.width] < z.z) {
+              acc += d;
+            }
+          }
+        }
+      }
+    }
+    let c = acc / maxP;
+    return {
+      ...z,
+      red: c,
+      green: c,
+      blue: c
+    }
+  }
+}
+
+function reflect(vector, normal) {
+  // v - 2 * (v dot n) * n
+  return vectorSum(vector, vectorTimes(normal, -2 * dotProduct(vector.concat(1), normal.concat(1))));
 }
 
 function basicEnviorment(theta1, theta2, ior, enviorment) {
@@ -2519,11 +2573,10 @@ function basicEnviorment(theta1, theta2, ior, enviorment) {
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
-    if(z.z === 0){
+    if(z.z === 0) {
       return z;
     }
     let normal = getNormal(z);
-    let _normal = normal;
     let n = rotation1(rotation2({
       re: normal[0],
       im: normal[1],
@@ -2532,12 +2585,15 @@ function basicEnviorment(theta1, theta2, ior, enviorment) {
     let brightness = skyBoxLights(n.re, n.im, n.z);
     return {
       ...z,
-      ...lerp(
-        {red: 0, green: 0, blue: 0},
+      ...lerp({
+          red: 0,
+          green: 0,
+          blue: 0
+        },
         lerp(
           z,
           skyBox(n.re, n.im, n.z),
-          schlick(ior, _normal)),
+          schlick(ior, normal)),
         brightness)
     };
   }
@@ -2550,8 +2606,8 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
-  let cameraSize = Math.min(z.width, z.height);
-    if(z.z === 0){
+    let cameraSize = Math.min(z.width, z.height);
+    if(z.z === 0) {
       return z;
     }
     let normal = getNormal(z);
@@ -2565,8 +2621,11 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
     if(normal[0] === 0 || normal[1] === 0 || !normal[2]) {
       return {
         ...z,
-        ...lerp(
-          {red: 0, green: 0, blue: 0},
+        ...lerp({
+            red: 0,
+            green: 0,
+            blue: 0
+          },
           lerp(
             z,
             skyBox(n.re, n.im, n.z),
@@ -2574,12 +2633,16 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
           brightness)
       };
     }
-    let amp = Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
-    normal = [
-      normal[0] / amp,
-      normal[1] / amp,
-      (-z.z*z.z) / amp / cameraSize / Math.SQRT2]; // closeish
-      //amp / z.z / Math.min(z.width,z.height) * Math.SQRT2];
+    let step = reflect([0, 0, 1], normal);
+    let amp = Math.sqrt(step[0] * step[0] + step[1] * step[1]);
+    step = [
+      -step[0] / amp,
+      -step[1] / amp,
+      -step[2] / amp * // Math.log2(1+z.z*z.z)//z.z * z.z / amp
+      (-1 / z.z / cameraSize) //(-z.z*Math.abs(z.z / cameraSize / Math.SQRT2))
+    ];
+    //-z.z*Math.abs(z.z / amp / cameraSize / Math.SQRT2)]; // closeish
+    //-amp / z.z / Math.min(z.width,z.height) * Math.SQRT2];
     let _at = [z.re, z.im, z.z];
 
     //if(z.re === 644 && (z.im === 344 || z.im === 223)){
@@ -2590,13 +2653,16 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
     //}
 
     while(true) {
-      _at = [_at[0] + normal[0], _at[1] + normal[1], _at[2] + normal[2]];
+      _at = [_at[0] + step[0], _at[1] + step[1], _at[2] + step[2]];
       let at = [Math.round(_at[0]), Math.round(_at[1]), _at[2]];
       if(at[0] < 0 || at[1] < 0 || at[0] + 1 >= z.width || at[1] + 1 >= z.height) {
         return {
           ...z,
-          ...lerp(
-            {red: 0, green: 0, blue: 0},
+          ...lerp({
+              red: 0,
+              green: 0,
+              blue: 0
+            },
             lerp(
               z,
               skyBox(n.re, n.im, n.z),
@@ -2608,13 +2674,13 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
       //if(sample !== 0 && sample > at[2] && Math.random() < 0.0001){
       //  console.log(`SAMPLE ${sample} > ${at[2]}\n${sample-at[2]} < ${normal[2]}`);
       //}
-      if(sample !== 0 && sample > at[2] && Math.abs(sample - at[2]) < Math.abs(normal[2])) {
-        let bounceNormal = getNormal({
+      if(sample !== 0 && sample > at[2] && Math.abs(sample - at[2]) < Math.abs(normal[2]) * 2) {
+        bounceNormal = getNormal({
           ...z,
           re: at[0],
           im: at[1],
           z: sample
-        })
+        });
         newN = rotation1(rotation2({
           re: bounceNormal[0],
           im: bounceNormal[1],
@@ -2623,14 +2689,19 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
         let bounceBrightness = skyBoxLights(n.re, n.im, n.z);
         return {
           ...z,
-          ...lerp(
-            {red: 0, green: 0, blue: 0},
+          ...lerp({
+              red: 0,
+              green: 0,
+              blue: 0
+            },
             lerp(
               z,
-              lerp(
-                {red: 0, green: 0, blue: 0},
-                lerp(
-                  {
+              lerp({
+                  red: 0,
+                  green: 0,
+                  blue: 0
+                },
+                lerp({
                     red: z.mainBuffer[(at[0] + at[1] * z.width) * 3] / 255,
                     green: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 1] / 255,
                     blue: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 2] / 255
@@ -2649,6 +2720,7 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
 /* description s*/
 const BUILT_IN_TRANSFORMS = {
   //shaders
+  ambientOcclusion: ambientOcclusion,
   gamma: gamma,
   normalMap: normalMap,
   heightMap: heightMap,
@@ -2736,6 +2808,11 @@ const BUILT_IN_TRANSFORMS = {
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
   //shaders
+  ambientOcclusion: [{
+    name: "sample size",
+    type: "number",
+    default: 5
+  }],
   gamma: [{
     name: "gamma",
     type: "number",

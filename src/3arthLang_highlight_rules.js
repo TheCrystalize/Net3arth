@@ -78,7 +78,8 @@ heightMap
 basicLighting
 basicEnviorment
 advancedLighting
-mist`.split('\n');
+mist
+ambientOcclusion`.split('\n');
 
 const StandardLibHelperNamesArray =
 `rgbToHsl
