@@ -76,6 +76,7 @@ setLightness
 normalMap
 heightMap
 basicLighting
+basicEnviorment
 advancedLighting
 mist`.split('\n');
 

@@ -2316,8 +2316,8 @@ function rotate3D(pitch, roll, yaw) {
   }
 }
 
-function perspective3D(n, f) {
-  let perspectiveMatrix = matrixMultiply(IDENTITY_MATRIX, matrixPerspectiveProjection(n, f));
+function perspective3D() {
+  let perspectiveMatrix = matrixMultiply(IDENTITY_MATRIX, matrixPerspectiveProjection(1, 0));
   return z => {
     let result = applyMatrix([z.re, z.im, z.z], perspectiveMatrix);
     return {
@@ -2503,6 +2503,46 @@ function schlick(ior, normal) {
   return (r0 + (1 - r0) * Math.pow(1 - theta, 5));
 }
 
+function inverseProjection(z, u, v) {
+  let _z = z*z;
+  return [
+    _z / 1 * u,
+    _z / 1 * v,
+    _z
+  ];
+}
+
+function basicEnviorment(theta1, theta2, ior, enviorment) {
+  let skyBox = [lightRoomEnviorment, dayEnviorment][enviorment];
+  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+  let rotation1 = rotate3D(theta1, 0, 0);
+  let rotation2 = rotate3D(0, theta2, 0);
+
+  return z => {
+    if(z.z === 0){
+      return z;
+    }
+    let normal = getNormal(z);
+    let _normal = normal;
+    let n = rotation1(rotation2({
+      re: normal[0],
+      im: normal[1],
+      z: normal[2]
+    }));
+    let brightness = skyBoxLights(n.re, n.im, n.z);
+    return {
+      ...z,
+      ...lerp(
+        {red: 0, green: 0, blue: 0},
+        lerp(
+          z,
+          skyBox(n.re, n.im, n.z),
+          schlick(ior, _normal)),
+        brightness)
+    };
+  }
+}
+
 function advancedLighting(theta1, theta2, ior, enviorment) {
   let skyBox = [lightRoomEnviorment, dayEnviorment][enviorment];
   let skyBoxLights = [lightRoomLights, dayLights][enviorment];
@@ -2510,6 +2550,7 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
+  let cameraSize = Math.min(z.width, z.height);
     if(z.z === 0){
       return z;
     }
@@ -2534,8 +2575,19 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
       };
     }
     let amp = Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
-    normal = [normal[0] / amp, normal[1] / amp, (normal[2] / amp) / Math.min(z.width, z.height) * Math.abs(z.z)];
+    normal = [
+      normal[0] / amp,
+      normal[1] / amp,
+      (-z.z*z.z) / amp / cameraSize / Math.SQRT2]; // closeish
+      //amp / z.z / Math.min(z.width,z.height) * Math.SQRT2];
     let _at = [z.re, z.im, z.z];
+
+    //if(z.re === 644 && (z.im === 344 || z.im === 223)){
+    //  console.log(`${z.im}: ${z.z}`);
+    //  console.log(z);
+    //  console.log(amp);
+    //  console.log(_normal);
+    //}
 
     while(true) {
       _at = [_at[0] + normal[0], _at[1] + normal[1], _at[2] + normal[2]];
@@ -2553,7 +2605,10 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
         };
       }
       let sample = z.zBuffer[at[0] + at[1] * z.width];
-      if(sample !== 0 && sample > at[2]) {
+      //if(sample !== 0 && sample > at[2] && Math.random() < 0.0001){
+      //  console.log(`SAMPLE ${sample} > ${at[2]}\n${sample-at[2]} < ${normal[2]}`);
+      //}
+      if(sample !== 0 && sample > at[2] && Math.abs(sample - at[2]) < Math.abs(normal[2])) {
         let bounceNormal = getNormal({
           ...z,
           re: at[0],
@@ -2598,6 +2653,7 @@ const BUILT_IN_TRANSFORMS = {
   normalMap: normalMap,
   heightMap: heightMap,
   basicLighting: basicLighting,
+  basicEnviorment: basicEnviorment,
   advancedLighting: advancedLighting,
   mist: mist,
   //3D transforms
@@ -2700,6 +2756,23 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 0.3,
   }],
+  basicEnviorment: [{
+    name: "theta",
+    type: "number",
+    default: "20*DEGREE",
+  }, {
+    name: "theta",
+    type: "number",
+    default: "30*DEGREE",
+  }, {
+    name: "index of refraction",
+    type: "number",
+    default: 1.4,
+  }, {
+    name: "enviorment",
+    type: "number",
+    default: 0,
+  }],
   advancedLighting: [{
     name: "theta",
     type: "number",
@@ -2786,15 +2859,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 0
   }],
-  perspective3D: [{
-    name: "n",
-    type: "number",
-    default: 1
-  }, {
-    name: "f",
-    type: "number",
-    default: 0
-  }],
+  perspective3D: [],
   viewBox: [{
     name: "x",
     type: "number",
