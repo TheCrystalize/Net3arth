@@ -2538,13 +2538,17 @@ function ambientOcclusion(s) {
     }
   }
   return z => {
+    if(z.z === 0){
+      return z;
+    }
     let acc = 0;
     for(let i = -s; i <= s; i++) {
       for(let j = -s; j <= s; j++) {
         if(z.re + i >= 0 || z.re + i < 0 || z.im + j < z.width || z.im + j < z.height) {
           if(!(i === 0 && j === 0)) {
             let d = weights[i+s][j+s];
-            if(z.zBuffer[z.re + i + (z.im + j) * z.width] < z.z) {
+            let sample = z.zBuffer[z.re + i + (z.im + j) * z.width];
+            if(sample === 0 || sample < z.z) {
               acc += d;
             }
           }
