@@ -26,7 +26,7 @@ function refreshRender(width, height) {
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
 
-  mainBuffer = new Uint32Array(WIDTH * HEIGHT * 3);
+  mainBuffer = new Float64Array(WIDTH * HEIGHT * 3);
   mainZBuffer = new Float64Array(WIDTH * HEIGHT);
 
   img = new ImageData(WIDTH, HEIGHT);

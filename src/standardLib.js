@@ -31,7 +31,7 @@ function lastBuffer(oldBuffer, newBuffer) {
 }
 
 function zBuffer(oldBuffer, newBuffer) {
-  if(oldBuffer.z !== 0 && oldBuffer.z > newBuffer.z) {
+  if(oldBuffer.z !== 0 && oldBuffer.z < newBuffer.z) {
     return oldBuffer;
   }
   return {
@@ -2183,7 +2183,7 @@ function getNormal(z) {
     [unit, 0, z.zBuffer[(z.re + 1) + z.im * z.width]],
     [0, unit, z.zBuffer[z.re + (z.im + 1) * z.width]]);
   return normalize3([
-    n1[0] + n2[0] + n3[0] + n4[0],
+    -(n1[0] + n2[0] + n3[0] + n4[0]),
     n1[1] + n2[1] + n3[1] + n4[1],
     n1[2] + n2[2] + n3[2] + n4[2]
   ]);
@@ -2328,11 +2328,19 @@ function perspective3D() {
   let perspectiveMatrix = matrixMultiply(IDENTITY_MATRIX, matrixPerspectiveProjection(1, 0));
   return z => {
     let result = applyMatrix([z.re, z.im, z.z], perspectiveMatrix);
+    if(z.z < 0) {
+      return {
+        ...z,
+        re: Infinity,
+        im: Infinity,
+        z: 0
+      }
+    }
     return {
       ...z,
       re: result[0],
       im: result[1],
-      z: -Math.sqrt(Math.hypot(z.re, z.im, z.z))
+      z: Math.sqrt(Math.hypot(z.re, z.im, z.z))
     }
   }
 }
@@ -2351,7 +2359,7 @@ function normalMap() {
 
 function heightMap(zRange) {
   return z => {
-    let height = z.z === 0 ? 0 : (z.z + zRange) / (2 * zRange);
+    let height = z.z === 0 ? 0 : 1 - (z.z - zRange) / (2 * zRange);
     return {
       ...z,
       red: height,
@@ -2362,8 +2370,8 @@ function heightMap(zRange) {
 }
 
 function basicLighting(theta, diffuse) {
-  let sinTheta = Math.sin(theta * DEGREE);
-  let cosTheta = Math.cos(theta * DEGREE);
+  let sinTheta = Math.sin(theta);
+  let cosTheta = Math.cos(theta);
 
   return z => {
     let normal = getNormal(z);
@@ -2384,7 +2392,7 @@ function mist(startZ, halfLength, mistColor) {
     let brightness =
       z.z === 0 ? 0 :
       halfLength /
-      (halfLength + Math.max(0, (-z.z - startZ) / startZ));
+      (halfLength + Math.max(0, (z.z - startZ) / startZ));
     brightness = brightness * brightness;
     return {
       ...z,
@@ -2403,7 +2411,7 @@ function enviormentLight(x, y, z, lights) {
     let d = Math.hypot(x - lights[i][0][0], y + lights[i][0][1], z - lights[i][0][2]);
     if(d < lights[i][1] + Math.SQRT2) {
       let t = Math.min(1, (lights[i][1] + Math.SQRT2 - d) / Math.SQRT2);
-      sum += left * t * lights[i][2];;
+      sum += left * t * lights[i][2];
       left -= left * t;
     }
   }
@@ -2412,8 +2420,8 @@ function enviormentLight(x, y, z, lights) {
 
 function lightRoomEnviorment(x, y, z) {
   let lights = [
-    [normalize3([3, 3, 1]), 0.4, 1],
-    [normalize3([-3, 3, 1]), 0.4, 1],
+    [normalize3([3, -3, 1]), 0.4, 1],
+    [normalize3([-3, -3, 1]), 0.4, 1],
   ];
   for(let i = 0; i < lights.length; i++) {
     if(Math.hypot(x - lights[i][0][0], y + lights[i][0][1], z - lights[i][0][2]) < lights[i][1]) {
@@ -2424,8 +2432,8 @@ function lightRoomEnviorment(x, y, z) {
       }
     }
   }
-  let backdrop = normalize3([0, -1, -1]);
-  if(y > 0.2 || Math.hypot(x - backdrop[0], y + backdrop[1], z - backdrop[2]) < 1.2) {
+  let backdrop = normalize3([0, 1, -1]);
+  if(y < -0.2 || Math.hypot(x - backdrop[0], y + backdrop[1], z - backdrop[2]) < 1.2) {
     let c = Math.max(0.2, y) * 0.5 + 0.3;
     return {
       red: c,
@@ -2433,11 +2441,11 @@ function lightRoomEnviorment(x, y, z) {
       blue: c
     };
   }
-  if(y < -0.3) {
+  if(y > 0.3) {
     return {
-      red: y * 0.1 + 0.2,
-      green: y * 0.1 + 0.2,
-      blue: y * 0.1 + 0.2
+      red: -y * 0.1 + 0.2,
+      green: -y * 0.1 + 0.2,
+      blue: -y * 0.1 + 0.2
     }
   }
   let c = 0.2 + 0.1 - Math.abs(y + 0.05) * 0.4;
@@ -2450,17 +2458,18 @@ function lightRoomEnviorment(x, y, z) {
 
 function lightRoomLights(x, y, z) {
   return enviormentLight(x, y, z, [
-    [normalize3([3, 3, 1]), 0.4, 1],
-    [normalize3([-3, 3, 1]), 0.4, 1],
+    [normalize3([0, 1, 0]), 0, 0.1],
+    [normalize3([3, -3, 1]), 0.4, 1],
+    [normalize3([-3, -3, 1]), 0.4, 1],
   ]);
 }
 
 function dayEnviorment(x, y, z) {
   let lights = [
-    [normalize3([-1, 2, 1]), 0.2, 1],
-    [normalize3([3, 2, 2]), 0.2, 0.9],
-    [normalize3([3.75, 2.5, 0.5]), 0.3, 0.9],
-    [normalize3([3.5, 2, -0.5]), 0.23, 0.9],
+    [normalize3([-1, -4, 1]), 0.02, 1],
+    [normalize3([1.5, -2, -3]), 0.31, 0.9],
+    [normalize3([3.75, -4.5, -0.5]), 0.56, 0.9],
+    [normalize3([2, -1.75, 2]), 0.33, 0.9],
   ];
   for(let i = 0; i < lights.length; i++) {
     if(Math.hypot(x - lights[i][0][0], y + lights[i][0][1], z - lights[i][0][2]) < lights[i][1]) {
@@ -2471,24 +2480,24 @@ function dayEnviorment(x, y, z) {
       }
     }
   }
-  if(y < 0.2) {
-    let c = -y * 0.2 + 0.8;
+  if(y > 0) {
+    let c = (y - 0.2) * 0.2 + 0.8;
     return {
       red: c * 0.8,
       green: c * 0.9,
       blue: c * 1
     }
   }
-  if(y < 0.3) {
-    let c = -y * 0.2 + 0.7;
+  if(y > -0.1) {
+    let c = (y - 0.2) * 0.2 + 0.7;
     return {
       red: c * 0.8,
       green: c * 0.8,
       blue: c * 1
     }
   }
-  let c1 = y;
-  let c2 = 1 - y;
+  let c1 = -y;
+  let c2 = 1 + y;
   return {
     red: c1 * 0.3 + c2 * 0.5,
     green: c1 * 0.7 + c2 * 0.4,
@@ -2498,10 +2507,11 @@ function dayEnviorment(x, y, z) {
 
 function dayLights(x, y, z) {
   return enviormentLight(x, y, z, [
-    [normalize3([-1, 2, 1]), 0.2, 1],
-    [normalize3([3, 2, 2]), 0.2, 0.4],
-    [normalize3([3.75, 2.5, 0.5]), 0.3, 0.4],
-    [normalize3([3.5, 2, -0.5]), 0.23, 0.4],
+    [normalize3([-1, -4, 1]), 0.02, 1],
+    [normalize3([0, 1, 0]), 0, 0.1],
+    [normalize3([1.5, -2, -3]), 0.2, 0.4],
+    [normalize3([3.75, -4.5, -0.5]), 0.3, 0.4],
+    [normalize3([2, -1.75, 2]), 0.2, 0.4],
   ]);
 }
 
@@ -2548,7 +2558,7 @@ function ambientOcclusion(s) {
           if(!(i === 0 && j === 0)) {
             let d = weights[i + s][j + s];
             let sample = z.zBuffer[z.re + i + (z.im + j) * z.width];
-            if(sample === 0 || sample < z.z) {
+            if(sample === 0 || sample > z.z) {
               acc += d;
             }
           }
@@ -2567,7 +2577,226 @@ function ambientOcclusion(s) {
 
 function reflect(vector, normal) {
   // v - 2 * (v dot n) * n
-  return vectorSum(vector, vectorTimes(normal, -2 * dotProduct(vector.concat(1), normal.concat(1))));
+  return vectorSum(vector, vectorTimes(normal, -2 * (vector[0] * normal[0] + vector[1] * normal[1] + vector[2] * normal[2])));
+}
+
+function specularOrth(theta1, theta2, ior, enviorment, p) {
+  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+  let rotation1 = rotate3D(theta1, 0, 0);
+  let rotation2 = rotate3D(0, theta2, 0);
+
+  return z => {
+    if(z.z === 0) {
+      return z;
+    }
+    let normal = getNormal(z);
+    let reflected = reflect([0, 0, 1], [normal[0], normal[1], normal[2]]);
+    let n = rotation1(rotation2({
+      re: reflected[0],
+      im: reflected[1],
+      z: reflected[2]
+    }));
+    let brightness = Math.pow(skyBoxLights(-n.re, -n.im, -n.z), p);
+    return {
+      ...z,
+      ...lerp({
+          red: 0,
+          green: 0,
+          blue: 0
+        }, {
+          red: 1,
+          green: 1,
+          blue: 1
+        },
+        brightness * schlick(ior, normal))
+    };
+  }
+}
+
+function basicEnviormentOrth(theta1, theta2, ior, enviorment) {
+  let skyBox = [lightRoomEnviorment, dayEnviorment][enviorment];
+  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+  let rotation1 = rotate3D(theta1, 0, 0);
+  let rotation2 = rotate3D(0, theta2, 0);
+
+  return z => {
+    if(z.z === 0) {
+      return z;
+    }
+    let normal = getNormal(z);
+    let reflected = reflect([0, 0, 1], [normal[0], normal[1], normal[2]]);
+    let norm = rotation1(rotation2({
+      re: normal[0],
+      im: normal[1],
+      z: normal[2]
+    }));
+    let n = rotation1(rotation2({
+      re: reflected[0],
+      im: reflected[1],
+      z: reflected[2]
+    }));
+    let brightness = skyBoxLights(norm.re, norm.im, norm.z);
+    return {
+      ...z,
+      ...lerp(
+        lerp({
+            red: 0,
+            green: 0,
+            blue: 0
+          },
+          z, brightness),
+        skyBox(-n.re, -n.im, -n.z),
+        schlick(ior, normal)
+      )
+    };
+  }
+}
+
+function advancedLightingOrth(theta1, theta2, ior, enviorment) {
+  let p = 20;
+  let specularWeight = 2;
+  let skyBox = [lightRoomEnviorment, dayEnviorment][enviorment];
+  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+  let rotation1 = rotate3D(theta1, 0, 0);
+  let rotation2 = rotate3D(0, theta2, 0);
+
+  return z => {
+    if(z.z === 0) {
+      return z;
+    }
+    let cameraSize = Math.min(z.width, z.height);
+    let normal = getNormal(z);
+    let reflected = reflect([0, 0, 1], [normal[0], normal[1], normal[2]]);
+    let norm = rotation1(rotation2({
+      re: normal[0],
+      im: normal[1],
+      z: normal[2]
+    }));
+    let n = rotation1(rotation2({
+      re: reflected[0],
+      im: reflected[1],
+      z: reflected[2]
+    }));
+    let brightness = skyBoxLights(norm.re, norm.im, norm.z);
+    if(normal[0] === 0 || normal[1] === 0 || !normal[2]) {
+      let schlickValue = schlick(ior, normal);
+      let specular = Math.pow(skyBoxLights(-n.re, -n.im, -n.z), p) * schlickValue * specularWeight;
+      let reflections = lerp(
+        lerp({
+            red: 0,
+            green: 0,
+            blue: 0
+          },
+          z, brightness),
+        skyBox(-n.re, -n.im, -n.z),
+        schlickValue
+      );
+      return {
+        ...z,
+        red: reflections.red + specular,
+        green: reflections.green + specular,
+        blue: reflections.blue + specular,
+      };
+    }
+    let amp = Math.sqrt(reflected[0] * reflected[0] + reflected[1] * reflected[1]);
+    let step = [
+      -reflected[0] / amp,
+      reflected[1] / amp,
+      reflected[2] / amp / cameraSize
+    ];
+    let a = Math.min(Math.abs(1 / step[0]), Math.abs(1 / step[1])) * 2;
+    if(Math.abs(Math.abs(step[0]) - Math.SQRT1_2) < 0.1) {
+      a *= 1.5;
+    }
+    let bounceNormalCheck = true;
+    let _at = [z.re + step[0] * a, z.im + step[1] * a, z.z + step[2] * a];
+    let steps = -1;
+    while(true) {
+      steps++;
+      _at = [_at[0] + step[0], _at[1] + step[1], _at[2] + step[2]];
+      let at = [Math.round(_at[0]), Math.round(_at[1]), _at[2]];
+      if(at[0] < 0 || at[1] < 0 || at[0] + 1 >= z.width || at[1] + 1 >= z.height) {
+        let schlickValue = schlick(ior, normal);
+        let specular = Math.pow(skyBoxLights(-n.re, -n.im, -n.z), p) * schlickValue * specularWeight;
+        let reflections = lerp(
+          lerp({
+              red: 0,
+              green: 0,
+              blue: 0
+            },
+            z, brightness),
+          skyBox(-n.re, -n.im, -n.z),
+          schlickValue
+        );
+        return {
+          ...z,
+          red: reflections.red + specular,
+          green: reflections.green + specular,
+          blue: reflections.blue + specular,
+        };
+      }
+      let sample = z.zBuffer[at[0] + at[1] * z.width];
+
+      let bounceNormal = getNormal({
+        ...z,
+        re: at[0],
+        im: at[1],
+        z: sample
+      });
+      if(
+        sample !== 0 &&
+        sample - at[2] > 0 === step[2] < 0 &&
+        Math.abs(sample - at[2]) < Math.abs(step[2]) * 2
+      ) {
+        let newNorm = rotation1(rotation2({
+          re: bounceNormal[0],
+          im: bounceNormal[1],
+          z: bounceNormal[2]
+        }));
+        let bounceReflected = reflect([-step[0], step[1], step[2]], [bounceNormal[0], bounceNormal[1], bounceNormal[2]]);
+        let bounceN = rotation1(rotation2({
+          re: bounceReflected[0],
+          im: bounceReflected[1],
+          z: bounceReflected[2]
+        }));
+        let bounceBrightness = skyBoxLights(newNorm.re, newNorm.im, newNorm.z);
+
+        let bounceSchlickValue = schlick(ior, bounceNormal);
+        let bounceSpecular = Math.pow(skyBoxLights(-bounceN.re, -bounceN.im, -bounceN.z), p) * bounceSchlickValue * specularWeight;
+
+        let bounceReflections = lerp(
+          lerp({
+            red: 0,
+            green: 0,
+            blue: 0
+          }, {
+            red: z.mainBuffer[(at[0] + at[1] * z.width) * 3],
+            green: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 1],
+            blue: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 2]
+          }, bounceBrightness),
+          skyBox(-bounceN.re, -bounceN.im, -bounceN.z),
+          bounceSchlickValue
+        );
+
+        return {
+          ...z,
+          ...lerp(
+            lerp({
+                red: 0,
+                green: 0,
+                blue: 0
+              },
+              z, brightness), {
+              red: bounceReflections.red + bounceSpecular,
+              green: bounceReflections.green + bounceSpecular,
+              blue: bounceReflections.blue + bounceSpecular,
+            },
+            schlick(ior, normal)
+          )
+        };
+      }
+    }
+  }
 }
 
 function specular(theta1, theta2, ior, enviorment, p) {
@@ -2580,10 +2809,11 @@ function specular(theta1, theta2, ior, enviorment, p) {
       return z;
     }
     let normal = getNormal(z);
+    let reflected = reflect([0, 0, -1], [normal[0], normal[1], -normal[2]]);
     let n = rotation1(rotation2({
-      re: normal[0],
-      im: normal[1],
-      z: normal[2]
+      re: -reflected[0],
+      im: -reflected[1],
+      z: reflected[2]
     }));
     let brightness = Math.pow(skyBoxLights(n.re, n.im, n.z), p);
     return {
@@ -2675,7 +2905,7 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
       -step[0] / amp,
       -step[1] / amp,
       -step[2] / amp * // Math.log2(1+z.z*z.z)//z.z * z.z / amp
-      (-1 / z.z / cameraSize) //(-z.z*Math.abs(z.z / cameraSize / Math.SQRT2))
+      (1 / z.z / cameraSize) //(-z.z*Math.abs(z.z / cameraSize / Math.SQRT2))
     ];
     //-z.z*Math.abs(z.z / amp / cameraSize / Math.SQRT2)]; // closeish
     //-amp / z.z / Math.min(z.width,z.height) * Math.SQRT2];
@@ -2738,9 +2968,9 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
                   blue: 0
                 },
                 lerp({
-                    red: z.mainBuffer[(at[0] + at[1] * z.width) * 3] / 255,
-                    green: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 1] / 255,
-                    blue: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 2] / 255
+                    red: z.mainBuffer[(at[0] + at[1] * z.width) * 3],
+                    green: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 1],
+                    blue: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 2]
                   },
                   skyBox(newN.re, newN.im, newN.z),
                   schlick(ior, bounceNormal)),
@@ -2753,17 +2983,68 @@ function advancedLighting(theta1, theta2, ior, enviorment) {
   }
 }
 
-/* description s*/
+/*dither*/
+function bayerMatrixHelper(m) {
+  var ans = [];
+  var w = m.length;
+  for(var i = 0; i < w; i++) {
+    ans[i] = [];
+    ans[i + w] = [];
+    for(var j = 0; j < w; j++) {
+      ans[i + 0][j + 0] = m[i][j] * 4;
+      ans[i + w][j + w] = m[i][j] * 4 + 1;
+      ans[i + 0][j + w] = m[i][j] * 4 + 2;
+      ans[i + w][j + 0] = m[i][j] * 4 + 3;
+    }
+  }
+  return ans;
+}
+
+function bayerMatrix(n) {
+  var ans = [
+    [0, 2],
+    [3, 1]
+  ];
+  for(var i = 1; i < n; i++) {
+    ans = bayerMatrixHelper(ans);
+  }
+  var l = ans.length;
+  for(var i = 0; i < l; i++) {
+    for(var j = 0; j < l; j++) {
+      ans[i][j] = (ans[i][j] + 0.5) / (l * l);
+    }
+  }
+  return ans;
+}
+
+function dither(s) {
+  let ditherMatrix = bayerMatrix(s);
+  let matrixSize = ditherMatrix.length;
+  return z => {
+    return {
+      ...z,
+      red: (z.red * 256 >> 0) / 256 + (ditherMatrix[z.re % matrixSize][z.im % matrixSize] > (z.red * 256 % 1) ? 0 : 1 / 256),
+      green: (z.green * 256 >> 0) / 256 + (ditherMatrix[z.re % matrixSize][z.im % matrixSize] > (z.green * 256 % 1) ? 0 : 1 / 256),
+      blue: (z.blue * 256 >> 0) / 256 + (ditherMatrix[z.re % matrixSize][z.im % matrixSize] > (z.blue * 256 % 1) ? 0 : 1 / 256),
+    }
+  }
+}
+
+/* descriptions*/
 const BUILT_IN_TRANSFORMS = {
+  dither: dither,
   //shaders
   gamma: gamma,
   ambientOcclusion: ambientOcclusion,
   specular: specular,
+  specularOrth: specularOrth,
   normalMap: normalMap,
   heightMap: heightMap,
   basicLighting: basicLighting,
   basicEnviorment: basicEnviorment,
+  basicEnviormentOrth: basicEnviormentOrth,
   advancedLighting: advancedLighting,
+  advancedLightingOrth: advancedLightingOrth,
   mist: mist,
   //3D transforms
   matrix3D: matrix3D,
@@ -2844,6 +3125,11 @@ const BUILT_IN_TRANSFORMS = {
 };
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
+  dither: [{
+    name: "matrix size",
+    type: "number",
+    default: 5
+  }],
   //shaders
   gamma: [{
     name: "gamma",
@@ -2876,6 +3162,27 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 20,
   }],
+  specularOrth: [{
+    name: "theta",
+    type: "number",
+    default: "20*DEGREE",
+  }, {
+    name: "theta",
+    type: "number",
+    default: "30*DEGREE",
+  }, {
+    name: "index of refraction",
+    type: "number",
+    default: 0.1,
+  }, {
+    name: "enviorment",
+    type: "number",
+    default: 0,
+  }, {
+    name: "power",
+    type: "number",
+    default: 20,
+  }],
   normalMap: [],
   heightMap: [{
     name: "z range",
@@ -2885,7 +3192,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   basicLighting: [{
     name: "theta",
     type: "number",
-    default: "90*DEGREE",
+    default: "30*DEGREE",
   }, {
     name: "diffuse",
     type: "number",
@@ -2908,7 +3215,41 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 0,
   }],
+  basicEnviormentOrth: [{
+    name: "theta",
+    type: "number",
+    default: "20*DEGREE",
+  }, {
+    name: "theta",
+    type: "number",
+    default: "30*DEGREE",
+  }, {
+    name: "index of refraction",
+    type: "number",
+    default: 1.4,
+  }, {
+    name: "enviorment",
+    type: "number",
+    default: 0,
+  }],
   advancedLighting: [{
+    name: "theta",
+    type: "number",
+    default: "20*DEGREE",
+  }, {
+    name: "theta",
+    type: "number",
+    default: "30*DEGREE",
+  }, {
+    name: "index of refraction",
+    type: "number",
+    default: 1.4,
+  }, {
+    name: "enviorment",
+    type: "number",
+    default: 0,
+  }],
+  advancedLightingOrth: [{
     name: "theta",
     type: "number",
     default: "20*DEGREE",

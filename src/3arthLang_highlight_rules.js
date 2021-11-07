@@ -61,6 +61,7 @@ trigTanh
 unbubble
 brighten
 color
+dither
 gamma
 gradient
 repeatingGradient
@@ -75,12 +76,15 @@ setSaturation
 setLightness
 normalMap
 heightMap
+mist
 basicLighting
 basicEnviorment
+basicEnviormentOrth
 advancedLighting
-mist
+advancedLightingOrth
 ambientOcclusion
-specular`.split('\n');
+specular
+specularOrth`.split('\n');
 
 const StandardLibHelperNamesArray =
 `rgbToHsl
