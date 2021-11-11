@@ -2474,7 +2474,7 @@ function mist(startZ, halfLength, mistColor) {
 }
 
 // TODO: maybe use textures instead
-function EnvironmentLight(x, y, z, lights) {
+function environmentLight(x, y, z, lights) {
   let left = 1;
   let sum = 0;
   for(let i = 0; i < lights.length; i++) {
