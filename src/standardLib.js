@@ -2474,7 +2474,7 @@ function mist(startZ, halfLength, mistColor) {
 }
 
 // TODO: maybe use textures instead
-function enviormentLight(x, y, z, lights) {
+function EnvironmentLight(x, y, z, lights) {
   let left = 1;
   let sum = 0;
   for(let i = 0; i < lights.length; i++) {
@@ -2488,7 +2488,7 @@ function enviormentLight(x, y, z, lights) {
   return sum;
 }
 
-function lightRoomEnviorment(x, y, z) {
+function lightRoomEnvironment(x, y, z) {
   let lights = [
     [normalize3([3, -3, 1]), 0.4, 1],
     [normalize3([-3, -3, 1]), 0.4, 1],
@@ -2527,14 +2527,14 @@ function lightRoomEnviorment(x, y, z) {
 }
 
 function lightRoomLights(x, y, z) {
-  return enviormentLight(x, y, z, [
+  return environmentLight(x, y, z, [
     [normalize3([0, 1, 0]), 0, 0.1],
     [normalize3([3, -3, 1]), 0.4, 1],
     [normalize3([-3, -3, 1]), 0.4, 1],
   ]);
 }
 
-function dayEnviorment(x, y, z) {
+function dayEnvironment(x, y, z) {
   let lights = [
     [normalize3([-1, -4, 1]), 0.02, 1],
     [normalize3([1.5, -2, -3]), 0.31, 0.9],
@@ -2576,7 +2576,7 @@ function dayEnviorment(x, y, z) {
 }
 
 function dayLights(x, y, z) {
-  return enviormentLight(x, y, z, [
+  return environmentLight(x, y, z, [
     [normalize3([-1, -4, 1]), 0.02, 1],
     [normalize3([0, 1, 0]), 0, 0.1],
     [normalize3([1.5, -2, -3]), 0.2, 0.4],
@@ -2650,8 +2650,8 @@ function reflect(vector, normal) {
   return vectorSum(vector, vectorTimes(normal, -2 * (vector[0] * normal[0] + vector[1] * normal[1] + vector[2] * normal[2])));
 }
 
-function specularOrth(theta1, theta2, ior, enviorment, p) {
-  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+function specularOrth(theta1, theta2, ior, environment, p) {
+  let skyBoxLights = [lightRoomLights, dayLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
@@ -2683,9 +2683,9 @@ function specularOrth(theta1, theta2, ior, enviorment, p) {
   }
 }
 
-function basicEnviormentOrth(theta1, theta2, ior, enviorment) {
-  let skyBox = [lightRoomEnviorment, dayEnviorment][enviorment];
-  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+function basicEnvironmentOrth(theta1, theta2, ior, environment) {
+  let skyBox = [lightRoomEnvironment, dayEnvironment][environment];
+  let skyBoxLights = [lightRoomLights, dayLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
@@ -2722,11 +2722,11 @@ function basicEnviormentOrth(theta1, theta2, ior, enviorment) {
   }
 }
 
-function advancedLightingOrth(theta1, theta2, ior, enviorment) {
+function advancedLightingOrth(theta1, theta2, ior, environment) {
   let p = 20;
   let specularWeight = 2;
-  let skyBox = [lightRoomEnviorment, dayEnviorment][enviorment];
-  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+  let skyBox = [lightRoomEnvironment, dayEnvironment][environment];
+  let skyBoxLights = [lightRoomLights, dayLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
@@ -2869,8 +2869,8 @@ function advancedLightingOrth(theta1, theta2, ior, enviorment) {
   }
 }
 
-function specular(theta1, theta2, ior, enviorment, p) {
-  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+function specular(theta1, theta2, ior, environment, p) {
+  let skyBoxLights = [lightRoomLights, dayLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
@@ -2902,9 +2902,9 @@ function specular(theta1, theta2, ior, enviorment, p) {
   }
 }
 
-function basicEnviorment(theta1, theta2, ior, enviorment) {
-  let skyBox = [lightRoomEnviorment, dayEnviorment][enviorment];
-  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+function basicEnvironment(theta1, theta2, ior, environment) {
+  let skyBox = [lightRoomEnvironment, dayEnvironment][environment];
+  let skyBoxLights = [lightRoomLights, dayLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
@@ -2935,9 +2935,9 @@ function basicEnviorment(theta1, theta2, ior, enviorment) {
   }
 }
 
-function advancedLighting(theta1, theta2, ior, enviorment) {
-  let skyBox = [lightRoomEnviorment, dayEnviorment][enviorment];
-  let skyBoxLights = [lightRoomLights, dayLights][enviorment];
+function advancedLighting(theta1, theta2, ior, environment) {
+  let skyBox = [lightRoomEnvironment, dayEnvironment][environment];
+  let skyBoxLights = [lightRoomLights, dayLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
@@ -3111,8 +3111,8 @@ const BUILT_IN_TRANSFORMS = {
   normalMap: normalMap,
   heightMap: heightMap,
   basicLighting: basicLighting,
-  basicEnviorment: basicEnviorment,
-  basicEnviormentOrth: basicEnviormentOrth,
+  basicEnvironment: basicEnvironment,
+  basicEnvironmentOrth: basicEnvironmentOrth,
   advancedLighting: advancedLighting,
   advancedLightingOrth: advancedLightingOrth,
   mist: mist,
@@ -3225,7 +3225,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 0.1,
   }, {
-    name: "enviorment",
+    name: "environment",
     type: "number",
     default: 0,
   }, {
@@ -3246,7 +3246,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 0.1,
   }, {
-    name: "enviorment",
+    name: "environment",
     type: "number",
     default: 0,
   }, {
@@ -3269,7 +3269,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 0.3,
   }],
-  basicEnviorment: [{
+  basicEnvironment: [{
     name: "theta",
     type: "number",
     default: "20*DEGREE",
@@ -3282,11 +3282,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1.4,
   }, {
-    name: "enviorment",
+    name: "environment",
     type: "number",
     default: 0,
   }],
-  basicEnviormentOrth: [{
+  basicEnvironmentOrth: [{
     name: "theta",
     type: "number",
     default: "20*DEGREE",
@@ -3299,7 +3299,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1.4,
   }, {
-    name: "enviorment",
+    name: "environment",
     type: "number",
     default: 0,
   }],
@@ -3316,7 +3316,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1.4,
   }, {
-    name: "enviorment",
+    name: "environment",
     type: "number",
     default: 0,
   }],
@@ -3333,7 +3333,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1.4,
   }, {
-    name: "enviorment",
+    name: "environment",
     type: "number",
     default: 0,
   }],
