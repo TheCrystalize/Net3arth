@@ -2128,7 +2128,77 @@ function matrixPerspectiveProjection(n, f) {
   ]);
 }
 
+/* Quaternions */
+
+function qAdd(a, b) {
+  return {qx: a.qx + b.qx, qy: a.qy + b.qy, qz: a.qz + b.qz, qw: a.qw + b.qw};
+}
+
+function qSub(a, b) {
+  return {qx: a.qx - b.qx, qy: a.qy - b.qy, qz: a.qz - b.qz, qw: a.qw - b.qw};
+}
+
+function qMult(a, b) {
+  let new0 = a.qx * b.qx - a.qy * b.qy - a.qz * b.qz - a.qw * b.qw;
+  let new1 = a.qx * b.qy + a.qy * b.qx + a.qz * b.qw - a.qw * b.qz;
+  let new2 = a.qx * b.qz - a.qy * b.qw + a.qz * b.qx + a.qw * b.qy;
+  let new3 = a.qx * b.qw + a.qy * b.qz - a.qz * b.qy + a.qw * b.qx;
+  return {qx: new0, qy: new1, qz: new2, qw: new3};
+}
+
+function qRecip(a) {
+  let norm = (a.qx**2 + a.qy**2 + a.qz**2 + a.qw**2);
+  return {qx: a.qx / norm, qy: -a.qy / norm, qz: -a.qz / norm, qw: -a.qw / norm};
+}
+
+function qDiv1(a, b) {
+  return qMult(qRecip(b), a);
+}
+
+function qDiv2(a, b) {
+  return qMult(a, qRecip(b));
+}
+
+function qMatNorm(mat) {
+  let a = mat.q0;
+  let b = mat.q1;
+  let c = mat.q2;
+  let d = mat.q3;
+
+  let det = qSub(qMult(a, d), qMult(c, b));
+  let denom = qMult(det, det);
+
+  return {q0: qDiv1(a, denom), q1: qDiv1(b, denom), q2: qDiv1(c, denom), q3: qDiv1(d, denom)};
+}
+
+function qMatInv(mat) {
+    let rm1 = {qx: -1, qy: 0, qz: 0, qw: 0};
+    return {q0: mat.q3, q1: qMult(mat.q1, rm1), q2: qMult(mat.q2, rm1), q3: mat.q0};
+}
+
+
 /* 3D */
+function mobius3D(ar, ai, aj, ak, br, bi, bj, bk, cr, ci, cj, ck, dr, di, dj, dk, norm) {
+  let preNorm0 = {qx: ar, qy: ai, qz: aj, qw: ak};
+  let preNorm1 = {qx: br, qy: bi, qz: bj, qw: bk};
+  let preNorm2 = {qx: cr, qy: ci, qz: cj, qw: ck};
+  let preNorm3 = {qx: dr, qy: di, qz: dj, qw: dk};
+  let preNorm = {q0: preNorm0, q1: preNorm1, q2: preNorm2, q3: preNorm3};
+  let mobius = norm == 0 ? qMatNorm(preNorm) : preNorm;
+
+  return z => {
+    let zin = {qx: z.re, qy: z.im, qz: z.z, qw: 0};
+    let zout = qDiv1(qAdd(qMult(zin, mobius.q0), mobius.q1), qAdd(qMult(zin, mobius.q2), mobius.q3));
+
+    return {
+      ...z,
+      re: zout.qx,
+      im: zout.qy,
+      z: zout.qz
+    }
+  }
+}
+
 function matrix3D(matrix) {
   return z => {
     let result = applyMatrix([z.re, z.im, z.z], matrix);
@@ -2290,14 +2360,14 @@ function translate3D(x, y, z) {
 }
 
 function rotate3D(pitch, roll, yaw) {
-  let cosa = Math.cos(yaw);
-  let sina = Math.sin(yaw);
+  let cosa = Math.cos(yaw * DEGREE);
+  let sina = Math.sin(yaw * DEGREE);
 
-  let cosb = Math.cos(pitch);
-  let sinb = Math.sin(pitch);
+  let cosb = Math.cos(pitch * DEGREE);
+  let sinb = Math.sin(pitch * DEGREE);
 
-  let cosc = Math.cos(roll);
-  let sinc = Math.sin(roll);
+  let cosc = Math.cos(roll * DEGREE);
+  let sinc = Math.sin(roll * DEGREE);
 
   let Axx = cosa * cosb;
   let Axy = cosa * sinb * sinc - sina * cosc;
@@ -3047,6 +3117,7 @@ const BUILT_IN_TRANSFORMS = {
   advancedLightingOrth: advancedLightingOrth,
   mist: mist,
   //3D transforms
+  mobius3D: mobius3D,
   matrix3D: matrix3D,
   blurSphere: blurSphere,
   blurCube: blurCube,
@@ -3284,6 +3355,91 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     },
   }],
   //3D transforms
+  mobius3D: [{
+    name: "ar",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "ai",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "aj",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "ak",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "br",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "bi",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "bj",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "bk",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "cr",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "ci",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "cj",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "ck",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "dr",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "di",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "dj",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "dk",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "norm",
+    type: "number",
+    default: 1
+  }],
   matrix3D: [{
     name: "matrix",
     type: "array",

@@ -1,6 +1,7 @@
 const StandardLibNamesArray =
 `blurSphere
 blurCube
+mobius3D
 matrix3D
 scale3D
 scale3D3
@@ -78,8 +79,8 @@ normalMap
 heightMap
 mist
 basicLighting
-basicEnviorment
-basicEnviormentOrth
+basicEnvironment
+basicEnvironmentOrth
 advancedLighting
 advancedLightingOrth
 ambientOcclusion
