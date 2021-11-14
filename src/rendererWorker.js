@@ -67,7 +67,7 @@ async function updateImage(msg) {
   }
 
   for(let i = WIDTH * HEIGHT - 1; i >= 0; i--) {
-    if(m[i * 4] !== 0 || m[i * 4 + 1] !== 0 || m[i * 4 + 2] !== 0 || m[i * 4 + 3] !== 0) {
+    if(m[0][i] !== 0 || m[1][i] !== 0 || m[2][i] !== 0 || m[3][i] !== 0) {
       let result = buffer({
         red: mainBuffer[0][i],
         green: mainBuffer[1][i],
@@ -101,7 +101,7 @@ async function updateImage(msg) {
   }
   console.log(`${id} | WAIT`);
   await sleep(100);
-  console.log(`${id} | RENDER`);
+  console.log(`${id} | RENDER STARTING`);
   const brightest = getBrightest();
 
   for(let i = WIDTH * HEIGHT - 1; i >= 0; i--) {
@@ -123,6 +123,7 @@ async function updateImage(msg) {
     img.data[i * 4 + 2] = shaderResult.blue * 255 >> 0;
   }
   ctx.putImageData(img, 0, 0);
+  console.log(`${id} | RENDERED`);
   await sleep(100);
   postMessage(0);
   queue--;
