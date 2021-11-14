@@ -2840,9 +2840,9 @@ function advancedLightingOrth(theta1, theta2, ior, environment) {
             green: 0,
             blue: 0
           }, {
-            red: z.mainBuffer[(at[0] + at[1] * z.width) * 3],
-            green: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 1],
-            blue: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 2]
+            red: z.mainBuffer[0][at[0] + at[1] * z.width],
+            green: z.mainBuffer[1][at[0] + at[1] * z.width],
+            blue: z.mainBuffer[2][at[0] + at[1] * z.width]
           }, bounceBrightness),
           skyBox(-bounceN.re, -bounceN.im, -bounceN.z),
           bounceSchlickValue
@@ -3038,9 +3038,9 @@ function advancedLighting(theta1, theta2, ior, environment) {
                   blue: 0
                 },
                 lerp({
-                    red: z.mainBuffer[(at[0] + at[1] * z.width) * 3],
-                    green: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 1],
-                    blue: z.mainBuffer[(at[0] + at[1] * z.width) * 3 + 2]
+                    red: z.mainBuffer[0][at[0] + at[1] * z.width],
+                    green: z.mainBuffer[1][at[0] + at[1] * z.width],
+                    blue: z.mainBuffer[2][at[0] + at[1] * z.width]
                   },
                   skyBox(newN.re, newN.im, newN.z),
                   schlick(ior, bounceNormal)),

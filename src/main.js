@@ -1,12 +1,12 @@
 let WIDTH = 1280;
 let HEIGHT = 720;
 let THREADS = (Math.max(navigator.hardwareConcurrency, 8) - 4) || 4;
-const STEPS_PER_CALL = WIDTH * HEIGHT / 2;
+let STEPS_PER_CALL = WIDTH * HEIGHT / 2;
 
 const preventKeys = 'psr';
 
-document.addEventListener('keydown',event=>{
-  if(event.ctrlKey && preventKeys.indexOf(event.key) >= 0){
+document.addEventListener('keydown', event => {
+  if(event.ctrlKey && preventKeys.indexOf(event.key) >= 0) {
     event.preventDefault();
     event.stopPropagation();
   }
@@ -73,14 +73,24 @@ function incrementAnimation() {
 }
 
 function updateImage(msg) {
-  rendererThread.postMessage(msg.data, [msg.data]);
+  rendererThread.postMessage([
+    msg.data[0],
+    msg.data[1],
+    msg.data[2],
+    msg.data[3],
+    msg.data[4],
+  ], [
+    msg.data[1],
+    msg.data[2],
+    msg.data[3],
+    msg.data[4],
+  ]);
 }
 
 function workerMessage(msg) {
   if(msg.data.hasOwnProperty('steps')) {
     samples += msg.data.steps;
-  }
-  else{
+  } else {
     updateImage(msg);
   }
 }
@@ -96,6 +106,7 @@ function refreshRender(refreshCanvas = true) {
     samples = 0;
     WIDTH = parseInt(widthUI.value);
     HEIGHT = parseInt(heightUI.value);
+    STEPS_PER_CALL = WIDTH * HEIGHT / 2;
 
     canvas.style.minWidth = WIDTH + 'px';
     canvas.style.maxWidth = WIDTH + 'px';
@@ -107,7 +118,7 @@ function refreshRender(refreshCanvas = true) {
       height: HEIGHT,
       stuffToDo: stuffToDo
     });
-  } else{
+  } else {
     rendererThread.postMessage({
       stuffToDo: stuffToDo
     });

@@ -3,10 +3,12 @@ importScripts('standardLib.js');
 importScripts('rendererLib.js');
 
 function run() {
-  let mainBuffer = new Float64Array(WIDTH * HEIGHT * 4 + 1);
-
-  mainBuffer[WIDTH * HEIGHT * 4] = ID;
-
+  let mainBuffer = [
+    new Float32Array(WIDTH * HEIGHT),
+    new Float32Array(WIDTH * HEIGHT),
+    new Float32Array(WIDTH * HEIGHT),
+    new Float64Array(WIDTH * HEIGHT)
+  ];
   let scl = [];
   if(WIDTH > HEIGHT) {
     scl = [scale2(
@@ -35,25 +37,37 @@ function run() {
       samples++;
       let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * HEIGHT >> 0) * WIDTH;
       let result = buffer({
-        red: mainBuffer[index * 4],
-        green: mainBuffer[index * 4 + 1],
-        blue: mainBuffer[index * 4 + 2],
+        red: mainBuffer[0][index],
+        green: mainBuffer[1][index],
+        blue: mainBuffer[2][index],
         alpha: 1,
-        z: mainBuffer[index * 4 + 3]
+        z: mainBuffer[3][index]
       }, val);
-      mainBuffer[index * 4] = result.red;
-      mainBuffer[index * 4 + 1] = result.green;
-      mainBuffer[index * 4 + 2] = result.blue;
-      mainBuffer[index * 4 + 3] = result.z;
+      mainBuffer[0][index] = result.red;
+      mainBuffer[1][index] = result.green;
+      mainBuffer[2][index] = result.blue;
+      mainBuffer[3][index] = result.z;
     }
   }
 
-  postMessage(mainBuffer.buffer, [mainBuffer.buffer]);
+  postMessage([
+      ID,
+      mainBuffer[0].buffer,
+      mainBuffer[1].buffer,
+      mainBuffer[2].buffer,
+      mainBuffer[3].buffer
+    ],
+    [
+      mainBuffer[0].buffer,
+      mainBuffer[1].buffer,
+      mainBuffer[2].buffer,
+      mainBuffer[3].buffer
+    ]);
   postMessage({
     steps: samples
   });
 
-  stepsPerFrame = Math.min(stepsPerFrame * 4, 1e7);
+  stepsPerFrame = Math.min(stepsPerFrame * 4, 1e9);
 
   setTimeout(run, 1);
 }
