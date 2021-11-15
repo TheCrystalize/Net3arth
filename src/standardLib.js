@@ -2427,17 +2427,28 @@ function normalMap() {
   }
 }
 
-function heightMap(zRange) {
-  return z => {
-    let height = z.z === 0 ? 0 : 1 - (z.z - zRange) / (2 * zRange);
-    return {
-      ...z,
-      red: height,
-      green: height,
-      blue: height,
+function heightMap() {
+    let low = Infinity;
+    let high = -Infinity;
+    return z => {
+      if(z.z === 0){
+        return z;
+      }
+      if(z.z > high){
+        high = z.z;
+      }
+      if(z.z < low){
+        low = z.z;
+      }
+      let height = 1-(z.z-low)/(high-low);
+      return {
+        ...z,
+        red: height,
+        green: height,
+        blue: height,
+      }
     }
   }
-}
 
 function basicLighting(theta, diffuse) {
   let sinTheta = Math.sin(theta);
@@ -3255,11 +3266,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 20,
   }],
   normalMap: [],
-  heightMap: [{
-    name: "z range",
-    type: "number",
-    default: 1
-  }],
+  heightMap: [],
   basicLighting: [{
     name: "theta",
     type: "number",
