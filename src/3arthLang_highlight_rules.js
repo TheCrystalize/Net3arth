@@ -2,6 +2,9 @@ const StandardLibNamesArray =
 `blurSphere
 blurCube
 mobius3D
+hypershift3D
+bubble3D
+unbubble3D
 matrix3D
 scale3D
 scale3D3
@@ -63,6 +66,8 @@ unbubble
 brighten
 color
 dither
+rainbowCirc
+rainbowCircAdd
 gamma
 gradient
 repeatingGradient

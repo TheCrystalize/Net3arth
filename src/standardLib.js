@@ -1881,6 +1881,27 @@ function gamma(gamma) {
   }
 }
 
+function rainbowCirc(x, y, _z, start){
+  return z=>{
+    return {
+      ...color(colorHSL(
+      Math.abs(Math.log(start+Math.hypot(z.re-x,z.im-y,z.z-_z)))%1,
+      1, 0.5))(z)
+    }
+  }
+}
+
+function rainbowCircAdd(x, y, _z, start){
+  return z=>{
+    let oh = rgbToHsl(z.red, z.green, z.blue).h;
+    return {
+      ...color(colorHSL(
+      Math.abs(Math.log((start+Math.hypot(z.re-x,z.im-y,z.z-_z))*oh))%1,
+      1, 0.5))(z)
+    }
+  }
+}
+
 /* matrix math */
 const IDENTITY_MATRIX = [
   1, 0, 0, 0,
@@ -2176,6 +2197,9 @@ function qMatInv(mat) {
     return {q0: mat.q3, q1: qMult(mat.q1, rm1), q2: qMult(mat.q2, rm1), q3: mat.q0};
 }
 
+function qConj(a) {
+  return {qx: a.qx, qy: -a.qy, qz: -a.qz, qw: -a.qw};
+}
 
 /* 3D */
 function mobius3D(ar, ai, aj, ak, br, bi, bj, bk, cr, ci, cj, ck, dr, di, dj, dk, norm) {
@@ -2195,6 +2219,47 @@ function mobius3D(ar, ai, aj, ak, br, bi, bj, bk, cr, ci, cj, ck, dr, di, dj, dk
       re: zout.qx,
       im: zout.qy,
       z: zout.qz
+    }
+  }
+}
+
+function hypershift3D(x, y, _z) {
+  let p = {qx: x, qy: y, qz: _z, qw: 0};
+  let qr = {qx: 1, qy: 0, qz: 0, qw: 0};
+  return z => {
+    let q = {qx: z.re, qy: z.im, qz: z.z, qw: 0};
+    let hs = qDiv1(qAdd(q, p), qAdd(qMult(q, qConj(p)), qr));
+    return {
+      ...z,
+      re: hs.qx,
+      im: hs.qy,
+      z: hs.qz
+    }
+  }
+}
+
+
+function bubble3D() {
+  return z => {
+    let r = 4 / ((z.re**2 + z.im**2 + z.z**2) + 4)
+    return {
+      ...z,
+      re: z.re * r,
+      im: -z.im * r,
+      z: -z.z * r
+    }
+  }
+}
+
+function unbubble3D() {
+  return z => {
+    let r = (z.re**2 + z.im**2 + z.z**2);
+    let b = (Math.SQRT2 - Math.sqrt(2 - r)) / r;
+    return {
+      ...z,
+      re: z.re * b,
+      im: z.im * b,
+      z: z.z * b
     }
   }
 }
@@ -3115,6 +3180,8 @@ function dither(s) {
 const BUILT_IN_TRANSFORMS = {
   dither: dither,
   //shaders
+  rainbowCirc: rainbowCirc,
+  rainbowCircAdd: rainbowCircAdd,
   gamma: gamma,
   ambientOcclusion: ambientOcclusion,
   specular: specular,
@@ -3129,6 +3196,9 @@ const BUILT_IN_TRANSFORMS = {
   mist: mist,
   //3D transforms
   mobius3D: mobius3D,
+  hypershift3D: hypershift3D,
+  bubble3D: bubble3D,
+  unbubble3D: unbubble3D,
   matrix3D: matrix3D,
   blurSphere: blurSphere,
   blurCube: blurCube,
@@ -3213,6 +3283,46 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 5
   }],
   //shaders
+  rainbowCirc: [{
+    name: "x",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "y",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "_z",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "start",
+    type: "number",
+    default: 1
+  }],
+  rainbowCircAdd: [{
+    name: "x",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "y",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "_z",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "start",
+    type: "number",
+    default: 1
+  }],
   gamma: [{
     name: "gamma",
     type: "number",
@@ -3447,11 +3557,28 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1
   }],
+  hypershift3D: [{
+    name: "x",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "y",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "_z",
+    type: "number",
+    default: 0
+  }],
   matrix3D: [{
     name: "matrix",
     type: "array",
     default: IDENTITY_MATRIX
   }],
+  bubble3D: [],
+  unbubble3D: [],
   blurSphere: [],
   blurCube: [],
   scale3D: [{
