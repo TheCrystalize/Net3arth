@@ -600,6 +600,110 @@ function zeta(x) {
   );
 }
 
+function factorial(n) {
+  n = n < 0 ? -n : n
+  let result = 1;
+  while (n > 1) {
+    result *= n;
+    n--;
+  }
+  return result;
+}
+
+function pochhammer(q, n) {
+  let y = 1;
+
+  for(let k = 0; k <= n - 1; k++){
+    y *= q + k;
+  }
+
+  return y;
+}
+
+function gammaLanczos(z){
+  let p;
+  let i, y, t, x;
+
+  p = [8];
+  p[0] = 676.5203681218851;
+  p[1] =  -1259.1392167224028;
+  p[2] = 771.32342877765313;
+  p[3] =  -176.61502916214059;
+  p[4] = 12.507343278686905;
+  p[5] =  -0.13857109526572012;
+  p[6] = 9.9843695780195716e-6;
+  p[7] = 1.5056327351493116e-7;
+
+  if(z < 0.5){
+    y = Math.PI/(Math.sin(Math.PI*z)*gammaLanczos(1 - z));
+  }else{
+    z = z - 1;
+    x = 0.99999999999980993;
+    for(i = 0; i < p.length; i = i + 1){
+      x = x + p[i]/(z + i + 1);
+    }
+    t = z + p.length - 0.5;
+    y = Math.sqrt(2*Math.PI)*t**(z + 0.5)*Math.exp( -t)*x;
+  }
+
+  return y;
+}
+
+function isInt(a){
+  return (a - Math.floor(a)) == 0;
+}
+
+function isNeg(a){
+  return a < 0;
+}
+
+function lessThan(a, b) {
+  return a <= b ? a : b;
+}
+
+function greaterThan(a, b) {
+  return a >= b ? a : b;
+}
+
+function hypergeometricPowerSeries(a, b, c, z, startIt, endIt) {
+  let result = C(0, 0);
+  let n;
+  let con1 = false;
+  let con2 = startIt > endIt;
+  for(n = startIt; con2 ? n > endIt : n < endIt; con2 ? n-- : n++) {
+    if(isInt(pochhammer(a, n)) && isNeg(pochhammer(a, n)) || isInt(pochhammer(b, n)) && isNeg(pochhammer(b, n))) {
+      con1 = true;
+      break;
+    }
+    result = add(result,
+            divScalar(
+              multScalar(
+                pow(z,n), pochhammer(a, n) * pochhammer(b, n) / pochhammer(c, n)),
+                factorial(n)));
+    }
+    if (con1 == true) {
+      a = lessThan(a, b);
+      b = greaterThan(a, b);
+      for (n = 0; n < -a; n++) {
+        result = add(result,
+                    mult(multScalar(mult(C((-1)**n,0), C(a, n)), pochhammer(b, n) / pochhammer(c, n)), pow(z, n)))
+      }
+  }
+  return result;
+}
+
+function hypergeometric(a, b, c, z) {
+  let result = C(0, 0);
+  let n;
+  let condition = false;
+  if (Math.hypot(z.re, z.im) < 1) {
+    result = add(result, hypergeometricPowerSeries(a, b, c, z, 0, 15))
+  } else {
+    result = add(result, divScalar(hypergeometricPowerSeries(a, b, c, z, c, -5), gammaLanczos(c)))
+  }
+  return result;
+}
+
 /*transforms*/
 
 function reset() {
@@ -927,6 +1031,25 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
         im: y
       }
       rotate = true;
+    }
+  }
+}
+
+function eRotate(rotationAngle) {
+  rotationAngle *= DEGREE;
+  return z => {
+    let tmp = dot(z, z) + 1;
+    let tmp2 = 2 * z.re;
+    let xm = ((tmp + tmp2)**0.5 + (tmp - tmp2)**0.5) * 0.5;
+    xm = xm < 1 ? 1 : xm;
+    let t = z.re / xm;
+    t = t > 1 ? 1 : t < -1 ? -1 : t;
+    let nu = z.im < 0 ? -Math.acos(t) : Math.acos(t);
+    nu = (nu + rotationAngle + Math.PI) % (2 * Math.PI) - Math.PI;
+    return {
+      ...z,
+      re: xm * Math.cos(nu),
+      im: (xm * xm - 1)**0.5 * Math.sin(nu)
     }
   }
 }
@@ -1331,6 +1454,29 @@ function scale2(real, imaginary) {
       ...z,
       re: z.re * real,
       im: z.im * imaginary
+    }
+  }
+}
+
+function schwarzTriangle(_alph, _bet, _gam) {
+  let alph = _alph * 0.5 * DEGREE;
+  let bet = _bet * 0.5 * DEGREE;
+  let gam = _gam * 0.5 * DEGREE;
+  let a = (1 - alph - bet - gam) / 2;
+  let b = (1 - alph + bet - gam) / 2;
+  let c = 1 - alph;
+  let na = a - c + 1;
+  let nb = b - c + 1;
+  let nc = 2 - c;
+
+  return z => {
+    let nz = pow(z, alph);
+    let hg = hypergeometric(a, b, c, z);
+    let nhg = hypergeometric(na, nb, nc, z);
+
+    return {
+      ...z,
+      ...mult(nz, div(nhg, hg))
     }
   }
 }
@@ -2201,6 +2347,72 @@ function qConj(a) {
   return {qx: a.qx, qy: -a.qy, qz: -a.qz, qw: -a.qw};
 }
 
+function qNeg(a) {
+  return {qx: -a.qx, qy: -a.qy, qz: -a.qz, qw: -a.qw};
+}
+
+function qExpZ(z) {
+  let e = {qx: Math.exp(z.re), qy: 0, qz: 0, qw: 0};
+  let v = {qx: 0, qy: z.im, qz: z.z, qw: 0};
+  let absv = Math.hypot(z.im, z.z);
+
+  let cv = {qx: Math.cos(absv), qy:0, qz: 0, qw: 0};
+  let sv = {qx: Math.sin(absv), qy:0, qz: 0, qw: 0};
+  let av = {qx: absv, qy:0, qz: 0, qw: 0};
+
+  return qMult(e, qAdd(cv, qMult(qDiv1(v, av), sv)));
+}
+
+function qExp(a) {
+  let e = {qx: Math.exp(a.qx), qy: 0, qz: 0, qw: 0};
+  let v = {qx: 0, qy: a.qy, qz: a.qz, qw: 0};
+  let absv = Math.hypot(a.qy, a.qz);
+
+  let cv = {qx: Math.cos(absv), qy:0, qz: 0, qw: 0};
+  let sv = {qx: Math.sin(absv), qy:0, qz: 0, qw: 0};
+  let av = {qx: absv, qy:0, qz: 0, qw: 0};
+
+  return qMult(e, qAdd(cv, qMult(qDiv1(v, av), sv)));
+}
+
+function qLogZ(z) {
+  let absq = Math.hypot(z.re, z.im, z.z, 0);
+  let v = {qx: 0, qy: z.im, qz: z.z, qw: 0};
+  let absv = Math.hypot(z.im, z.z);
+
+  let qln = {qx: Math.log(absq), qy: 0, qz: 0, qw: 0};
+  let qac = {qx: Math.acos(z.re / absq), qy: 0, qz: 0, qw: 0};
+  let qav = {qx: absv, qy:0, qz: 0, qw: 0};
+
+  return qAdd(qln, qMult(qDiv1(v, qav),qac))
+}
+
+function qLog(a) {
+  let absq = Math.hypot(a.qx, a.qy, a.qz, 0);
+  let v = {qx: 0, qy: a.qy, qz: a.qz, qw: 0};
+  let absv = Math.hypot(a.qy, a.qz);
+
+  let qln = {qx: Math.log(absq), qy: 0, qz: 0, qw: 0};
+  let qac = {qx: Math.acos(a.qx / absq), qy: 0, qz: 0, qw: 0};
+  let qav = {qx: absv, qy:0, qz: 0, qw: 0};
+
+  return qAdd(qln, qMult(qDiv1(v, qav),qac))
+}
+
+function qSinh(a) {
+  let tmp = {qx: 2, qy:0, qz: 0, qw: 0};
+  return qSub((qDiv1(qExp(a), tmp)), (qDiv1(qExp(qNeg(a)), tmp)));
+}
+
+function qCosh(a) {
+  let tmp = {qx: 2, qy:0, qz: 0, qw: 0};
+  return qAdd((qDiv1(qExp(qNeg(a)), tmp)), (qDiv1(qExp(a), tmp)));
+}
+
+function qTanh(a) {
+  return qDiv1(qSinh(a), qCosh(a));
+}
+
 /* 3D */
 function mobius3D(ar, ai, aj, ak, br, bi, bj, bk, cr, ci, cj, ck, dr, di, dj, dk, norm) {
   let preNorm0 = {qx: ar, qy: ai, qz: aj, qw: ak};
@@ -2211,6 +2423,7 @@ function mobius3D(ar, ai, aj, ak, br, bi, bj, bk, cr, ci, cj, ck, dr, di, dj, dk
   let mobius = norm == 0 ? qMatNorm(preNorm) : preNorm;
 
   return z => {
+    mobius = ak != 0 || bk != 0 || ck != 0 || dk != 0 ? (Math.random() > 0.5 ? mobius : qMatInv(mobius)) : mobius;
     let zin = {qx: z.re, qy: z.im, qz: z.z, qw: 0};
     let zout = qDiv1(qAdd(qMult(zin, mobius.q0), mobius.q1), qAdd(qMult(zin, mobius.q2), mobius.q3));
 
@@ -2247,6 +2460,78 @@ function bubble3D() {
       re: z.re * r,
       im: -z.im * r,
       z: -z.z * r
+    }
+  }
+}
+
+function sphereInv() {
+  return z => {
+    let r = 1 / (z.re**2 + z.im**2 + z.z**2);
+    return {
+      ...z,
+      re: z.re * r,
+      im: -z.im * r,
+      z: -z.z * r
+    }
+  }
+}
+
+function trigCosh3D() {
+  return z => {
+    let qz = qCosh({qx: z.re, qy: z.im, qz: z.z, qw: 0});
+    return {
+      ...z,
+      re: qz.qx,
+      im: qz.qy,
+      z: qz.qz
+    }
+  }
+}
+
+function trigExp3D() {
+  return z => {
+    let qe = qExpZ(z);
+    return {
+      ...z,
+      re: qe.qx,
+      im: qe.qy,
+      z: qe.qz,
+    }
+  }
+}
+
+function trigLog3D() {
+  return z => {
+    let ql = qLogZ(z);
+    return {
+      ...z,
+      re: ql.qx,
+      im: ql.qy,
+      z: ql.qz,
+    }
+  }
+}
+
+function trigSinh3D() {
+  return z => {
+    let qz = qSinh({qx: z.re, qy: z.im, qz: z.z, qw: 0});
+    return {
+      ...z,
+      re: qz.qx,
+      im: qz.qy,
+      z: qz.qz
+    }
+  }
+}
+
+function trigTanh3D() {
+  return z => {
+    let qz = qTanh({qx: z.re, qy: z.im, qz: z.z, qw: 0});
+    return {
+      ...z,
+      re: qz.qx,
+      im: qz.qy,
+      z: qz.qz
     }
   }
 }
@@ -3198,6 +3483,12 @@ const BUILT_IN_TRANSFORMS = {
   mobius3D: mobius3D,
   hypershift3D: hypershift3D,
   bubble3D: bubble3D,
+  sphereInv: sphereInv,
+  trigCosh3D: trigCosh3D,
+  trigExp3D: trigExp3D,
+  trigLog3D: trigLog3D,
+  trigSinh3D: trigSinh3D,
+  trigTanh3D: trigTanh3D,
   unbubble3D: unbubble3D,
   matrix3D: matrix3D,
   blurSphere: blurSphere,
@@ -3226,6 +3517,7 @@ const BUILT_IN_TRANSFORMS = {
   cylinder: cylinder,
   disc: disc,
   dragon: dragon,
+  eRotate: eRotate,
   flipX: flipX,
   flipY: flipY,
   hypershape: hypershape,
@@ -3246,6 +3538,7 @@ const BUILT_IN_TRANSFORMS = {
   rotate: rotate,
   scale: scale,
   scale2: scale2,
+  schwarzTriangle: schwarzTriangle,
   sinusoidal: sinusoidal,
   skew: skew,
   smartcrop: smartcrop,
@@ -3578,6 +3871,12 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: IDENTITY_MATRIX
   }],
   bubble3D: [],
+  sphereInv: [],
+  trigCosh3D: [],
+  trigExp3D: [],
+  trigLog3D: [],
+  trigSinh3D: [],
+  trigTanh3D: [],
   unbubble3D: [],
   blurSphere: [],
   blurCube: [],
@@ -3775,6 +4074,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0.5
     }
   ],
+  eRotate:[{
+    name: "rotationAngle",
+    type: "number",
+    default: 0
+  }],
   flipX: [],
   flipY: [],
   hypershape: [{
@@ -3979,6 +4283,21 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "imaginary",
     type: "number",
     default: 1
+  }],
+  schwarzTriangle: [{
+    name: "_alph",
+    type: "number",
+    default: 60
+  },
+  {
+    name: "_bet",
+    type: "number",
+    default: 60
+  },
+  {
+    name: "_gam",
+    type: "number",
+    default: 60
   }],
   sinusoidal: [],
   skew: [{

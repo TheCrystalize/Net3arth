@@ -4,6 +4,12 @@ blurCube
 mobius3D
 hypershift3D
 bubble3D
+sphereInv
+trigCosh3D
+trigExp3D
+trigLog3D
+trigSinh3D
+trigTanh3D
 unbubble3D
 matrix3D
 scale3D
@@ -29,6 +35,7 @@ cpow
 cylinder
 disc
 dragon
+eRotate
 flipX
 flipY
 hypershape
@@ -49,6 +56,7 @@ pointSymmetry
 rotate
 scale
 scale2
+schwarzTriangle
 sinusoidal
 skew
 smartcrop
