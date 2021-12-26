@@ -4,6 +4,8 @@ blurCube
 mobius3D
 hypershift3D
 bubble3D
+julian3D
+juliaq3D
 sphereInv
 trigCosh3D
 trigExp3D

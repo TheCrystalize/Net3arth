@@ -282,6 +282,44 @@ function carlsonRF(x, y, z) {
   return result;
 }
 
+function carlsonRD(x, y, z) {
+  let alamb, ave, delx, dely, delz, ea, eb, ec, ed, ee, fac, sqrtx, sqrty, sqrtz, sum, xt, yt, zt;
+  let c1 = 3/14, c2 = 1/6, c3 = 9/22, c4 = 3/26, c5 = 0.25 * c3, c6 = 1.5 * c4;
+  let minError = 1e-5;
+  let mIt = 25;
+  let itC = 0;
+  xt = x;
+  yt = y;
+  zt = z;
+  sum = 0;
+  fac = 1;
+  do {
+    sqrtx = xt**0.5;
+    sqrty = yt**0.5;
+    sqrtz = zt**0.5;
+    alamb = sqrtz * (sqrty + sqrtz) + sqrty * sqrtz;
+    sum += fac / (sqrtz*(zt*alamb));
+    fac = 0.25 * fac;
+    xt = 0.25 * (xt + alamb);
+    yt = 0.25 * (yt + alamb);
+    zt = 0.25 * (zt + alamb);
+    ave = 0.2 * (xt + yt + 3*zt);
+    delx = (ave-xt)/ave;
+    dely = (ave-yt)/ave;
+    delz = (ave-zt)/ave;
+    itC++;
+    if(itC >= mIt) {
+      break;
+    }
+  } while (Math.max(Math.max(Math.abs(delx), Math.abs(dely)), Math.abs(delz)) > minError);
+  ea = delx * dely;
+  eb = delz * delz;
+  ec = ea - eb;
+  ed = ea - 6 * eb;
+  ee = ed + ec + ec;
+  return 3 * sum + fac * (1 + ed * (-c1 + c5 * ed - c6 * delz * ee) + delz * (c2 * ee + delz * (-c3 * ec + delz * c4 * ea))) / (ave * ave**0.5);
+}
+
 function jacElliptic(u, emc) {
   let ca = 0.0003;
   let a, b, c, d;
@@ -624,15 +662,16 @@ function gammaLanczos(z){
   let p;
   let i, y, t, x;
 
-  p = [8];
-  p[0] = 676.5203681218851;
-  p[1] =  -1259.1392167224028;
-  p[2] = 771.32342877765313;
-  p[3] =  -176.61502916214059;
-  p[4] = 12.507343278686905;
-  p[5] =  -0.13857109526572012;
-  p[6] = 9.9843695780195716e-6;
-  p[7] = 1.5056327351493116e-7;
+  p = [
+    676.5203681218851,
+    -1259.1392167224028,
+    771.32342877765313,
+    -176.61502916214059,
+    12.507343278686905,
+    -0.13857109526572012,
+    9.9843695780195716e-6,
+    1.5056327351493116e-7
+  ];
 
   if(z < 0.5){
     y = Math.PI/(Math.sin(Math.PI*z)*gammaLanczos(1 - z));
@@ -665,43 +704,65 @@ function greaterThan(a, b) {
   return a >= b ? a : b;
 }
 
-function hypergeometricPowerSeries(a, b, c, z, startIt, endIt) {
-  let result = C(0, 0);
-  let n;
-  let con1 = false;
-  let con2 = startIt > endIt;
-  for(n = startIt; con2 ? n > endIt : n < endIt; con2 ? n-- : n++) {
-    if(isInt(pochhammer(a, n)) && isNeg(pochhammer(a, n)) || isInt(pochhammer(b, n)) && isNeg(pochhammer(b, n))) {
-      con1 = true;
-      break;
-    }
-    result = add(result,
-            divScalar(
-              multScalar(
-                pow(z,n), pochhammer(a, n) * pochhammer(b, n) / pochhammer(c, n)),
-                factorial(n)));
-    }
-    if (con1 == true) {
-      a = lessThan(a, b);
-      b = greaterThan(a, b);
-      for (n = 0; n < -a; n++) {
-        result = add(result,
-                    mult(multScalar(mult(C((-1)**n,0), C(a, n)), pochhammer(b, n) / pochhammer(c, n)), pow(z, n)))
-      }
+function binomCoeff(n, k) {
+  return factorial(n) / (factorial(k) * factorial(n - k));
+}
+
+function round(x) {
+  let f = Math.floor(x)
+  let n = x > 0 ? (Math.abs(x - f) > 0.5 ? 1 : 0) : (Math.abs(x - f) > 0.5 ? -1 : 0);
+  return f + n;
+}
+
+function hypergeo2F1PowSerI(a, b, c, z) {
+  let y = C(0,0);
+  let yp = C(0,0);
+  for(let k = 0; k < 20; k++) {
+    yp = divScalar(multScalar(pow(z, k), pochhammer(a, k) * pochhammer(b, k)), gammaLanczos(c + k) * factorial(k));
+    y = add(y, yp);
+  }
+  return y;
+}
+
+function powSerO(a, b, c, z) {
+  let y = C(0, 0);
+  let yp = C(0, 0);
+  for(let k = 0; k < 20; k++) {
+    yp = divScalar(multScalar(pow(z, -k), pochhammer(a, k) * pochhammer(a - c + 1, k)), factorial(k) * gammaLanczos(a - b + k + 1));
+    y = add(y, yp);
+  }
+  return y;
+}
+
+function hypergeo2F1PowSerO(a, b, c, z) {
+  let sc = Math.PI / Math.sin(Math.PI * (b - a));
+  let px = divScalar(pow(neg(z), -a), gammaLanczos(b)*gammaLanczos(c - a));
+  let py = divScalar(pow(neg(z), -b), gammaLanczos(a)*gammaLanczos(c - b));
+  let x = powSerO(a, b, c, z);
+  let y = powSerO(b, a, c, z);
+  return multScalar(add(mult(px, x), neg(mult(py, y))), sc)
+}
+
+function hypergeo2F1(a, b, c, z) {
+  let y = C(0,0);
+  if(Math.hypot(z.re, z.im) > 1) {
+    y = hypergeo2F1PowSerO(a, b, c, z);
+  } else {
+    y = hypergeo2F1PowSerI(a, b, c, z);
+  }
+  return y;
+}
+
+function returnAll() {
+  let result = [];
+  for(let i = 0; i < arguments.length; i++) {
+    result.push(arguments[i]);
   }
   return result;
 }
 
-function hypergeometric(a, b, c, z) {
-  let result = C(0, 0);
-  let n;
-  let condition = false;
-  if (Math.hypot(z.re, z.im) < 1) {
-    result = add(result, hypergeometricPowerSeries(a, b, c, z, 0, 15))
-  } else {
-    result = add(result, divScalar(hypergeometricPowerSeries(a, b, c, z, c, -5), gammaLanczos(c)))
-  }
-  return result;
+function dmsToDec(degree, minute, second) {
+  return degree + minute / 60 + second / 3600 + 1/1000000;
 }
 
 /*transforms*/
@@ -1124,19 +1185,19 @@ function hypertile3(p, q, r, shift) {
     c = Math.asinh(Math.sin(Math.PI / r) * Math.sinh(a) / Math.sin(Math.PI / q));
   let h = Math.tanh(b / 2),
     b1 = Math.tanh(Math.acosh(Math.cosh(c) / Math.cosh(b)) / 2),
-    b2 = Math.tanh(Math.acosh(Math.cosh(a) / Math.cosh(b)) / 2),
-    rot1 = 360 / p * DEGREE,
-    rot2 = 360 / q * DEGREE,
-    rot3 = 360 / r * DEGREE;
-  let r01 = C(Math.cos(rot1), Math.sin(rot1)),
-    r02 = C(Math.cos(rot2), Math.sin(rot2)),
-    r03 = C(Math.cos(rot3), Math.sin(rot3));
+    b2 = Math.tanh(Math.acosh(Math.cosh(a) / Math.cosh(b)) / 2);
 
-  const c1 = C(h, 0),
+  let c1 = C(h, 0),
     c2 = C(0, b1),
     c3 = C(0, b2);
 
   return z => {
+    let rot1 = 360 / p * Math.floor(Math.random() * p) * DEGREE,
+      rot2 = 360 / q * Math.floor(Math.random() * q) * DEGREE,
+      rot3 = 360 / r * Math.floor(Math.random() * r) * DEGREE;
+    let r01 = C(Math.cos(rot1), Math.sin(rot1)),
+        r02 = C(Math.cos(rot2), Math.sin(rot2)),
+        r03 = C(Math.cos(rot3), Math.sin(rot3));
     let n, pfr, z0;
     if(shift < 0.25) {
       n = 0;
@@ -1274,6 +1335,7 @@ function jac_elk(k) {
     }
   }
 }
+
 
 function jac_sn(k) {
   return z => {
@@ -1471,8 +1533,8 @@ function schwarzTriangle(_alph, _bet, _gam) {
 
   return z => {
     let nz = pow(z, alph);
-    let hg = hypergeometric(a, b, c, z);
-    let nhg = hypergeometric(na, nb, nc, z);
+    let hg = hypergeo2F1(a, b, c, z);
+    let nhg = hypergeo2F1(na, nb, nc, z);
 
     return {
       ...z,
@@ -2301,6 +2363,11 @@ function qAdd(a, b) {
   return {qx: a.qx + b.qx, qy: a.qy + b.qy, qz: a.qz + b.qz, qw: a.qw + b.qw};
 }
 
+function qAddScalar(a, scalar) {
+  let s = {qx: scalar, qy: 0, qz: 0, qw: 0};
+  return qAdd(a, s);
+}
+
 function qSub(a, b) {
   return {qx: a.qx - b.qx, qy: a.qy - b.qy, qz: a.qz - b.qz, qw: a.qw - b.qw};
 }
@@ -2311,6 +2378,11 @@ function qMult(a, b) {
   let new2 = a.qx * b.qz - a.qy * b.qw + a.qz * b.qx + a.qw * b.qy;
   let new3 = a.qx * b.qw + a.qy * b.qz - a.qz * b.qy + a.qw * b.qx;
   return {qx: new0, qy: new1, qz: new2, qw: new3};
+}
+
+function qMultScalar(a, scalar) {
+  let s = {qx: scalar, qy: 0, qz: 0, qw: 0};
+  return qMult(a, s);
 }
 
 function qRecip(a) {
@@ -2413,6 +2485,11 @@ function qTanh(a) {
   return qDiv1(qSinh(a), qCosh(a));
 }
 
+function qPowC(a, power) {
+  let pow = {qx: power, qy:0, qz: 0, qw: 0};
+  return qExp(qMult(qLog(a), pow));
+}
+
 /* 3D */
 function mobius3D(ar, ai, aj, ak, br, bi, bj, bk, cr, ci, cj, ck, dr, di, dj, dk, norm) {
   let preNorm0 = {qx: ar, qy: ai, qz: aj, qw: ak};
@@ -2458,8 +2535,49 @@ function bubble3D() {
     return {
       ...z,
       re: z.re * r,
-      im: -z.im * r,
-      z: -z.z * r
+      im: z.im * r,
+      z: z.z * r
+    }
+  }
+}
+
+function julian3D(power) {
+  let abspow = Math.abs(power);
+  let powc = (1/power-1)*0.5;
+  return z => {
+    let zz = z.z / abspow;
+    let r2d = dot(z, z);
+    let r = (r2d + zz * zz)**powc;
+
+    let r2 = r * r2d**0.5;
+    let rnd = Math.floor(Math.random() * abspow);
+    let ang = (Math.atan2(z.im, z.re) + 2 * Math.PI * rnd) / power;
+    return {
+      ...z,
+      re: r2 * Math.cos(ang),
+      im: r2 * Math.sin(ang),
+      z: r * zz
+    }
+  }
+}
+
+function juliaq3D(power, divisor) {
+  let invpow = divisor / power;
+  let absinvpow = Math.abs(invpow);
+  let halfinvpow = 0.5 * invpow - 0.5;
+  let invpow2pi = 2 * Math.PI / power;
+  return z => {
+    let ang = Math.atan2(z.im, z.re) * invpow + Math.floor(Math.random() * 65536) * invpow2pi;
+
+    let zz = z.z * absinvpow;
+    let r2d = dot(z, z);
+    let r = (r2d + ssqr(zz))**halfinvpow;
+    let r2 = r * r2d**0.5;
+    return {
+      ...z,
+      re: r2 * Math.cos(ang),
+      im: r2 * Math.sin(ang),
+      z: r * zz
     }
   }
 }
@@ -3483,6 +3601,8 @@ const BUILT_IN_TRANSFORMS = {
   mobius3D: mobius3D,
   hypershift3D: hypershift3D,
   bubble3D: bubble3D,
+  julian3D: julian3D,
+  juliaq3D: juliaq3D,
   sphereInv: sphereInv,
   trigCosh3D: trigCosh3D,
   trigExp3D: trigExp3D,
@@ -3871,6 +3991,21 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: IDENTITY_MATRIX
   }],
   bubble3D: [],
+  julian3D: [{
+    name: "power",
+    type: "number",
+    default: 1
+  }],
+  juliaq3D: [{
+    name: "power",
+    type: "number",
+    default: 1
+  },
+  {
+    name: "divisor",
+    type: "number",
+    default: 1
+  }],
   sphereInv: [],
   trigCosh3D: [],
   trigExp3D: [],

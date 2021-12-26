@@ -4,6 +4,10 @@
 // List of commands:
 // Ctrl--Shift-Space or Cmd-Shift-Space
 
+buffer() {
+  return zBuffer();
+}
+
 const areaA = 2/5;
 
 const areaB = 1 - areaA;
@@ -17,23 +21,53 @@ getAngle(number area) {
 }
 
 transform square(number side, number area):
-  scale2(side, 1)
-  -> translate(0.5, -0.5)
-  -> rotate(getAngle(area))
-  -> scale(scaleFactor(area))
-  -> translate(-0.5, -0.5)
-  -> scale2(side, 1);
+  scale3D3(side, 1, 1)
+  -> translate3D(-0.5, -0.5, 0)
+  -> rotate3D(0, 0, getAngle(area))
+  -> scale3D(scaleFactor(area))
+  -> translate3D(0.5, -0.5, 0)
+  -> scale3D3(side, 1, 1);
 
 body:
-hslShift(0.1, 0, 0)
--> choose{
-  1: blurSquare() -> color(colorHSL(0, 1, 0.5));
-  3*areaA: square( 1, areaA);
-  3*areaB: square(-1, areaB);
-};
+  setAlpha(255)
+  -> choose{
+    1:
+      blurCube();
+    3*areaA:
+      square( 1, areaA);
+    3*areaB:
+      square(-1, areaB);
+  };
 
 camera:
-translate(0, 1)
--> scale(0.15);
+  rainbowCirc(0, 0, 0, 0.25)
+  -> translate3D(0, 1.5, 5)
+  -> perspective3D();
 
-shader: gamma(2.2);
+shader:
+  basicEnvironment(20*DEGREE, 30*DEGREE, 1, 0)
+  -> mist(0.5, 10, colorRGB(0.0, 0.1, 0.2))
+  -> sum{
+    0.1:
+      scale(1);
+    0.9:
+      product{
+        1:
+          sum{
+          1:
+            normalizeColor();
+          1:
+            specular(20*DEGREE, 30*DEGREE, 0.1, 0, 20);
+        };
+        1:
+          product{
+            1:
+              ambientOcclusion(10);
+            1:
+              sum{
+              0.5: gamma(2.2);
+              0.5: heightMap();
+            };
+          };
+      };
+  };
