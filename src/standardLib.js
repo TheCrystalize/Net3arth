@@ -142,10 +142,11 @@ function log(z) {
 }
 
 function pow(z, p) {
-  const n = p * Math.atan2(z.im, z.re);
+  let n = p * Math.atan2(z.im, z.re);
+  let m = Math.exp(p * Math.log(z.re * z.re + z.im * z.im));
   return {
-    re: Math.cos(n) * Math.exp(p * Math.log(z.re * z.re + z.im * z.im)),
-    im: Math.sin(n) * Math.exp(p * Math.log(z.re * z.re + z.im * z.im))
+    re: Math.cos(n) * m,
+    im: Math.sin(n) * m
   }
 }
 
@@ -1096,6 +1097,26 @@ function dragon(a, divisorB, divisorC, bc, multiplier, horizontal, vertical, rad
   }
 }
 
+function ePush(push, _rotation) {
+  rotation = _rotation * DEGREE;
+  return z => {
+    let tmp = dot(z, z) + 1;
+    let tmp2 = 2 * z.re;
+    let xm = ((tmp+tmp2)**0.5 + (tmp-tmp2)**0.5) * 0.5;
+    let xmax = (xm < 1) ? 1 : xm;
+    let nt = z.re / xmax;
+    let t = (nt > 1) ? 1 : (nt < -1) ? -1 : nt;
+
+    let nu = ((z.im < 0) ? -Math.acos(t) : Math.acos(t)) + rotation;
+    let mu = Math.acosh(xmax) + push;
+    return {
+      ...z,
+      re: Math.cosh(mu) * Math.cos(nu),
+      im: Math.sinh(mu) * Math.sin(nu)
+    }
+  }
+}
+
 function eRotate(rotationAngle) {
   rotationAngle *= DEGREE;
   return z => {
@@ -1114,6 +1135,7 @@ function eRotate(rotationAngle) {
     }
   }
 }
+
 
 function flipX() {
   return z => {
@@ -1270,7 +1292,7 @@ function jac_cn(k) {
     let numx = jx.c * jy.c;
     let numy = jx.d * jx.s * jy.d * jy.s;
 
-    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
+    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
     denom = 1 / (denom);
 
     return {
@@ -1289,7 +1311,7 @@ function jac_dn(k) {
     let numx = jx.d * jy.c * jy.d;
     let numy = jx.c * jx.s * jy.s * k;
 
-    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
+    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
     denom = 1 / (denom);
 
     return {
@@ -1345,7 +1367,7 @@ function jac_sn(k) {
     let numx = jx.s * jy.d;
     let numy = jx.c * jx.d * jy.c * jy.s;
 
-    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
+    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
     denom = 1 / (denom);
 
     return {
@@ -1409,6 +1431,20 @@ function mobius(a, b, c, d) {
   }
 }
 
+function multiMobius(a, b, c, d, iterations) {
+  let mo = mobius(a,b,c,d);
+  return z => {
+    let nz = z;
+    for(let i = 0; i < iterations; i++) {
+      nz = mo(nz);
+    }
+    return {
+      ...z,
+      ...nz
+    }
+  }
+}
+
 function murl2(c, pow) {
   return z => {
     let angle = Math.atan2(z.im, z.re) * pow;
@@ -1459,8 +1495,8 @@ function nSplit(n, split, wedge) {
 function pdj(a, b, c, d) {
   return z => {
     let ny1 = Math.sin(a * z.im);
-    let nx1 = Math.cos(b * z.im);
-    let nx2 = Math.sin(c * z.im);
+    let nx1 = Math.cos(b * z.re);
+    let nx2 = Math.sin(c * z.re);
     let ny2 = Math.cos(d * z.im);
     return {
       ...z,
@@ -1521,9 +1557,9 @@ function scale2(real, imaginary) {
 }
 
 function schwarzTriangle(_alph, _bet, _gam) {
-  let alph = _alph * 0.5 * DEGREE;
-  let bet = _bet * 0.5 * DEGREE;
-  let gam = _gam * 0.5 * DEGREE;
+  let alph = _alph * DEGREE;
+  let bet = _bet * DEGREE;
+  let gam = _gam * DEGREE;
   let a = (1 - alph - bet - gam) / 2;
   let b = (1 - alph + bet - gam) / 2;
   let c = 1 - alph;
@@ -1663,8 +1699,8 @@ function smartshape(power, roundstr, roundwidth, distortion, compensation) {
 
 function splits(real, imaginary) {
   return z => {
-    const xoff = z.re > 0 ? real : -real,
-      yoff = z.im > 0 ? imaginary : -imaginary;
+    let xoff = z.re > 0 ? real : -real;
+    let yoff = z.im > 0 ? imaginary : -imaginary;
     return {
       ...z,
       re: z.re + xoff,
@@ -2085,6 +2121,34 @@ function gamma(gamma) {
       red: Math.pow(z.red, 1 / gamma),
       green: Math.pow(z.green, 1 / gamma),
       blue: Math.pow(z.blue, 1 / gamma)
+    }
+  }
+}
+
+function colorAdd(a, b) {
+  return {red: a.red + b.red, green: a.green + b.green, blue: a.blue + b.blue}
+}
+
+function colorMult(a, b) {
+  return {red: a.red * b.red, green: a.green * b.green, blue: a.blue * b.blue}
+}
+
+function colorMultScalar(a, scalar) {
+  return {red: a.red * scalar, green: a.green * scalar, blue: a.blue * scalar}
+}
+
+function colorCos(a) {
+  return {red: Math.cos(a.red), green: Math.cos(a.green), blue: Math.cos(a.blue)}
+}
+
+function paletteMod(a, b, c, d) {
+  return z => {
+    let f = colorAdd(a, colorMult(b, colorCos(colorMultScalar(colorAdd(colorMult(c, z), d), 2*Math.PI))))
+    return {
+      ...z,
+      red: f.red,
+      green: f.green,
+      blue: f.blue,
     }
   }
 }
@@ -3585,6 +3649,7 @@ const BUILT_IN_TRANSFORMS = {
   //shaders
   rainbowCirc: rainbowCirc,
   rainbowCircAdd: rainbowCircAdd,
+  paletteMod: paletteMod,
   gamma: gamma,
   ambientOcclusion: ambientOcclusion,
   specular: specular,
@@ -3637,6 +3702,7 @@ const BUILT_IN_TRANSFORMS = {
   cylinder: cylinder,
   disc: disc,
   dragon: dragon,
+  ePush: ePush,
   eRotate: eRotate,
   flipX: flipX,
   flipY: flipY,
@@ -3651,6 +3717,7 @@ const BUILT_IN_TRANSFORMS = {
   juliaq: juliaq,
   juliascope: juliascope,
   mobius: mobius,
+  multiMobius: multiMobius,
   murl2: murl2,
   nSplit: nSplit,
   pdj: pdj,
@@ -3735,6 +3802,42 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "start",
     type: "number",
     default: 1
+  }],
+  paletteMod: [{
+    name: "a",
+    type: "object",
+    default: {
+      red: 0.5,
+      green: 0.5,
+      blue: 0.5
+    }
+  },
+  {
+    name: "b",
+    type: "object",
+    default: {
+      red: 0.5,
+      green: 0.5,
+      blue: 0.5
+    }
+  },
+  {
+    name: "c",
+    type: "object",
+    default: {
+      red: 0.5,
+      green: 0.5,
+      blue: 0.5
+    }
+  },
+  {
+    name: "d",
+    type: "object",
+    default: {
+      red: 0.5,
+      green: 0.5,
+      blue: 0.5
+    }
   }],
   gamma: [{
     name: "gamma",
@@ -4209,6 +4312,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0.5
     }
   ],
+  ePush:[{
+    name: "push",
+    type: "number",
+    default: 0
+  },
+  {
+    name: "rotation",
+    type: "number",
+    default: 0
+  }],
   eRotate:[{
     name: "rotationAngle",
     type: "number",
@@ -4334,6 +4447,44 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
         re: 1,
         im: 0
       }
+    }
+  ],
+  multiMobius: [{
+      name: "a",
+      type: "complex",
+      default: {
+        re: 1,
+        im: 0
+      }
+    },
+    {
+      name: "b",
+      type: "complex",
+      default: {
+        re: 0,
+        im: 0
+      }
+    },
+    {
+      name: "c",
+      type: "complex",
+      default: {
+        re: 0,
+        im: 0
+      }
+    },
+    {
+      name: "d",
+      type: "complex",
+      default: {
+        re: 1,
+        im: 0
+      }
+    },
+    {
+      name: "iterations",
+      type: "number",
+      default: 1
     }
   ],
   murl2: [{

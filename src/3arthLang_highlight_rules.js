@@ -37,6 +37,7 @@ cpow
 cylinder
 disc
 dragon
+ePush
 eRotate
 flipX
 flipY
@@ -51,6 +52,7 @@ julian
 juliaq
 juliascope
 mobius
+multiMobius
 murl2
 nSplit
 pdj
@@ -78,6 +80,7 @@ color
 dither
 rainbowCirc
 rainbowCircAdd
+paletteMod
 gamma
 gradient
 repeatingGradient
