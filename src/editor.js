@@ -25,8 +25,10 @@ var customWordCompleter = {
       ["XAOS", ["xaos{}"]],
       ["CHOOSE", ["choose{}"]],
       ["SUM", ["sum{}"]],
+      ["SUM COLOR", ["sumColor{}"]],
       ["PRODUCT", ["product{}"]],
-      ["keyword", ["choose", "sum", "product", "xaos"]],
+      ["PRODUCT COLOR", ["productColor{}"]],
+      ["keyword", ["choose", "sum", "sumColor", "product", "productColor", "xaos"]],
       ["type", ["complex", "number", "string", "bool", "array", "object"]],
       ["constructor", StandardLibConstructorNamesArray],
       ["constant", StandardLibConstantsNamesArray],
@@ -62,8 +64,14 @@ var customWordCompleter = {
           case "SUM":
             post = "sum{\n  1:\n}";
             break;
+          case "SUM COLOR":
+            post = "sumColor{\n  1:\n}";
+            break;
           case "PRODUCT":
             post = "product{\n  1:\n}";
+            break;
+          case "PRODUCT COLOR":
+            post = "productColor{\n  1:\n}";
             break;
           case "type":
             post += " n = ";

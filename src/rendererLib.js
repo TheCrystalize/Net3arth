@@ -139,8 +139,12 @@ function loopStuff(stuff, val) {
     switch (stuff[0]) {
       case 'sum':
         return sumStuff(stuff, val);
+      case 'sumColor':
+        return sumStuffColor(stuff, val);
       case 'product':
         return productStuff(stuff, val);
+      case 'productColor':
+        return productStuffColor(stuff, val);
       case 'choose':
         return switchStuff(stuff, val);
       case 'xaos':
@@ -184,7 +188,9 @@ function populateFunctionsXaos(job) {
 
 const ITERATORY_FUNCTIONS = {
   'sum': populateFunctionsSwitch,
+  'sumColor': populateFunctionsSwitch,
   'product': populateFunctionsSwitch,
+  'productColor': populateFunctionsSwitch,
   'choose': populateFunctionsSwitch,
   'xaos': populateFunctionsXaos,
 };

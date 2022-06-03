@@ -174,8 +174,8 @@ function getTypeOfWord(word) {
     case (word === 'choose'):
     case (word === 'xaos'):
     case (word === 'sum'):
-    case (word === 'product'):
     case (word === 'sumColor'):
+    case (word === 'product'):
     case (word === 'productColor'):
       return word;
     case (word === 'const'):
@@ -586,8 +586,34 @@ function parseEverything(code) {
           return ans;
         }
 
+        function customSumColor(params, values, transform) {
+          let ans = ['sumColor'];
+          for(let i = 1; i < transform.length; i++) {
+            ans.push([
+              replaceParam(params, values, transform[i][0]),
+              transform[i][1],
+              replaceParam(params, values, transform[i][2]),
+              customTransform(params, values, transform[i][3])
+            ]);
+          }
+          return ans;
+        }
+
         function customProduct(params, values, transform) {
           let ans = ['product'];
+          for(let i = 1; i < transform.length; i++) {
+            ans.push([
+              replaceParam(params, values, transform[i][0]),
+              transform[i][1],
+              replaceParam(params, values, transform[i][2]),
+              customTransform(params, values, transform[i][3])
+            ]);
+          }
+          return ans;
+        }
+
+        function customProductColor(params, values, transform) {
+          let ans = ['productColor'];
           for(let i = 1; i < transform.length; i++) {
             ans.push([
               replaceParam(params, values, transform[i][0]),
@@ -617,8 +643,14 @@ function parseEverything(code) {
               case 'sum':
                 return customSum(params, values, transform);
                 break;
+              case 'sumColor':
+                return customSumColor(params, values, transform);
+                break;
               case 'product':
                 return customProduct(params, values, transform);
+                break;
+              case 'productColor':
+                return customProductColor(params, values, transform);
                 break;
             }
           }
@@ -746,7 +778,9 @@ function parseEverything(code) {
               parseState[2].weight = parseState[0].value;
               switch (parseState[2].is) {
                 case 'sum items':
+                case 'sumColor items':
                 case 'product items':
+                case 'productColor items':
                 case 'choose items':
                   parseState.shift();
                   parseState.shift();
@@ -1303,8 +1337,7 @@ function parseEverything(code) {
               }
 
               try {
-                let ans;
-                {
+                let ans; {
                   let preComputeString = getPrecomputeString(preComputeStuff);
                   let testFunction = new Function(...parseState[0].params.map(a => a.name), preComputeString + jsCode);
                   let sampleParams = parseState[0].params.map(a => {
@@ -1362,7 +1395,9 @@ function parseEverything(code) {
           case 'transform':
             switch (wordType) {
               case 'sum':
+              case 'sumColor':
               case 'product':
+              case 'productColor':
               case 'choose':
                 parseState.unshift({
                   is: `${wordType} items`,
@@ -1509,7 +1544,9 @@ function parseEverything(code) {
                     parseState.shift();
                     break;
                   case 'sum items':
+                  case 'sumColor items':
                   case 'product items':
+                  case 'productColor items':
                   case 'choose items':
                     parseState[2].items.push([parseState[2].weight, parseState[1].transforms]);
                     delete parseState[2].weight;
@@ -1556,7 +1593,9 @@ function parseEverything(code) {
             }
             break;
           case 'sum items':
+          case 'sumColor items':
           case 'product items':
+          case 'productColor items':
           case 'choose items':
             switch (wordType) {
               case '}':

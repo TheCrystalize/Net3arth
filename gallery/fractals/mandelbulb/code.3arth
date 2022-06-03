@@ -1,0 +1,118 @@
+buffer() {
+  return zBuffer();
+}
+
+mandelbulb(number n,number its){
+  let cr, ci, cj, zr, zi, zj, r, rn, phi, theta, it, isIn;
+  return z=>{
+    isIn = false;
+    theLoop:
+    while(!isIn) {
+      cr = Math.random() * 4 - 2;
+      ci = Math.random() * 4 - 2;
+      cj = Math.random() * 4 - 2;
+      zr = cr;
+      zi = ci;
+      zj = cj;
+
+      r = Math.sqrt(zr * zr + zi * zi + zj * zj);
+
+      for(it = 0; it < its; it++){
+        rn = Math.pow(r, n);
+        phi = Math.atan(zi / zr);
+        theta = Math.acos(zj / r);
+
+        zr = rn * Math.sin(n * theta) * Math.cos(n * phi) + cr;
+        zi = rn * Math.sin(n * theta) * Math.sin(n * phi) + ci;
+        zj = rn * Math.cos(n * theta) + cj;
+
+        r = Math.sqrt(zr * zr + zi * zi + zj * zj);
+
+        if(r > 4) {
+          continue theLoop;
+        }
+      }
+      isIn = true;
+    }
+
+    return {
+      ...z,
+      re: cr,
+      im: ci,
+      z: cj,
+      ...hslToRgb(0.8 - r / 4, 1, 0.75)
+    };
+  }
+}
+
+body:
+mandelbulb(8, 20);
+
+camera:
+scale3D(0.44)
+-> rotate3D(90, 0, 0)
+-> rotate3D(0, 0, -90)
+-> rotate3D(0, 45, 0)
+-> translate3D(0, 0, 1);
+
+AO(number s, number step, number step2, number p, number ss) {
+  let weights = [];
+  let maxP = 0;
+  for(let i = -s; i <= s; i++) {
+    weights[i + s] = [];
+    for(let j = -s; j <= s; j++) {
+      if(!(i === 0 && j === 0)) {
+        let d = 1 / Math.sqrt(i * i*ss*ss + j * j*ss*ss);
+        weights[i + s][j + s] = d;
+        maxP += d;
+      }
+    }
+  }
+  return z => {
+    if(z.z === 0) {
+      return z;
+    }
+    let acc = 0;
+    for(let i = -s; i <= s; i++) {
+      for(let j = -s; j <= s; j++) {
+        if(z.re + i*ss >= 0 || z.re + i*ss < 0 || z.im + j*ss < z.width || z.im + j*ss < z.height) {
+          if(!(i === 0 && j === 0)) {
+            let d = weights[i + s][j + s];
+            let sample = z.zBuffer[z.re + i*ss + (z.im + j*ss) * z.width];
+            if(sample === 0 || sample > z.z - step2) {
+              acc += d*0.1;
+            }
+            if(sample === 0 || sample > z.z - step) {
+              acc += d*0.2;
+            }
+            if(sample === 0 || sample > z.z) {
+              acc += d*0.5;
+            }
+            if(sample === 0 || sample > z.z + step) {
+              acc += d*0.1;
+            }
+            if(sample === 0 || sample > z.z + step2) {
+              acc += d*0.1;
+            }
+          }
+        }
+      }
+    }
+    let c = Math.max((acc-maxP*p) / (maxP-maxP*p), 0);
+    return {
+      ...z,
+      red: c,
+      green: c,
+      blue: c
+    }
+  }
+}
+
+shader:
+productColor{
+  1: basicEnvironmentOrth(30, 30, 1, 0);
+  1: sumColor{
+    0.7: AO(2, 0.01, 0.1, 1/3, 2);
+    0.7: AO(5, 0.01, 0.1, 1/3, 5);
+  };
+};
