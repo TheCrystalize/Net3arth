@@ -53,72 +53,19 @@ scale3D(2/5)
 -> translate3D(0, 0, 1)
 -> scale(1.25);
 
-AO(number s, number step, number step2, number p, number ss) {
-  let weights = [];
-  let maxP = 0;
-  for(let i = -s; i <= s; i++) {
-    weights[i + s] = [];
-    for(let j = -s; j <= s; j++) {
-      if(!(i === 0 && j === 0)) {
-        let d = 1 / Math.sqrt(i * i * ss * ss + j * j * ss * ss);
-        weights[i + s][j + s] = d;
-        maxP += d;
-      }
-    }
-  }
-  return z => {
-    if(z.z === 0) {
-      return z;
-    }
-    let acc = 0;
-    for(let i = -s; i <= s; i++) {
-      for(let j = -s; j <= s; j++) {
-        if(z.re + i * ss >= 0 || z.re + i * ss < 0 || z.im + j * ss < z.width || z.im + j * ss < z.height) {
-          if(!(i === 0 && j === 0)) {
-            let d = weights[i + s][j + s];
-            let sample = z.zBuffer[z.re + i * ss + (z.im + j * ss) * z.width];
-            if(sample === 0 || sample > z.z - step2) {
-              acc += d * 0.1;
-            }
-            if(sample === 0 || sample > z.z - step) {
-              acc += d * 0.2;
-            }
-            if(sample === 0 || sample > z.z) {
-              acc += d * 0.5;
-            }
-            if(sample === 0 || sample > z.z + step) {
-              acc += d * 0.1;
-            }
-            if(sample === 0 || sample > z.z + step2) {
-              acc += d * 0.1;
-            }
-          }
-        }
-      }
-    }
-    let c = Math.max((acc - maxP * p) / (maxP - maxP * p), 0);
-    return {
-      ...z,
-      red: c,
-      green: c,
-      blue: c
-    }
-  }
-}
-
 shader:
-basicEnvironmentOrth(0, -15, 2, 0)
+basicEnvironmentOrth(-30, -15, 2, 0)
 -> sumColor{
   0.1: scale(1);
   0.9: productColor{
     1: sumColor{
       1: scale(1);
-      1: specularOrth(0, -15, 2.5, 0, 20);
+      1: specularOrth(-30, -15, 2.5, 0, 20);
     };
     1: sumColor{
-      1/3: AO(20, 0.01, 0.1, 1/3, 1);
-      1/3: AO(20, 0.01, 0.1, 1/3, 5);
-      1/3: AO(20, 0.01, 0.1, 1/3, 20);
+      0.5: ambientOcclusionBig(20, 2, -0.05);
+      0.5: ambientOcclusionBig(20, 2, 0);
+      -0.5: ambientOcclusionBig(20, 2, 0.05);
     };
   };
 };

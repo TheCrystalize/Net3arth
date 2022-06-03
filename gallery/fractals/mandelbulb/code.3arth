@@ -40,7 +40,7 @@ mandelbulb(number n, number its) {
       re: cr,
       im: ci,
       z: cj,
-      ...hslToRgb(0.8 - r / 4, 1, 0.75)
+      ...hslToRgb(0.88 + r / 4, 1, 0.75)
     };
   }
 }
@@ -55,19 +55,18 @@ scale3D(0.44)
 -> rotate3D(0, 45, 0);
 
 shader:
-sumColor{
-  1: productColor{
-    1: basicEnvironmentOrth(30, 30, 1, 0)
-    -> sumColor{
+basicEnvironmentOrth(30, 30, 2, 0)
+-> sumColor{
+  0.1: scale(1);
+  0.9: productColor{
+    1: sumColor{
       1: scale(1);
-      1: productColor{
-        1: scale(1);
-        1: specularOrth(30, 30, 1.4, 1, 2);
-      };
+      1: specularOrth(30, 30, 2.5, 0, 20);
     };
     1: sumColor{
-      0.5: ambientOcclusion(20);
-      0.5: ambientOcclusion(5);
+      0.5: ambientOcclusionBig(20, 2, -0.05);
+      0.5: ambientOcclusionBig(20, 2, 0);
+      -0.5: ambientOcclusionBig(20, 2, 0.05);
     };
   };
 };

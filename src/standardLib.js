@@ -3787,6 +3787,47 @@ function ambientOcclusion(s) {
   }
 }
 
+function ambientOcclusionBig(s, step, depth) {
+  let weights = [];
+  let maxP = 0;
+  for(let i = -s; i <= s; i++) {
+    weights[i + s] = [];
+    for(let j = -s; j <= s; j++) {
+      if(!(i === 0 && j === 0)) {
+        let d = 1 / Math.sqrt(i * i + j * j);
+        weights[i + s][j + s] = d;
+        maxP += d;
+      }
+    }
+  }
+  return z => {
+    if(z.z === 0) {
+      return z;
+    }
+    let acc = 0;
+    for(let i = -s; i <= s; i++) {
+      for(let j = -s; j <= s; j++) {
+        if(z.re + i * step >= 0 || z.re + i * step < 0 || z.im + j * step < z.width || z.im + j * step < z.height) {
+          if(!(i === 0 && j === 0)) {
+            let d = weights[i + s][j + s];
+            let sample = z.zBuffer[z.re + i * step + (z.im + j * step) * z.width];
+            if(sample === 0 || sample > z.z + depth) {
+              acc += d;
+            }
+          }
+        }
+      }
+    }
+    let c = acc / maxP;
+    return {
+      ...z,
+      red: c,
+      green: c,
+      blue: c
+    }
+  }
+}
+
 function reflect(vector, normal) {
   // v - 2 * (v dot n) * n
   return vectorSum(vector, vectorTimes(normal, -2 * (vector[0] * normal[0] + vector[1] * normal[1] + vector[2] * normal[2])));
@@ -4251,6 +4292,7 @@ const BUILT_IN_TRANSFORMS = {
   paletteMod: paletteMod,
   gamma: gamma,
   ambientOcclusion: ambientOcclusion,
+  ambientOcclusionBig: ambientOcclusionBig,
   specular: specular,
   specularOrth: specularOrth,
   normalMap: normalMap,
@@ -4453,6 +4495,19 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "sample size",
     type: "number",
     default: 5
+  }],
+  ambientOcclusionBig: [{
+    name: "sample size",
+    type: "number",
+    default: 5
+  },{
+    name: "step size",
+    type: "number",
+    default: 2
+  },{
+    name: "depth",
+    type: "number",
+    default: 0
   }],
   specular: [{
     name: "theta",

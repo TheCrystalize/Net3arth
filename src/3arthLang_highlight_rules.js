@@ -105,6 +105,7 @@ basicEnvironmentOrth
 advancedLighting
 advancedLightingOrth
 ambientOcclusion
+ambientOcclusionBig
 specular
 specularOrth`.split('\n');
 
