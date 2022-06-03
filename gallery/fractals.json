@@ -13,5 +13,10 @@
     "folder": "lorenz-attractor",
     "title": "Lorenz Attractor",
     "author": "Edward Haas"
+  },
+  {
+    "folder": "apophysis-gradient",
+    "title": "Apophysis Gradient",
+    "author": "Edward Haas"
   }
 ]
