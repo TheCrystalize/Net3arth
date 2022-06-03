@@ -188,3 +188,20 @@ function stopCode() {
     }
   } catch (e) {}
 }
+
+(new URL(window.location.href)).searchParams.forEach((x, y) =>{
+  if(y === 'fractal') {
+    const xhttp = new XMLHttpRequest();
+    xhttp.onload = function() {
+      editor.setValue(this.responseText);
+      editor.moveCursorToPosition({
+        row: 0,
+        pos: 0
+      });
+      editor.clearSelection();
+      editor.getSession().foldAll();
+    }
+    xhttp.open("GET", `gallery/fractals/${x}/code.3arth`, true);
+    xhttp.send();
+  }
+});

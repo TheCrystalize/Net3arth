@@ -1,0 +1,130 @@
+buffer() {
+  return zBuffer();
+}
+
+juliaSet(number jr,number ji,number jj,number jk,number its){
+  return z=>{
+    let isIn = false;
+    let _zr,_zi,_zj;
+    theLoop:
+    while(!isIn){
+      let cr = jr, ci = ji, cj = jj, ck = jk;
+      _zr = Math.random()*4-2;
+      _zi = Math.random()*4-2;
+      _zj = Math.random()*4-2;
+      let zr = _zr,
+      zi = _zi,
+      zj = _zj,
+      zk = 0;
+      for(let it = 0; it < its; it++){
+        let temp = zr;
+        zr = zr*zr - zi*zi - zj*zj - zk*zk + cr;
+        zi = 2*temp*zi + ci;
+        zj = 2*temp*zj + cj;
+        zk = 2*temp*zk + ck;
+        if(zr*zr + zi*zi + zj*zj + zk*zk > 4){
+          continue theLoop;
+        }
+      }
+      isIn = true;
+    }
+
+    return {
+      ...z,
+      re: _zr,
+      im: _zi,
+      z: _zj,
+      green: 0.5-_zj/5,
+      blue: 0.5+_zj/5
+    };
+  }
+}
+
+body:
+juliaSet(-0.5,-0.6,0,0,20);
+
+camera:
+scale3D(2/5)
+-> rotate3D(15, 0, 0)
+-> rotate3D(0, 15, 0)
+-> translate3D(0, 0, 1)
+-> scale(1.25);
+
+AO(number s, number step, number step2, number p, number ss) {
+  let weights = [];
+  let maxP = 0;
+  for(let i = -s; i <= s; i++) {
+    weights[i + s] = [];
+    for(let j = -s; j <= s; j++) {
+      if(!(i === 0 && j === 0)) {
+        let d = 1 / Math.sqrt(i * i*ss*ss + j * j*ss*ss);
+        weights[i + s][j + s] = d;
+        maxP += d;
+      }
+    }
+  }
+  return z => {
+    if(z.z === 0) {
+      return z;
+    }
+    let acc = 0;
+    for(let i = -s; i <= s; i++) {
+      for(let j = -s; j <= s; j++) {
+        if(z.re + i*ss >= 0 || z.re + i*ss < 0 || z.im + j*ss < z.width || z.im + j*ss < z.height) {
+          if(!(i === 0 && j === 0)) {
+            let d = weights[i + s][j + s];
+            let sample = z.zBuffer[z.re + i*ss + (z.im + j*ss) * z.width];
+            if(sample === 0 || sample > z.z - step2) {
+              acc += d*0.1;
+            }
+            if(sample === 0 || sample > z.z - step) {
+              acc += d*0.2;
+            }
+            if(sample === 0 || sample > z.z) {
+              acc += d*0.5;
+            }
+            if(sample === 0 || sample > z.z + step) {
+              acc += d*0.1;
+            }
+            if(sample === 0 || sample > z.z + step2) {
+              acc += d*0.1;
+            }
+          }
+        }
+      }
+    }
+    let c = Math.max((acc-maxP*p) / (maxP-maxP*p), 0);
+    return {
+      ...z,
+      red: c,
+      green: c,
+      blue: c
+    }
+  }
+}
+
+shader:
+basicEnvironmentOrth(0, -15, 2, 0)
+-> sum{
+  0.1:
+    scale(1);
+  0.9:
+    product{
+      1:
+        sum{
+        1:
+          scale(1);
+        1:
+          specularOrth(0, -15, 2.5, 0, 20);
+      };
+      1:
+        sum{
+          1/3:
+            AO(20, 0.01, 0.1, 1/3, 1);
+          1/3:
+            AO(20, 0.01, 0.1, 1/3, 5);
+          1/3:
+            AO(20, 0.01, 0.1, 1/3, 20);
+        };
+    };
+};

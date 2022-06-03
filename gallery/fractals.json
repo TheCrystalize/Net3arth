@@ -1,0 +1,17 @@
+[
+  {
+    "folder": "mandelbrot-set",
+    "title": "Mandelbrot set",
+    "author": "Edward Haas"
+  },
+  {
+    "folder": "quaternion-julia-set",
+    "title": "Quaternion Julia Set",
+    "author": "Edward Haas"
+  },
+  {
+    "folder": "lorenz-attractor",
+    "title": "Lorenz Attractor",
+    "author": "Edward Haas"
+  }
+]

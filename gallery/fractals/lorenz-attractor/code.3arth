@@ -1,0 +1,54 @@
+buffer() {
+  return zBuffer();
+}
+
+lorenzAttractor(number rho, number sigma, number beta, number t) {
+  return z => {
+    if(z.z === 0 || z.c > 0.5){
+      return {
+        ...z,
+        re: 10,
+        im: 10,
+        z: 10,
+        c: 0,
+        ...colorRGB(1,0,0)
+      };
+    }
+    return {
+      ...z,
+      re: z.re + t * (sigma * (z.im - z.re)),
+      im: z.im + t * (z.re * (rho - z.z) - z.im),
+      z:  z.z + t * (z.re * z.im - beta * z.z),
+      c: z.c+t*0.002,
+      ...hslToRgb((z.c/2+0.9) % 1,1,0.5)
+    };
+  };
+}
+
+body:
+lorenzAttractor(28, 10, 8/3, 0.00005);
+
+camera:
+rotate3D(0, 90, 0)
+-> rotate3D(0, 45, 0)
+-> rotate3D(50, 0, 30)
+-> scale(0.025)
+-> translate(0,0.59);
+
+shade(){
+  let h = heightMap();
+  let am = ambientOcclusion(5);
+  return z=>{
+    let v1 = h(z);
+    let v2 = am(z);
+    return {
+      ...z,
+      red:   z.red*(v1.red*v2.red*0.7+0.3),
+      green: z.green*(v1.green*v2.green*0.7+0.3),
+      blue:  z.blue*(v1.blue*v2.blue*0.7+0.3)
+    };
+  }
+}
+
+shader:
+shade();

@@ -175,6 +175,8 @@ function getTypeOfWord(word) {
     case (word === 'xaos'):
     case (word === 'sum'):
     case (word === 'product'):
+    case (word === 'sumColor'):
+    case (word === 'productColor'):
       return word;
     case (word === 'const'):
       return 'const';
