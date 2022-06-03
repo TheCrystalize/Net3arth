@@ -18,5 +18,10 @@
     "folder": "apophysis-gradient",
     "title": "Apophysis Gradient",
     "author": "Edward Haas"
+  },
+  {
+    "folder": "mandelbulb",
+    "title": "Mandelbulb",
+    "author": "Edward Haas"
   }
 ]
