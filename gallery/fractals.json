@@ -28,5 +28,10 @@
     "folder": "barnsley-fern",
     "title": "Barnsley Fern",
     "author": "Edward Haas"
+  },
+  {
+    "folder": "pythagorean-tree",
+    "title": "pythagorean Tree",
+    "author": "Edward Haas"
   }
 ]
