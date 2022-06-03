@@ -639,6 +639,17 @@ function zeta(x) {
   );
 }
 
+var factorialArray = [200];
+
+function dynamicFactorial(n) {
+  n = n < 0 ? -n : n;
+  if(n==0||n==1) return 1
+  if(factorialArray[n]!=undefined) return factorialArray[n]
+  let temp = dynamicFactorial(n-1)*n;
+  factorialArray[n] = temp
+  return factorialArray[n]
+}
+
 function factorial(n) {
   n = n < 0 ? -n : n
   let result = 1;
@@ -649,6 +660,20 @@ function factorial(n) {
   return result;
 }
 
+
+const pochhammerMap = new Map();
+
+function dynamicPochhammer(q, n) {
+  if(n==0) return 1
+  if(!pochhammerMap.has(q)) {
+    pochhammerMap.set(q,[200])
+  }
+  if(pochhammerMap.get(q)[n]!=undefined) return pochhammerMap.get(q)[n]
+  let temp = dynamicPochhammer(q, n-1)*(q+n-1)
+  pochhammerMap.get(q)[n] = temp;
+  return temp
+}
+
 function pochhammer(q, n) {
   let y = 1;
 
@@ -657,6 +682,16 @@ function pochhammer(q, n) {
   }
 
   return y;
+}
+
+function pochhammerFalling(q, n) {
+    let y = 1;
+
+    for(let k = 0; k <= n - 1; k++){
+      y *= q - k;
+    }
+
+    return y;
 }
 
 function gammaLanczos(z){
@@ -679,7 +714,7 @@ function gammaLanczos(z){
   }else{
     z = z - 1;
     x = 0.99999999999980993;
-    for(i = 0; i < p.length; i = i + 1){
+    for(i = 0; i < p.length; i++){
       x = x + p[i]/(z + i + 1);
     }
     t = z + p.length - 0.5;
@@ -688,6 +723,39 @@ function gammaLanczos(z){
 
   return y;
 }
+
+function tcPow(z, c) {
+  let a = Math.atan2(z.im, z.re);
+  let lnr = 0.5*Math.log(dot(z,z));
+  let m = Math.exp(c.re * lnr - c.im * a);
+  let ang = c.re * a + c.im * lnr + 2 * Math.PI;
+  return multScalar(C(Math.cos(ang),Math.sin(ang)), m)
+}
+
+const gammaMap = new Map();
+function dynamicGamma(z) {
+  if(gammaMap.has(z)) return gammaMap.get(z)
+  if((z.re<0)&&(z.re==Math.floor(z.re))&&(z.im==0)) return C(1/0,1/0)
+  if((z.re==Math.floor(z.re))&&(z.im==0)) return C(dynamicFactorial(z.re),0)
+
+  let prod = div(C(1,0),z);
+  for(let i=1; i < 40; i++) {
+    prod = mult(prod, tcPow(C(1+1/i,0), z));
+    prod = div(prod, addScalar(div(z,C(i,0)),1))
+  }
+  gammaMap.set(z,prod)
+  return prod
+}
+
+function cGamma(z) {
+  let eps = 0.01;
+  let sum = C(0,0);
+  for(let i = 0; i < 10; i+=eps) {
+    sum = add(sum, multScalar(mult(tcPow(C(i,0),addScalar(z,-1)), exp(C(-i,0))), eps));
+  }
+  return sum
+}
+
 
 function isInt(a){
   return (a - Math.floor(a)) == 0;
@@ -715,11 +783,15 @@ function round(x) {
   return f + n;
 }
 
+function ccpow(z, p) {
+  return exp(multScalar(log(z), p))
+}
+
 function hypergeo2F1PowSerI(a, b, c, z) {
   let y = C(0,0);
   let yp = C(0,0);
-  for(let k = 0; k < 20; k++) {
-    yp = divScalar(multScalar(pow(z, k), pochhammer(a, k) * pochhammer(b, k)), gammaLanczos(c + k) * factorial(k));
+  for(let k = 0; k < 40; k++) {
+    yp = divScalar(multScalar(ccpow(z, k), pochhammer(a, k) * pochhammer(b, k)), gammaLanczos(c + k) * factorial(k));
     y = add(y, yp);
   }
   return y;
@@ -728,8 +800,8 @@ function hypergeo2F1PowSerI(a, b, c, z) {
 function powSerO(a, b, c, z) {
   let y = C(0, 0);
   let yp = C(0, 0);
-  for(let k = 0; k < 20; k++) {
-    yp = divScalar(multScalar(pow(z, -k), pochhammer(a, k) * pochhammer(a - c + 1, k)), factorial(k) * gammaLanczos(a - b + k + 1));
+  for(let k = 0; k < 40; k++) {
+    yp = divScalar(multScalar(ccpow(z, -k), pochhammer(a, k) * pochhammer(a - c + 1, k)), factorial(k) * gammaLanczos(a - b + k + 1));
     y = add(y, yp);
   }
   return y;
@@ -737,8 +809,8 @@ function powSerO(a, b, c, z) {
 
 function hypergeo2F1PowSerO(a, b, c, z) {
   let sc = Math.PI / Math.sin(Math.PI * (b - a));
-  let px = divScalar(pow(neg(z), -a), gammaLanczos(b)*gammaLanczos(c - a));
-  let py = divScalar(pow(neg(z), -b), gammaLanczos(a)*gammaLanczos(c - b));
+  let px = divScalar(ccpow(neg(z), -a), gammaLanczos(b)*gammaLanczos(c - a));
+  let py = divScalar(ccpow(neg(z), -b), gammaLanczos(a)*gammaLanczos(c - b));
   let x = powSerO(a, b, c, z);
   let y = powSerO(b, a, c, z);
   return multScalar(add(mult(px, x), neg(mult(py, y))), sc)
@@ -766,13 +838,199 @@ function dmsToDec(degree, minute, second) {
   return degree + minute / 60 + second / 3600 + 1/1000000;
 }
 
+
+function cPoincare(z, p) {
+  return div(add(z,p), addScalar(mult(z, conj(p)),1))
+}
+
+
+function paraSize(p) {
+  return (1/(Math.sin(Math.PI * 0.5)**2 / Math.sin(Math.PI / p)**2 - 1)**0.5) * (Math.sin(Math.PI * 0.5) / Math.sin(Math.PI / p) - 1);
+}
+
+function scHGt(z, n, k) {
+  let nums = [0, 0,
+              2+n, (1+n)*(2+n), (1+n)*(2+n)*(2+3*n), (1+n)*(2+n)*(1+2*n)*(2+3*n), (1+n)*(2+n)*(1+2*n)*(2+3*n)*(2+5*n),
+              (1+n)*(2+n)*(1+2*n)*(1+3*n)*(2+3*n)*(2+5*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(2+3*n)*(2+5*n)*(2+7*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n),
+              (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n),
+              (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n)*(2+17*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n)*(2+17*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n)*(2+17*n)*(2+19*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n)*(2+17*n)*(2+19*n)
+             ];
+  let dens = [0, 0,
+              Math.pow(n,2)*(1+2*n), 3*Math.pow(n,3)*(1+3*n), 6*Math.pow(n,4)*(1+4*n), 15*Math.pow(n,5)*(1+5*n), 90*Math.pow(n,6)*(1+6*n),
+              315*Math.pow(n,7)*(1+2*n), 2520*Math.pow(n,8)*(1+8*n), 11340*Math.pow(n,9)*(1+9*n), 113400*Math.pow(n,10)*(1+10*n), 623700*Math.pow(n,11)*(1+11*n),
+              7484400*Math.pow(n,12)*(1+12*n), 48648600*Math.pow(n,13)*(1+13*n),681080400*Math.pow(n,14)*(1+14*n),5108103000*Math.pow(n,15)*(1+15*n), 81729648000*Math.pow(n,16)*(1+16*n),
+              694702008000*Math.pow(n,17)*(1+17*n), 12504636144000*Math.pow(n,18)*(1+18*n), 118794043368000*Math.pow(n,19)*(1+19*n), 2375880867360000*Math.pow(n,20)*(1+20*n), 24946749107280000*Math.pow(n,21)*(1+21*n)
+            ];
+  let sum = C(1,0);
+  let fin = div(multScalar(ccpow(z,n),2), C(n+Math.pow(n,2),0));
+  for(let i = 2; i < 22; i++) {
+    sum = add(sum, div(multScalar(ccpow(z,i*n), (i == 3 ? 2 : 1) * nums[i]), C(dens[i],0)));
+  }
+  return mult(z,add(sum,fin));
+}
+
+function hypergeo2F1Coefficients(a, b, c, nomial) {
+  let poly = [nomial];
+  for(let i = 0; i < nomial; i++) {
+    poly[i] = C((dynamicPochhammer(a,i)*dynamicPochhammer(b,i))/(dynamicPochhammer(c,i)*dynamicFactorial(i)),0);
+  }
+  return poly
+}
+
+function hypergeo2F1pn(z, poly) {
+  let sum = C(0,0);
+  for(let i = 0; i < poly.length; i++) {
+    sum = add(sum, mult(ccpow(z,i),poly[i]))
+  }
+  return sum
+}
+
+function beta(x,y) {
+  return div(mult(dynamicGamma(C(x,0)),dynamicGamma(C(y,0))), dynamicGamma(C(x+y,0)))
+}
+
+function scFunc(a,b,c,x,z) {
+  let fr = Math.pow(x,b-1)*Math.pow(1-x,c-b-1);
+  let cr = ccpow(addScalar(neg(multScalar(z,x)),1),-a)
+  return multScalar(cr,fr)
+}
+
+function integrateSCFunc(a,b,c,z) {
+  let eps = 0.001;
+  let sum = C(0,0);
+  for(let i = eps; i < 1; i+=eps) {
+    sum = add(sum,multScalar(scFunc(a,b,c,i,z),eps))
+  }
+  return sum
+}
+
+function hypergeoViaIntregration(a,b,c,z) {
+  return div(integrateSCFunc(a,b,c,z),beta(b,c-b))
+}
+
+function hypergeo2F1CoefficientsCoord(a, b, c, z0, nomial) {
+  let poly = [nomial];
+  for(let i = 0; i < nomial; i++) {
+    //let poly0 = hypergeo2F1Coefficients(a+i,b+i,c+i,nomial)
+    poly[i] = C((dynamicPochhammer(a,i)*dynamicPochhammer(b,i))/(dynamicPochhammer(c,i)*dynamicFactorial(i)),0);
+    //poly[i] *= hypergeo2F1pn(z0, poly0);
+    poly[i] = mult(poly[i], hypergeoViaIntregration(a+i,b+i,c+i,z0))
+  }
+  return poly
+}
+
+function hypergeo2F1fast(z, polyMap) {
+  let minDist = add(polyMap.keys().next().value,neg(z));
+  let minDistance = Math.hypot(minDist.re,minDist.im);
+  let minZ = polyMap.keys().next().value;
+  for(const [key, value] of polyMap.entries()) {
+    let keyMod = Math.hypot(key.re - z.re, key.im - z.im);
+    if(keyMod < minDistance) {
+      minDistance = keyMod;
+      minZ = key;
+    }
+  }
+  return hypergeo2F1pn(z, polyMap.get(minZ))
+}
+
+function scHG(z, n, k, poly) {
+  return mult(z, hypergeo2F1pn(ccpow(z,n),poly))
+}
+
+function scHGfast(z, n, k, polyMap) {
+  return mult(z, hypergeo2F1fast(ccpow(z,n),polyMap))
+}
+
+/* (c^(
+    20 n) (1 + n) (2 + n) (1 + 2 n) (1 + 3 n) (2 + 3 n) (1 +
+      4 n) (1 + 5 n) (2 + 5 n) (1 + 6 n) (1 + 7 n) (2 + 7 n) (1 +
+      8 n) (1 + 9 n) (2 + 9 n) (2 + 11 n) (2 + 13 n) (2 + 15 n) (2 +
+      17 n) (2 + 19 n))/(2375880867360000 n^20 (1 + 20 n))
+*/
+
+/*function SCinteg(x, y, func) {
+  let eps = 0.1;
+
+  let gammaPrime = C(x,y);
+  let sum = C(0,0);
+  for(let s = 0; s < 1; s += eps) {
+    let first = mult(func(C(x * s, y * s)), multScalar(gammaPrime, eps));
+    let second = mult(func(C(x * s+eps, y * s+eps)), multScalar(gammaPrime, eps))
+    let third = mult(func(C(x * s+eps*2, y * s+eps*2)), multScalar(gammaPrime, eps));
+    let fourth = mult(func(C(x * s+eps*3, y * s+eps*3)), multScalar(gammaPrime, eps));
+    let fifth = mult(func(C(x * s+eps*4, y * s+eps*4)), multScalar(gammaPrime, eps));
+    sum = add(sum, multScalar(add(add(add(add(multScalar(first,7),multScalar(second,32)),multScalar(third,12)),multScalar(fourth,32)),multScalar(fifth,7)),2/180));
+  }
+  return sum
+}
 /*transforms*/
 
+
+function schwarzChristoffelmap(n, k) {
+  let nom = 85;
+  let dec = 0.5;
+  let poly = hypergeo2F1Coefficients(1/n, 2/n, 1+1/n, nom)
+  let poly2 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(dec, 0), nom);
+  let poly3 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(Math.sqrt(dec), Math.sqrt(dec)), nom);
+  let poly4 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(0, dec), nom);
+  let poly5 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-Math.sqrt(dec), Math.sqrt(dec)), nom);
+  let poly6 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-dec, 0), nom);
+  let poly7 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-Math.sqrt(dec), -Math.sqrt(dec)), nom);
+  let poly8 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(0, -dec), nom);
+  let poly9 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(Math.sqrt(dec), -Math.sqrt(dec)), nom);
+  let poly10 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-0.5, Math.sqrt(3)*0.5), nom);
+  let poly11 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-0.5, -Math.sqrt(3)*0.5), nom);
+  let poly12 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(Math.sqrt(3),0), nom);
+  let theMap = new Map();
+  theMap.set(C(0,0),poly);
+  theMap.set(C(dec,0),poly2);
+  theMap.set(C(Math.sqrt(dec),Math.sqrt(dec)),poly3);
+  theMap.set(C(0,dec),poly4);
+  theMap.set(C(-Math.sqrt(dec),Math.sqrt(dec)),poly5);
+  theMap.set(C(-dec,0),poly6);
+  theMap.set(C(-Math.sqrt(dec),-Math.sqrt(dec)),poly7);
+  theMap.set(C(0,-dec),poly8);
+  theMap.set(C(Math.sqrt(dec),-Math.sqrt(dec)),poly9);
+  theMap.set(C(-0.5, Math.sqrt(3)*0.5),poly10);
+  theMap.set(C(-0.5, -Math.sqrt(3)*0.5),poly11);
+  theMap.set(C(Math.sqrt(3),0),poly12);
+  console.log(theMap)
+  return z => {
+    return {
+      ...z,
+      ...scHGfast(z,n,k,theMap)
+    }
+  }
+}
+
+/*function schwarzChristoffelmap(n, k) {
+  let poly = hypergeo2F1Coefficients(1/n, 2/n, 1+1/n, 80)
+  return z => {
+    return {
+      ...z,
+      ...scHG(z,n,k,poly)
+    }
+  }
+}
+
+
+/*function schwarzChristoffelmap(n, k) {
+  function funcyN(c) {
+      return ccpow(add(C(1,0),neg(ccpow(c, n))),-2/n);
+  }
+  return z => {
+    return {
+      ...z,
+      ...SCinteg(z.re, z.im, funcyN)
+    }
+  }
+}
+*/
 function reset() {
   return z => {
     return {
-      re: 0.000001,
-      im: 0.000002,
+      re: 0,
+      im: 0,
       z: 0,
       red: 1,
       green: 1,
@@ -867,7 +1125,7 @@ function blurSine(pow) {
   return z => {
     let a = Math.random() * 2 * Math.PI,
       u = Math.random();
-    let r = (pow == 1 ? Math.acos(u * 2 - 1) : Math.acos(Math.exp(Math.log(1 - u) * power) * 2 - 1)) / Math.PI;
+    let r = (pow == 1 ? Math.acos(u * 2 - 1) : Math.acos(Math.exp(Math.log(1 - u) * pow) * 2 - 1)) / Math.PI;
     return {
       ...z,
       re: Math.cos(a) * r,
@@ -953,6 +1211,64 @@ function cylinder() {
       ...z,
       re: z.re / Math.sqrt(z.re * z.re + 1),
       im: z.im
+    }
+  }
+}
+
+function dc_poincareDisc(p, q, iterations, checks0, checks1, checks2) {
+  let mba = C(1,0);
+  let mbb = C(0,0);
+  let a = Math.PI / p;
+  let b = Math.PI / q;
+  if(a+b>=0.5*Math.PI) {
+    b = 0.5 * Math.PI - a - 0.01;
+  }
+  let ca = Math.cos(a), sa = Math.sin(a);
+  let sb = Math.sin(b);
+  let c1 = Math.cos(a+b);
+  let s = c1 / (1-sa*sa-sb*sb)**0.5;
+  let sx = (s*s+1) / (2*s*ca);
+  let sr = (sx * sx - 1)**0.5;
+  let nfp = C(sa,-ca);
+  let angle = 29.9664;
+  return z => {
+    let col = {red:z.red,green:z.green,blue:z.blue};
+    if(dot(z,z) > 1) {
+      col = {red:0,green:0,blue:0};
+    }
+    let nz = discShift(z, mba, mbb);
+    let az = addScalar(nz,1);
+    let fc = {re:0,im:0,w:0};
+    for(let i = 0; (i < iterations) && (az.re == nz.re) && (az.im == nz.im); i++) {
+      az = nz;
+      nz.im = Math.abs(nz.im);
+      fc.re += (az.im != nz.im) ? 1 : 0;
+      let t = 2 * Math.min(0,dot(nz,nfp));
+      fc.im += (t < 0) ? 1 : 0;
+      nz = add(nz, neg(multScalar(nfp,t)));
+      nz.re = sx;
+      let r2 = dot(nz,nz);
+      let k = Math.max(sr*sr/r2,1);
+      fc.w += (k != 1) ? 1 : 0;
+      nz = multScalar(nz, k);
+      nz.re += sx;
+    }
+    let r = Math.pow(Math.abs(Math.hypot(z.re - sx, z.im) - sr),0.25);
+    let k = ((checks0 == 1 ? 1 : 0) * fc.re + (checks1 == 1 ? 1 : 0) * fc.im + (checks2 == 1 ? 1 : 0) * fc.w) % 2;
+    let k2 = 0.5 * k + 0.5;
+    col = {red:r * k2,green:r * k2,blue:r * k2};
+    let fz = nz;
+    fz.im *= k*2-1;
+    fz = mult(fz, mba);
+    fz = mult(fz, C(Math.cos(angle*DEGREE),Math.sin(angle*DEGREE)));
+    fz = add(fz, neg(mbb));
+    fz = addScalar(multScalar(fz, 0.5), 0.5);
+    return {
+      ...z,
+      ...fz,
+      red: col.red,
+      green: col.green,
+      blue: col.blue
     }
   }
 }
@@ -1324,7 +1640,6 @@ function jac_dn(k) {
 
 function jac_elk(k) {
   let ephi, epsi, sinA, cosA, phi, psi;
-  let result = 0;
 
   return z => {
     phi = z.re;
@@ -1568,7 +1883,7 @@ function schwarzTriangle(_alph, _bet, _gam) {
   let nc = 2 - c;
 
   return z => {
-    let nz = pow(z, alph);
+    let nz = ccpow(z, alph);
     let hg = hypergeo2F1(a, b, c, z);
     let nhg = hypergeo2F1(na, nb, nc, z);
 
@@ -2646,6 +2961,16 @@ function juliaq3D(power, divisor) {
   }
 }
 
+function parabola3D() {
+  return z => {
+    let qz = {qx: z.re, qy: z.im, qz: z.z, qw: 0};
+    return {
+      ...z,
+      ...qMult(qz,qz)
+    }
+  }
+}
+
 function sphereInv() {
   return z => {
     let r = 1 / (z.re**2 + z.im**2 + z.z**2);
@@ -3668,6 +3993,7 @@ const BUILT_IN_TRANSFORMS = {
   bubble3D: bubble3D,
   julian3D: julian3D,
   juliaq3D: juliaq3D,
+  parabola3D: parabola3D,
   sphereInv: sphereInv,
   trigCosh3D: trigCosh3D,
   trigExp3D: trigExp3D,
@@ -3700,6 +4026,7 @@ const BUILT_IN_TRANSFORMS = {
   circleInv: circleInv,
   cpow: cpow,
   cylinder: cylinder,
+  dc_poincareDisc: dc_poincareDisc,
   disc: disc,
   dragon: dragon,
   ePush: ePush,
@@ -3725,6 +4052,7 @@ const BUILT_IN_TRANSFORMS = {
   rotate: rotate,
   scale: scale,
   scale2: scale2,
+  schwarzChristoffelmap: schwarzChristoffelmap,
   schwarzTriangle: schwarzTriangle,
   sinusoidal: sinusoidal,
   skew: skew,
@@ -4109,6 +4437,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1
   }],
+  parabola3D: [],
   sphereInv: [],
   trigCosh3D: [],
   trigExp3D: [],
@@ -4270,6 +4599,36 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     }
   ],
   cylinder: [],
+  dc_poincareDisc: [{
+      name: "p",
+      type: "number",
+      default: 4
+  },
+  {
+      name: "q",
+      type: "number",
+      default: 5
+  },
+  {
+      name: "iterations",
+      type: "number",
+      default: 10
+  },
+  {
+      name: "checks0",
+      type: "number",
+      default: 1
+  },
+  {
+      name: "checks1",
+      type: "number",
+      default: 1
+  },
+  {
+      name: "checks2",
+      type: "number",
+      default: 1
+  }],
   disc: [],
   dragon: [{
       name: "a",
@@ -4569,6 +4928,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "imaginary",
     type: "number",
     default: 1
+  }],
+  schwarzChristoffelmap: [{
+    name: "n",
+    type: "number",
+    default: 3
+  },
+  {
+    name: "k",
+    type: "number",
+    default: 0.5
   }],
   schwarzTriangle: [{
     name: "_alph",

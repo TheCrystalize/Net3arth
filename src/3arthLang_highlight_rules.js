@@ -6,6 +6,7 @@ hypershift3D
 bubble3D
 julian3D
 juliaq3D
+parabola3D
 sphereInv
 trigCosh3D
 trigExp3D
@@ -35,6 +36,7 @@ bubble
 circleInv
 cpow
 cylinder
+dc_poincareDisc
 disc
 dragon
 ePush
@@ -60,6 +62,7 @@ pointSymmetry
 rotate
 scale
 scale2
+schwarzChristoffelmap
 schwarzTriangle
 sinusoidal
 skew
