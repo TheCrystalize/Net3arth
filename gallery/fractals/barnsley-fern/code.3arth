@@ -1,0 +1,20 @@
+// https://en.wikipedia.org/wiki/Barnsley_fern
+
+body:
+color(colorRGB(0, 1, 0))
+-> choose{
+  0.001:
+    scale2(0,0.16);
+  0.5:
+    mobius(0.86+0.04i, 0-1.6i, 0, 1);
+  0.07:
+    scale2(0.4,1)
+    -> mobius(0.2-0.43i, 0-1.6i, 0, 1);
+  0.07:
+    scale2(-0.4,1)
+    -> mobius(0.2+0.43i, 0-0.44i, 0, 1);
+};
+
+camera:
+translate(0, 5.5)
+-> scale(1/12);

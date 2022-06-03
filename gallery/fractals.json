@@ -23,5 +23,10 @@
     "folder": "mandelbulb",
     "title": "Mandelbulb",
     "author": "Edward Haas"
+  },
+  {
+    "folder": "barnsley-fern",
+    "title": "Barnsley Fern",
+    "author": "Edward Haas"
   }
 ]

@@ -1,3 +1,5 @@
+// https://en.wikipedia.org/wiki/Mandelbrot_set
+
 buffer() {
   return averageBuffer();
 }

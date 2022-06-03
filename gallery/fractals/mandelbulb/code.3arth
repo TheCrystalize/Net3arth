@@ -1,3 +1,5 @@
+// https://en.wikipedia.org/wiki/Mandelbulb
+
 buffer() {
   return zBuffer();
 }
@@ -40,7 +42,7 @@ mandelbulb(number n, number its) {
       re: cr,
       im: ci,
       z: cj,
-      ...hslToRgb(0.88 + r / 4, 1, 0.75)
+      ...hslToRgb(0.62 + r / 2, 1, 0.75)
     };
   }
 }
@@ -55,10 +57,10 @@ scale3D(0.44)
 -> rotate3D(0, 45, 0);
 
 shader:
-basicEnvironmentOrth(30, 30, 2, 0)
--> sumColor{
+sumColor{
   0.1: scale(1);
-  0.9: productColor{
+  0.9: basicEnvironmentOrth(30, 30, 2, 0)
+  -> productColor{
     1: sumColor{
       1: scale(1);
       1: specularOrth(30, 30, 2.5, 0, 20);
