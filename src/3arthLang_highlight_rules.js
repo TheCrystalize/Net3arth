@@ -160,7 +160,8 @@ matrixPerspectiveProjection
 getNormal
 zBuffer
 firstBuffer
-lastBuffer`.split('\n');
+lastBuffer
+averageBuffer`.split('\n');
 
 const StandardLibConstructorNamesArray =
 `C

@@ -1,30 +1,22 @@
-// average buffer
 buffer() {
-  if(newBuffer.red === 0 && newBuffer.green === 0){
-    return oldBuffer;
-  }
-  return {
-    red: (oldBuffer.red * oldBuffer.z + newBuffer.red)/(oldBuffer.z+1),
-    green: (oldBuffer.green * oldBuffer.z + newBuffer.green)/(oldBuffer.z+1),
-    blue: (oldBuffer.blue * oldBuffer.z + newBuffer.blue)/(oldBuffer.z+1),
-    z: oldBuffer.z + 1,
-  }
+  return averageBuffer();
 }
 
 decodeGradient(string txt) {
-  let t = txt.replace(/\W*/g,'');
+  let t = txt.replace(/\W*/g, '');
   let ans = [];
-  for(var i = 0; i < t.length; i += 6){
-      ans.push(
-        colorRGB(
-          Number.parseInt(t[i+0] + t[i+1], 16),
-          Number.parseInt(t[i+2] + t[i+3], 16),
-          Number.parseInt(t[i+4] + t[i+5], 16)
-        )
-      );
+  for(var i = 0; i < t.length; i += 6) {
+    ans.push(
+      colorRGB(
+        Number.parseInt(t[i + 0] + t[i + 1], 16),
+        Number.parseInt(t[i + 2] + t[i + 3], 16),
+        Number.parseInt(t[i + 4] + t[i + 5], 16)
+      )
+    );
   }
   return ans;
 }
+
 
 const myGradient = decodeGradient(
 ` D98703FAA701FBA401FCA102FBA302FBA603FAA403F9A303
@@ -67,17 +59,21 @@ apoGradient(number position, object grad) {
   const myGradientFunction = repeatingGradient(grad);
 
   return z => {
-    if(isNaN(z.gradientPosition)){
+    if(isNaN(z.gradientPosition)) {
       z.gradientPosition = position;
     }
     z.gradientPosition = (z.gradientPosition + position) / 2;
     let temp = z.im;
     return {
-      ...myGradientFunction({...z, im: z.gradientPosition}),
+      ...myGradientFunction({
+        ...z,
+        im: z.gradientPosition
+      }),
       im: temp
     }
   }
 }
+
 
 transform ApophysisGrad(number position):
   apoGradient(position, myGradient);

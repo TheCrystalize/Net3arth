@@ -1,25 +1,17 @@
-// average buffer
 buffer() {
-  if(newBuffer.red === 0 && newBuffer.green === 0){
-    return oldBuffer;
-  }
-  return {
-    red: (oldBuffer.red * oldBuffer.z + newBuffer.red)/(oldBuffer.z+1),
-    green: (oldBuffer.green * oldBuffer.z + newBuffer.green)/(oldBuffer.z+1),
-    blue: (oldBuffer.blue * oldBuffer.z + newBuffer.blue)/(oldBuffer.z+1),
-    z: oldBuffer.z + 1,
-  }
+  return averageBuffer();
 }
 
 const iterations = 500;
 
 mandelbrot() {
   let Z, a, b;
-  return z=>{
-    Z = [0, 0];
+  return z => {
+    Z = [z.re, z.im];
     for(let i = 0; i < iterations; i++) {
-      let a = Z[0] * Z[0], b = Z[1] * Z[1];
-      if(a + b > 4){
+      let a = Z[0] * Z[0],
+        b = Z[1] * Z[1];
+      if(a + b > 4) {
         return {
           ...z,
           red: i / iterations,
@@ -62,28 +54,31 @@ colorGradient() {
   ];
   return z => {
     let c = Math.pow(z.red, 0.75) * 40;
+    if(c === 1) {
+      c = 0;
+    }
     let col = (c % colors.length) >> 0;
     return {
       ...z,
       ...lerp(
         lerp(
-        colors[col],
-        colors[(col + 1) % colors.length],
-        c % 1
-      ),
-      colorRGB(0,0,0), z.green),
+          colors[col],
+          colors[(col + 1) % colors.length],
+          c % 1
+        ),
+        colorRGB(0, 0, 0), z.green),
       alpha: 255
     };
   };
 }
 
 body:
-blurCircle()
--> scale(2)
+blurSquare()
+-> scale(4)
 -> mandelbrot();
 
 camera:
-scale(1/4);
+scale(1 / 4);
 
 shader:
 colorGradient();

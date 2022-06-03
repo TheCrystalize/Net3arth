@@ -30,6 +30,15 @@ function lastBuffer(oldBuffer, newBuffer) {
   }
 }
 
+function averageBuffer(oldBuffer, newBuffer) {
+  return {
+    red: (oldBuffer.red * oldBuffer.z + newBuffer.red) / (oldBuffer.z + 1),
+    green: (oldBuffer.green * oldBuffer.z + newBuffer.green) / (oldBuffer.z + 1),
+    blue: (oldBuffer.blue * oldBuffer.z + newBuffer.blue) / (oldBuffer.z + 1),
+    z: oldBuffer.z + 1,
+  }
+}
+
 function zBuffer(oldBuffer, newBuffer) {
   if(oldBuffer.z !== 0 && oldBuffer.z < newBuffer.z) {
     return oldBuffer;
@@ -285,7 +294,12 @@ function carlsonRF(x, y, z) {
 
 function carlsonRD(x, y, z) {
   let alamb, ave, delx, dely, delz, ea, eb, ec, ed, ee, fac, sqrtx, sqrty, sqrtz, sum, xt, yt, zt;
-  let c1 = 3/14, c2 = 1/6, c3 = 9/22, c4 = 3/26, c5 = 0.25 * c3, c6 = 1.5 * c4;
+  let c1 = 3 / 14,
+    c2 = 1 / 6,
+    c3 = 9 / 22,
+    c4 = 3 / 26,
+    c5 = 0.25 * c3,
+    c6 = 1.5 * c4;
   let minError = 1e-5;
   let mIt = 25;
   let itC = 0;
@@ -295,30 +309,30 @@ function carlsonRD(x, y, z) {
   sum = 0;
   fac = 1;
   do {
-    sqrtx = xt**0.5;
-    sqrty = yt**0.5;
-    sqrtz = zt**0.5;
+    sqrtx = xt ** 0.5;
+    sqrty = yt ** 0.5;
+    sqrtz = zt ** 0.5;
     alamb = sqrtz * (sqrty + sqrtz) + sqrty * sqrtz;
-    sum += fac / (sqrtz*(zt*alamb));
+    sum += fac / (sqrtz * (zt * alamb));
     fac = 0.25 * fac;
     xt = 0.25 * (xt + alamb);
     yt = 0.25 * (yt + alamb);
     zt = 0.25 * (zt + alamb);
-    ave = 0.2 * (xt + yt + 3*zt);
-    delx = (ave-xt)/ave;
-    dely = (ave-yt)/ave;
-    delz = (ave-zt)/ave;
+    ave = 0.2 * (xt + yt + 3 * zt);
+    delx = (ave - xt) / ave;
+    dely = (ave - yt) / ave;
+    delz = (ave - zt) / ave;
     itC++;
     if(itC >= mIt) {
       break;
     }
-  } while (Math.max(Math.max(Math.abs(delx), Math.abs(dely)), Math.abs(delz)) > minError);
+  } while(Math.max(Math.max(Math.abs(delx), Math.abs(dely)), Math.abs(delz)) > minError);
   ea = delx * dely;
   eb = delz * delz;
   ec = ea - eb;
   ed = ea - 6 * eb;
   ee = ed + ec + ec;
-  return 3 * sum + fac * (1 + ed * (-c1 + c5 * ed - c6 * delz * ee) + delz * (c2 * ee + delz * (-c3 * ec + delz * c4 * ea))) / (ave * ave**0.5);
+  return 3 * sum + fac * (1 + ed * (-c1 + c5 * ed - c6 * delz * ee) + delz * (c2 * ee + delz * (-c3 * ec + delz * c4 * ea))) / (ave * ave ** 0.5);
 }
 
 function jacElliptic(u, emc) {
@@ -643,9 +657,9 @@ var factorialArray = [200];
 
 function dynamicFactorial(n) {
   n = n < 0 ? -n : n;
-  if(n==0||n==1) return 1
-  if(factorialArray[n]!=undefined) return factorialArray[n]
-  let temp = dynamicFactorial(n-1)*n;
+  if(n == 0 || n == 1) return 1
+  if(factorialArray[n] != undefined) return factorialArray[n]
+  let temp = dynamicFactorial(n - 1) * n;
   factorialArray[n] = temp
   return factorialArray[n]
 }
@@ -653,7 +667,7 @@ function dynamicFactorial(n) {
 function factorial(n) {
   n = n < 0 ? -n : n
   let result = 1;
-  while (n > 1) {
+  while(n > 1) {
     result *= n;
     n--;
   }
@@ -664,12 +678,12 @@ function factorial(n) {
 const pochhammerMap = new Map();
 
 function dynamicPochhammer(q, n) {
-  if(n==0) return 1
+  if(n == 0) return 1
   if(!pochhammerMap.has(q)) {
-    pochhammerMap.set(q,[200])
+    pochhammerMap.set(q, [200])
   }
-  if(pochhammerMap.get(q)[n]!=undefined) return pochhammerMap.get(q)[n]
-  let temp = dynamicPochhammer(q, n-1)*(q+n-1)
+  if(pochhammerMap.get(q)[n] != undefined) return pochhammerMap.get(q)[n]
+  let temp = dynamicPochhammer(q, n - 1) * (q + n - 1)
   pochhammerMap.get(q)[n] = temp;
   return temp
 }
@@ -677,7 +691,7 @@ function dynamicPochhammer(q, n) {
 function pochhammer(q, n) {
   let y = 1;
 
-  for(let k = 0; k <= n - 1; k++){
+  for(let k = 0; k <= n - 1; k++) {
     y *= q + k;
   }
 
@@ -685,16 +699,16 @@ function pochhammer(q, n) {
 }
 
 function pochhammerFalling(q, n) {
-    let y = 1;
+  let y = 1;
 
-    for(let k = 0; k <= n - 1; k++){
-      y *= q - k;
-    }
+  for(let k = 0; k <= n - 1; k++) {
+    y *= q - k;
+  }
 
-    return y;
+  return y;
 }
 
-function gammaLanczos(z){
+function gammaLanczos(z) {
   let p;
   let i, y, t, x;
 
@@ -709,16 +723,16 @@ function gammaLanczos(z){
     1.5056327351493116e-7
   ];
 
-  if(z < 0.5){
-    y = Math.PI/(Math.sin(Math.PI*z)*gammaLanczos(1 - z));
-  }else{
+  if(z < 0.5) {
+    y = Math.PI / (Math.sin(Math.PI * z) * gammaLanczos(1 - z));
+  } else {
     z = z - 1;
     x = 0.99999999999980993;
-    for(i = 0; i < p.length; i++){
-      x = x + p[i]/(z + i + 1);
+    for(i = 0; i < p.length; i++) {
+      x = x + p[i] / (z + i + 1);
     }
     t = z + p.length - 0.5;
-    y = Math.sqrt(2*Math.PI)*t**(z + 0.5)*Math.exp( -t)*x;
+    y = Math.sqrt(2 * Math.PI) * t ** (z + 0.5) * Math.exp(-t) * x;
   }
 
   return y;
@@ -726,42 +740,43 @@ function gammaLanczos(z){
 
 function tcPow(z, c) {
   let a = Math.atan2(z.im, z.re);
-  let lnr = 0.5*Math.log(dot(z,z));
+  let lnr = 0.5 * Math.log(dot(z, z));
   let m = Math.exp(c.re * lnr - c.im * a);
   let ang = c.re * a + c.im * lnr + 2 * Math.PI;
-  return multScalar(C(Math.cos(ang),Math.sin(ang)), m)
+  return multScalar(C(Math.cos(ang), Math.sin(ang)), m)
 }
 
 const gammaMap = new Map();
+
 function dynamicGamma(z) {
   if(gammaMap.has(z)) return gammaMap.get(z)
-  if((z.re<0)&&(z.re==Math.floor(z.re))&&(z.im==0)) return C(1/0,1/0)
-  if((z.re==Math.floor(z.re))&&(z.im==0)) return C(dynamicFactorial(z.re),0)
+  if((z.re < 0) && (z.re == Math.floor(z.re)) && (z.im == 0)) return C(1 / 0, 1 / 0)
+  if((z.re == Math.floor(z.re)) && (z.im == 0)) return C(dynamicFactorial(z.re), 0)
 
-  let prod = div(C(1,0),z);
-  for(let i=1; i < 40; i++) {
-    prod = mult(prod, tcPow(C(1+1/i,0), z));
-    prod = div(prod, addScalar(div(z,C(i,0)),1))
+  let prod = div(C(1, 0), z);
+  for(let i = 1; i < 40; i++) {
+    prod = mult(prod, tcPow(C(1 + 1 / i, 0), z));
+    prod = div(prod, addScalar(div(z, C(i, 0)), 1))
   }
-  gammaMap.set(z,prod)
+  gammaMap.set(z, prod)
   return prod
 }
 
 function cGamma(z) {
   let eps = 0.01;
-  let sum = C(0,0);
-  for(let i = 0; i < 10; i+=eps) {
-    sum = add(sum, multScalar(mult(tcPow(C(i,0),addScalar(z,-1)), exp(C(-i,0))), eps));
+  let sum = C(0, 0);
+  for(let i = 0; i < 10; i += eps) {
+    sum = add(sum, multScalar(mult(tcPow(C(i, 0), addScalar(z, -1)), exp(C(-i, 0))), eps));
   }
   return sum
 }
 
 
-function isInt(a){
+function isInt(a) {
   return (a - Math.floor(a)) == 0;
 }
 
-function isNeg(a){
+function isNeg(a) {
   return a < 0;
 }
 
@@ -788,8 +803,8 @@ function ccpow(z, p) {
 }
 
 function hypergeo2F1PowSerI(a, b, c, z) {
-  let y = C(0,0);
-  let yp = C(0,0);
+  let y = C(0, 0);
+  let yp = C(0, 0);
   for(let k = 0; k < 40; k++) {
     yp = divScalar(multScalar(ccpow(z, k), pochhammer(a, k) * pochhammer(b, k)), gammaLanczos(c + k) * factorial(k));
     y = add(y, yp);
@@ -809,15 +824,15 @@ function powSerO(a, b, c, z) {
 
 function hypergeo2F1PowSerO(a, b, c, z) {
   let sc = Math.PI / Math.sin(Math.PI * (b - a));
-  let px = divScalar(ccpow(neg(z), -a), gammaLanczos(b)*gammaLanczos(c - a));
-  let py = divScalar(ccpow(neg(z), -b), gammaLanczos(a)*gammaLanczos(c - b));
+  let px = divScalar(ccpow(neg(z), -a), gammaLanczos(b) * gammaLanczos(c - a));
+  let py = divScalar(ccpow(neg(z), -b), gammaLanczos(a) * gammaLanczos(c - b));
   let x = powSerO(a, b, c, z);
   let y = powSerO(b, a, c, z);
   return multScalar(add(mult(px, x), neg(mult(py, y))), sc)
 }
 
 function hypergeo2F1(a, b, c, z) {
-  let y = C(0,0);
+  let y = C(0, 0);
   if(Math.hypot(z.re, z.im) > 1) {
     y = hypergeo2F1PowSerO(a, b, c, z);
   } else {
@@ -835,93 +850,93 @@ function returnAll() {
 }
 
 function dmsToDec(degree, minute, second) {
-  return degree + minute / 60 + second / 3600 + 1/1000000;
+  return degree + minute / 60 + second / 3600 + 1 / 1000000;
 }
 
 
 function cPoincare(z, p) {
-  return div(add(z,p), addScalar(mult(z, conj(p)),1))
+  return div(add(z, p), addScalar(mult(z, conj(p)), 1))
 }
 
 
 function paraSize(p) {
-  return (1/(Math.sin(Math.PI * 0.5)**2 / Math.sin(Math.PI / p)**2 - 1)**0.5) * (Math.sin(Math.PI * 0.5) / Math.sin(Math.PI / p) - 1);
+  return (1 / (Math.sin(Math.PI * 0.5) ** 2 / Math.sin(Math.PI / p) ** 2 - 1) ** 0.5) * (Math.sin(Math.PI * 0.5) / Math.sin(Math.PI / p) - 1);
 }
 
 function scHGt(z, n, k) {
   let nums = [0, 0,
-              2+n, (1+n)*(2+n), (1+n)*(2+n)*(2+3*n), (1+n)*(2+n)*(1+2*n)*(2+3*n), (1+n)*(2+n)*(1+2*n)*(2+3*n)*(2+5*n),
-              (1+n)*(2+n)*(1+2*n)*(1+3*n)*(2+3*n)*(2+5*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(2+3*n)*(2+5*n)*(2+7*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n),
-              (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n),
-              (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n)*(2+17*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n)*(2+17*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n)*(2+17*n)*(2+19*n), (1+n)*(2+n)*(1+2*n)*(1+3*n)*(1+4*n)*(2+3*n)*(2+5*n)*(2+7*n)*(2+9*n)*(2+11*n)*(2+13*n)*(2+15*n)*(2+17*n)*(2+19*n)
-             ];
+    2 + n, (1 + n) * (2 + n), (1 + n) * (2 + n) * (2 + 3 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (2 + 3 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (2 + 3 * n) * (2 + 5 * n),
+    (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (2 + 3 * n) * (2 + 5 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n),
+    (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n) * (2 + 13 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n) * (2 + 13 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n) * (2 + 13 * n) * (2 + 15 * n),
+    (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n) * (2 + 13 * n) * (2 + 15 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n) * (2 + 13 * n) * (2 + 15 * n) * (2 + 17 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n) * (2 + 13 * n) * (2 + 15 * n) * (2 + 17 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n) * (2 + 13 * n) * (2 + 15 * n) * (2 + 17 * n) * (2 + 19 * n), (1 + n) * (2 + n) * (1 + 2 * n) * (1 + 3 * n) * (1 + 4 * n) * (2 + 3 * n) * (2 + 5 * n) * (2 + 7 * n) * (2 + 9 * n) * (2 + 11 * n) * (2 + 13 * n) * (2 + 15 * n) * (2 + 17 * n) * (2 + 19 * n)
+  ];
   let dens = [0, 0,
-              Math.pow(n,2)*(1+2*n), 3*Math.pow(n,3)*(1+3*n), 6*Math.pow(n,4)*(1+4*n), 15*Math.pow(n,5)*(1+5*n), 90*Math.pow(n,6)*(1+6*n),
-              315*Math.pow(n,7)*(1+2*n), 2520*Math.pow(n,8)*(1+8*n), 11340*Math.pow(n,9)*(1+9*n), 113400*Math.pow(n,10)*(1+10*n), 623700*Math.pow(n,11)*(1+11*n),
-              7484400*Math.pow(n,12)*(1+12*n), 48648600*Math.pow(n,13)*(1+13*n),681080400*Math.pow(n,14)*(1+14*n),5108103000*Math.pow(n,15)*(1+15*n), 81729648000*Math.pow(n,16)*(1+16*n),
-              694702008000*Math.pow(n,17)*(1+17*n), 12504636144000*Math.pow(n,18)*(1+18*n), 118794043368000*Math.pow(n,19)*(1+19*n), 2375880867360000*Math.pow(n,20)*(1+20*n), 24946749107280000*Math.pow(n,21)*(1+21*n)
-            ];
-  let sum = C(1,0);
-  let fin = div(multScalar(ccpow(z,n),2), C(n+Math.pow(n,2),0));
+    Math.pow(n, 2) * (1 + 2 * n), 3 * Math.pow(n, 3) * (1 + 3 * n), 6 * Math.pow(n, 4) * (1 + 4 * n), 15 * Math.pow(n, 5) * (1 + 5 * n), 90 * Math.pow(n, 6) * (1 + 6 * n),
+    315 * Math.pow(n, 7) * (1 + 2 * n), 2520 * Math.pow(n, 8) * (1 + 8 * n), 11340 * Math.pow(n, 9) * (1 + 9 * n), 113400 * Math.pow(n, 10) * (1 + 10 * n), 623700 * Math.pow(n, 11) * (1 + 11 * n),
+    7484400 * Math.pow(n, 12) * (1 + 12 * n), 48648600 * Math.pow(n, 13) * (1 + 13 * n), 681080400 * Math.pow(n, 14) * (1 + 14 * n), 5108103000 * Math.pow(n, 15) * (1 + 15 * n), 81729648000 * Math.pow(n, 16) * (1 + 16 * n),
+    694702008000 * Math.pow(n, 17) * (1 + 17 * n), 12504636144000 * Math.pow(n, 18) * (1 + 18 * n), 118794043368000 * Math.pow(n, 19) * (1 + 19 * n), 2375880867360000 * Math.pow(n, 20) * (1 + 20 * n), 24946749107280000 * Math.pow(n, 21) * (1 + 21 * n)
+  ];
+  let sum = C(1, 0);
+  let fin = div(multScalar(ccpow(z, n), 2), C(n + Math.pow(n, 2), 0));
   for(let i = 2; i < 22; i++) {
-    sum = add(sum, div(multScalar(ccpow(z,i*n), (i == 3 ? 2 : 1) * nums[i]), C(dens[i],0)));
+    sum = add(sum, div(multScalar(ccpow(z, i * n), (i == 3 ? 2 : 1) * nums[i]), C(dens[i], 0)));
   }
-  return mult(z,add(sum,fin));
+  return mult(z, add(sum, fin));
 }
 
 function hypergeo2F1Coefficients(a, b, c, nomial) {
   let poly = [nomial];
   for(let i = 0; i < nomial; i++) {
-    poly[i] = C((dynamicPochhammer(a,i)*dynamicPochhammer(b,i))/(dynamicPochhammer(c,i)*dynamicFactorial(i)),0);
+    poly[i] = C((dynamicPochhammer(a, i) * dynamicPochhammer(b, i)) / (dynamicPochhammer(c, i) * dynamicFactorial(i)), 0);
   }
   return poly
 }
 
 function hypergeo2F1pn(z, poly) {
-  let sum = C(0,0);
+  let sum = C(0, 0);
   for(let i = 0; i < poly.length; i++) {
-    sum = add(sum, mult(ccpow(z,i),poly[i]))
+    sum = add(sum, mult(ccpow(z, i), poly[i]))
   }
   return sum
 }
 
-function beta(x,y) {
-  return div(mult(dynamicGamma(C(x,0)),dynamicGamma(C(y,0))), dynamicGamma(C(x+y,0)))
+function beta(x, y) {
+  return div(mult(dynamicGamma(C(x, 0)), dynamicGamma(C(y, 0))), dynamicGamma(C(x + y, 0)))
 }
 
-function scFunc(a,b,c,x,z) {
-  let fr = Math.pow(x,b-1)*Math.pow(1-x,c-b-1);
-  let cr = ccpow(addScalar(neg(multScalar(z,x)),1),-a)
-  return multScalar(cr,fr)
+function scFunc(a, b, c, x, z) {
+  let fr = Math.pow(x, b - 1) * Math.pow(1 - x, c - b - 1);
+  let cr = ccpow(addScalar(neg(multScalar(z, x)), 1), -a)
+  return multScalar(cr, fr)
 }
 
-function integrateSCFunc(a,b,c,z) {
+function integrateSCFunc(a, b, c, z) {
   let eps = 0.001;
-  let sum = C(0,0);
-  for(let i = eps; i < 1; i+=eps) {
-    sum = add(sum,multScalar(scFunc(a,b,c,i,z),eps))
+  let sum = C(0, 0);
+  for(let i = eps; i < 1; i += eps) {
+    sum = add(sum, multScalar(scFunc(a, b, c, i, z), eps))
   }
   return sum
 }
 
-function hypergeoViaIntregration(a,b,c,z) {
-  return div(integrateSCFunc(a,b,c,z),beta(b,c-b))
+function hypergeoViaIntregration(a, b, c, z) {
+  return div(integrateSCFunc(a, b, c, z), beta(b, c - b))
 }
 
 function hypergeo2F1CoefficientsCoord(a, b, c, z0, nomial) {
   let poly = [nomial];
   for(let i = 0; i < nomial; i++) {
     //let poly0 = hypergeo2F1Coefficients(a+i,b+i,c+i,nomial)
-    poly[i] = C((dynamicPochhammer(a,i)*dynamicPochhammer(b,i))/(dynamicPochhammer(c,i)*dynamicFactorial(i)),0);
+    poly[i] = C((dynamicPochhammer(a, i) * dynamicPochhammer(b, i)) / (dynamicPochhammer(c, i) * dynamicFactorial(i)), 0);
     //poly[i] *= hypergeo2F1pn(z0, poly0);
-    poly[i] = mult(poly[i], hypergeoViaIntregration(a+i,b+i,c+i,z0))
+    poly[i] = mult(poly[i], hypergeoViaIntregration(a + i, b + i, c + i, z0))
   }
   return poly
 }
 
 function hypergeo2F1fast(z, polyMap) {
-  let minDist = add(polyMap.keys().next().value,neg(z));
-  let minDistance = Math.hypot(minDist.re,minDist.im);
+  let minDist = add(polyMap.keys().next().value, neg(z));
+  let minDistance = Math.hypot(minDist.re, minDist.im);
   let minZ = polyMap.keys().next().value;
   for(const [key, value] of polyMap.entries()) {
     let keyMod = Math.hypot(key.re - z.re, key.im - z.im);
@@ -934,11 +949,11 @@ function hypergeo2F1fast(z, polyMap) {
 }
 
 function scHG(z, n, k, poly) {
-  return mult(z, hypergeo2F1pn(ccpow(z,n),poly))
+  return mult(z, hypergeo2F1pn(ccpow(z, n), poly))
 }
 
 function scHGfast(z, n, k, polyMap) {
-  return mult(z, hypergeo2F1fast(ccpow(z,n),polyMap))
+  return mult(z, hypergeo2F1fast(ccpow(z, n), polyMap))
 }
 
 /* (c^(
@@ -969,36 +984,36 @@ function scHGfast(z, n, k, polyMap) {
 function schwarzChristoffelmap(n, k) {
   let nom = 85;
   let dec = 0.5;
-  let poly = hypergeo2F1Coefficients(1/n, 2/n, 1+1/n, nom)
-  let poly2 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(dec, 0), nom);
-  let poly3 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(Math.sqrt(dec), Math.sqrt(dec)), nom);
-  let poly4 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(0, dec), nom);
-  let poly5 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-Math.sqrt(dec), Math.sqrt(dec)), nom);
-  let poly6 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-dec, 0), nom);
-  let poly7 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-Math.sqrt(dec), -Math.sqrt(dec)), nom);
-  let poly8 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(0, -dec), nom);
-  let poly9 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(Math.sqrt(dec), -Math.sqrt(dec)), nom);
-  let poly10 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-0.5, Math.sqrt(3)*0.5), nom);
-  let poly11 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(-0.5, -Math.sqrt(3)*0.5), nom);
-  let poly12 = hypergeo2F1CoefficientsCoord(1/n, 2/n, 1+1/n, C(Math.sqrt(3),0), nom);
+  let poly = hypergeo2F1Coefficients(1 / n, 2 / n, 1 + 1 / n, nom)
+  let poly2 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(dec, 0), nom);
+  let poly3 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(Math.sqrt(dec), Math.sqrt(dec)), nom);
+  let poly4 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(0, dec), nom);
+  let poly5 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(-Math.sqrt(dec), Math.sqrt(dec)), nom);
+  let poly6 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(-dec, 0), nom);
+  let poly7 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(-Math.sqrt(dec), -Math.sqrt(dec)), nom);
+  let poly8 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(0, -dec), nom);
+  let poly9 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(Math.sqrt(dec), -Math.sqrt(dec)), nom);
+  let poly10 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(-0.5, Math.sqrt(3) * 0.5), nom);
+  let poly11 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(-0.5, -Math.sqrt(3) * 0.5), nom);
+  let poly12 = hypergeo2F1CoefficientsCoord(1 / n, 2 / n, 1 + 1 / n, C(Math.sqrt(3), 0), nom);
   let theMap = new Map();
-  theMap.set(C(0,0),poly);
-  theMap.set(C(dec,0),poly2);
-  theMap.set(C(Math.sqrt(dec),Math.sqrt(dec)),poly3);
-  theMap.set(C(0,dec),poly4);
-  theMap.set(C(-Math.sqrt(dec),Math.sqrt(dec)),poly5);
-  theMap.set(C(-dec,0),poly6);
-  theMap.set(C(-Math.sqrt(dec),-Math.sqrt(dec)),poly7);
-  theMap.set(C(0,-dec),poly8);
-  theMap.set(C(Math.sqrt(dec),-Math.sqrt(dec)),poly9);
-  theMap.set(C(-0.5, Math.sqrt(3)*0.5),poly10);
-  theMap.set(C(-0.5, -Math.sqrt(3)*0.5),poly11);
-  theMap.set(C(Math.sqrt(3),0),poly12);
+  theMap.set(C(0, 0), poly);
+  theMap.set(C(dec, 0), poly2);
+  theMap.set(C(Math.sqrt(dec), Math.sqrt(dec)), poly3);
+  theMap.set(C(0, dec), poly4);
+  theMap.set(C(-Math.sqrt(dec), Math.sqrt(dec)), poly5);
+  theMap.set(C(-dec, 0), poly6);
+  theMap.set(C(-Math.sqrt(dec), -Math.sqrt(dec)), poly7);
+  theMap.set(C(0, -dec), poly8);
+  theMap.set(C(Math.sqrt(dec), -Math.sqrt(dec)), poly9);
+  theMap.set(C(-0.5, Math.sqrt(3) * 0.5), poly10);
+  theMap.set(C(-0.5, -Math.sqrt(3) * 0.5), poly11);
+  theMap.set(C(Math.sqrt(3), 0), poly12);
   console.log(theMap)
   return z => {
     return {
       ...z,
-      ...scHGfast(z,n,k,theMap)
+      ...scHGfast(z, n, k, theMap)
     }
   }
 }
@@ -1216,51 +1231,69 @@ function cylinder() {
 }
 
 function dc_poincareDisc(p, q, iterations, checks0, checks1, checks2) {
-  let mba = C(1,0);
-  let mbb = C(0,0);
+  let mba = C(1, 0);
+  let mbb = C(0, 0);
   let a = Math.PI / p;
   let b = Math.PI / q;
-  if(a+b>=0.5*Math.PI) {
+  if(a + b >= 0.5 * Math.PI) {
     b = 0.5 * Math.PI - a - 0.01;
   }
-  let ca = Math.cos(a), sa = Math.sin(a);
+  let ca = Math.cos(a),
+    sa = Math.sin(a);
   let sb = Math.sin(b);
-  let c1 = Math.cos(a+b);
-  let s = c1 / (1-sa*sa-sb*sb)**0.5;
-  let sx = (s*s+1) / (2*s*ca);
-  let sr = (sx * sx - 1)**0.5;
-  let nfp = C(sa,-ca);
+  let c1 = Math.cos(a + b);
+  let s = c1 / (1 - sa * sa - sb * sb) ** 0.5;
+  let sx = (s * s + 1) / (2 * s * ca);
+  let sr = (sx * sx - 1) ** 0.5;
+  let nfp = C(sa, -ca);
   let angle = 29.9664;
   return z => {
-    let col = {red:z.red,green:z.green,blue:z.blue};
-    if(dot(z,z) > 1) {
-      col = {red:0,green:0,blue:0};
+    let col = {
+      red: z.red,
+      green: z.green,
+      blue: z.blue
+    };
+    if(dot(z, z) > 1) {
+      col = {
+        red: 0,
+        green: 0,
+        blue: 0
+      };
     }
     let nz = discShift(z, mba, mbb);
-    let az = addScalar(nz,1);
-    let fc = {re:0,im:0,w:0};
-    for(let i = 0; (i < iterations) && (az.re == nz.re) && (az.im == nz.im); i++) {
+    let az = addScalar(nz, 1);
+    let fc = {
+      re: 0,
+      im: 0,
+      w: 0
+    };
+    for(let i = 0;
+      (i < iterations) && (az.re == nz.re) && (az.im == nz.im); i++) {
       az = nz;
       nz.im = Math.abs(nz.im);
       fc.re += (az.im != nz.im) ? 1 : 0;
-      let t = 2 * Math.min(0,dot(nz,nfp));
+      let t = 2 * Math.min(0, dot(nz, nfp));
       fc.im += (t < 0) ? 1 : 0;
-      nz = add(nz, neg(multScalar(nfp,t)));
+      nz = add(nz, neg(multScalar(nfp, t)));
       nz.re = sx;
-      let r2 = dot(nz,nz);
-      let k = Math.max(sr*sr/r2,1);
+      let r2 = dot(nz, nz);
+      let k = Math.max(sr * sr / r2, 1);
       fc.w += (k != 1) ? 1 : 0;
       nz = multScalar(nz, k);
       nz.re += sx;
     }
-    let r = Math.pow(Math.abs(Math.hypot(z.re - sx, z.im) - sr),0.25);
+    let r = Math.pow(Math.abs(Math.hypot(z.re - sx, z.im) - sr), 0.25);
     let k = ((checks0 == 1 ? 1 : 0) * fc.re + (checks1 == 1 ? 1 : 0) * fc.im + (checks2 == 1 ? 1 : 0) * fc.w) % 2;
     let k2 = 0.5 * k + 0.5;
-    col = {red:r * k2,green:r * k2,blue:r * k2};
+    col = {
+      red: r * k2,
+      green: r * k2,
+      blue: r * k2
+    };
     let fz = nz;
-    fz.im *= k*2-1;
+    fz.im *= k * 2 - 1;
     fz = mult(fz, mba);
-    fz = mult(fz, C(Math.cos(angle*DEGREE),Math.sin(angle*DEGREE)));
+    fz = mult(fz, C(Math.cos(angle * DEGREE), Math.sin(angle * DEGREE)));
     fz = add(fz, neg(mbb));
     fz = addScalar(multScalar(fz, 0.5), 0.5);
     return {
@@ -1418,7 +1451,7 @@ function ePush(push, _rotation) {
   return z => {
     let tmp = dot(z, z) + 1;
     let tmp2 = 2 * z.re;
-    let xm = ((tmp+tmp2)**0.5 + (tmp-tmp2)**0.5) * 0.5;
+    let xm = ((tmp + tmp2) ** 0.5 + (tmp - tmp2) ** 0.5) * 0.5;
     let xmax = (xm < 1) ? 1 : xm;
     let nt = z.re / xmax;
     let t = (nt > 1) ? 1 : (nt < -1) ? -1 : nt;
@@ -1438,7 +1471,7 @@ function eRotate(rotationAngle) {
   return z => {
     let tmp = dot(z, z) + 1;
     let tmp2 = 2 * z.re;
-    let xm = ((tmp + tmp2)**0.5 + (tmp - tmp2)**0.5) * 0.5;
+    let xm = ((tmp + tmp2) ** 0.5 + (tmp - tmp2) ** 0.5) * 0.5;
     xm = xm < 1 ? 1 : xm;
     let t = z.re / xm;
     t = t > 1 ? 1 : t < -1 ? -1 : t;
@@ -1447,7 +1480,7 @@ function eRotate(rotationAngle) {
     return {
       ...z,
       re: xm * Math.cos(nu),
-      im: (xm * xm - 1)**0.5 * Math.sin(nu)
+      im: (xm * xm - 1) ** 0.5 * Math.sin(nu)
     }
   }
 }
@@ -1534,8 +1567,8 @@ function hypertile3(p, q, r, shift) {
       rot2 = 360 / q * Math.floor(Math.random() * q) * DEGREE,
       rot3 = 360 / r * Math.floor(Math.random() * r) * DEGREE;
     let r01 = C(Math.cos(rot1), Math.sin(rot1)),
-        r02 = C(Math.cos(rot2), Math.sin(rot2)),
-        r03 = C(Math.cos(rot3), Math.sin(rot3));
+      r02 = C(Math.cos(rot2), Math.sin(rot2)),
+      r03 = C(Math.cos(rot3), Math.sin(rot3));
     let n, pfr, z0;
     if(shift < 0.25) {
       n = 0;
@@ -1608,7 +1641,7 @@ function jac_cn(k) {
     let numx = jx.c * jy.c;
     let numy = jx.d * jx.s * jy.d * jy.s;
 
-    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
+    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
     denom = 1 / (denom);
 
     return {
@@ -1627,7 +1660,7 @@ function jac_dn(k) {
     let numx = jx.d * jy.c * jy.d;
     let numy = jx.c * jx.s * jy.s * k;
 
-    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
+    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
     denom = 1 / (denom);
 
     return {
@@ -1682,7 +1715,7 @@ function jac_sn(k) {
     let numx = jx.s * jy.d;
     let numy = jx.c * jx.d * jy.c * jy.s;
 
-    let denom = jx.s**2 * jy.s**2 * k + jy.c**2;
+    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
     denom = 1 / (denom);
 
     return {
@@ -1747,7 +1780,7 @@ function mobius(a, b, c, d) {
 }
 
 function multiMobius(a, b, c, d, iterations) {
-  let mo = mobius(a,b,c,d);
+  let mo = mobius(a, b, c, d);
   return z => {
     let nz = z;
     for(let i = 0; i < iterations; i++) {
@@ -2441,24 +2474,40 @@ function gamma(gamma) {
 }
 
 function colorAdd(a, b) {
-  return {red: a.red + b.red, green: a.green + b.green, blue: a.blue + b.blue}
+  return {
+    red: a.red + b.red,
+    green: a.green + b.green,
+    blue: a.blue + b.blue
+  }
 }
 
 function colorMult(a, b) {
-  return {red: a.red * b.red, green: a.green * b.green, blue: a.blue * b.blue}
+  return {
+    red: a.red * b.red,
+    green: a.green * b.green,
+    blue: a.blue * b.blue
+  }
 }
 
 function colorMultScalar(a, scalar) {
-  return {red: a.red * scalar, green: a.green * scalar, blue: a.blue * scalar}
+  return {
+    red: a.red * scalar,
+    green: a.green * scalar,
+    blue: a.blue * scalar
+  }
 }
 
 function colorCos(a) {
-  return {red: Math.cos(a.red), green: Math.cos(a.green), blue: Math.cos(a.blue)}
+  return {
+    red: Math.cos(a.red),
+    green: Math.cos(a.green),
+    blue: Math.cos(a.blue)
+  }
 }
 
 function paletteMod(a, b, c, d) {
   return z => {
-    let f = colorAdd(a, colorMult(b, colorCos(colorMultScalar(colorAdd(colorMult(c, z), d), 2*Math.PI))))
+    let f = colorAdd(a, colorMult(b, colorCos(colorMultScalar(colorAdd(colorMult(c, z), d), 2 * Math.PI))))
     return {
       ...z,
       red: f.red,
@@ -2468,23 +2517,23 @@ function paletteMod(a, b, c, d) {
   }
 }
 
-function rainbowCirc(x, y, _z, start){
-  return z=>{
+function rainbowCirc(x, y, _z, start) {
+  return z => {
     return {
       ...color(colorHSL(
-      Math.abs(Math.log(start+Math.hypot(z.re-x,z.im-y,z.z-_z)))%1,
-      1, 0.5))(z)
+        Math.abs(Math.log(start + Math.hypot(z.re - x, z.im - y, z.z - _z))) % 1,
+        1, 0.5))(z)
     }
   }
 }
 
-function rainbowCircAdd(x, y, _z, start){
-  return z=>{
+function rainbowCircAdd(x, y, _z, start) {
+  return z => {
     let oh = rgbToHsl(z.red, z.green, z.blue).h;
     return {
       ...color(colorHSL(
-      Math.abs(Math.log((start+Math.hypot(z.re-x,z.im-y,z.z-_z))*oh))%1,
-      1, 0.5))(z)
+        Math.abs(Math.log((start + Math.hypot(z.re - x, z.im - y, z.z - _z)) * oh)) % 1,
+        1, 0.5))(z)
     }
   }
 }
@@ -2739,16 +2788,31 @@ function matrixPerspectiveProjection(n, f) {
 /* Quaternions */
 
 function qAdd(a, b) {
-  return {qx: a.qx + b.qx, qy: a.qy + b.qy, qz: a.qz + b.qz, qw: a.qw + b.qw};
+  return {
+    qx: a.qx + b.qx,
+    qy: a.qy + b.qy,
+    qz: a.qz + b.qz,
+    qw: a.qw + b.qw
+  };
 }
 
 function qAddScalar(a, scalar) {
-  let s = {qx: scalar, qy: 0, qz: 0, qw: 0};
+  let s = {
+    qx: scalar,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
   return qAdd(a, s);
 }
 
 function qSub(a, b) {
-  return {qx: a.qx - b.qx, qy: a.qy - b.qy, qz: a.qz - b.qz, qw: a.qw - b.qw};
+  return {
+    qx: a.qx - b.qx,
+    qy: a.qy - b.qy,
+    qz: a.qz - b.qz,
+    qw: a.qw - b.qw
+  };
 }
 
 function qMult(a, b) {
@@ -2756,17 +2820,32 @@ function qMult(a, b) {
   let new1 = a.qx * b.qy + a.qy * b.qx + a.qz * b.qw - a.qw * b.qz;
   let new2 = a.qx * b.qz - a.qy * b.qw + a.qz * b.qx + a.qw * b.qy;
   let new3 = a.qx * b.qw + a.qy * b.qz - a.qz * b.qy + a.qw * b.qx;
-  return {qx: new0, qy: new1, qz: new2, qw: new3};
+  return {
+    qx: new0,
+    qy: new1,
+    qz: new2,
+    qw: new3
+  };
 }
 
 function qMultScalar(a, scalar) {
-  let s = {qx: scalar, qy: 0, qz: 0, qw: 0};
+  let s = {
+    qx: scalar,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
   return qMult(a, s);
 }
 
 function qRecip(a) {
-  let norm = (a.qx**2 + a.qy**2 + a.qz**2 + a.qw**2);
-  return {qx: a.qx / norm, qy: -a.qy / norm, qz: -a.qz / norm, qw: -a.qw / norm};
+  let norm = (a.qx ** 2 + a.qy ** 2 + a.qz ** 2 + a.qw ** 2);
+  return {
+    qx: a.qx / norm,
+    qy: -a.qy / norm,
+    qz: -a.qz / norm,
+    qw: -a.qw / norm
+  };
 }
 
 function qDiv1(a, b) {
@@ -2786,77 +2865,202 @@ function qMatNorm(mat) {
   let det = qSub(qMult(a, d), qMult(c, b));
   let denom = qMult(det, det);
 
-  return {q0: qDiv1(a, denom), q1: qDiv1(b, denom), q2: qDiv1(c, denom), q3: qDiv1(d, denom)};
+  return {
+    q0: qDiv1(a, denom),
+    q1: qDiv1(b, denom),
+    q2: qDiv1(c, denom),
+    q3: qDiv1(d, denom)
+  };
 }
 
 function qMatInv(mat) {
-    let rm1 = {qx: -1, qy: 0, qz: 0, qw: 0};
-    return {q0: mat.q3, q1: qMult(mat.q1, rm1), q2: qMult(mat.q2, rm1), q3: mat.q0};
+  let rm1 = {
+    qx: -1,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  return {
+    q0: mat.q3,
+    q1: qMult(mat.q1, rm1),
+    q2: qMult(mat.q2, rm1),
+    q3: mat.q0
+  };
 }
 
 function qConj(a) {
-  return {qx: a.qx, qy: -a.qy, qz: -a.qz, qw: -a.qw};
+  return {
+    qx: a.qx,
+    qy: -a.qy,
+    qz: -a.qz,
+    qw: -a.qw
+  };
 }
 
 function qNeg(a) {
-  return {qx: -a.qx, qy: -a.qy, qz: -a.qz, qw: -a.qw};
+  return {
+    qx: -a.qx,
+    qy: -a.qy,
+    qz: -a.qz,
+    qw: -a.qw
+  };
 }
 
 function qExpZ(z) {
-  let e = {qx: Math.exp(z.re), qy: 0, qz: 0, qw: 0};
-  let v = {qx: 0, qy: z.im, qz: z.z, qw: 0};
+  let e = {
+    qx: Math.exp(z.re),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let v = {
+    qx: 0,
+    qy: z.im,
+    qz: z.z,
+    qw: 0
+  };
   let absv = Math.hypot(z.im, z.z);
 
-  let cv = {qx: Math.cos(absv), qy:0, qz: 0, qw: 0};
-  let sv = {qx: Math.sin(absv), qy:0, qz: 0, qw: 0};
-  let av = {qx: absv, qy:0, qz: 0, qw: 0};
+  let cv = {
+    qx: Math.cos(absv),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let sv = {
+    qx: Math.sin(absv),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let av = {
+    qx: absv,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
 
   return qMult(e, qAdd(cv, qMult(qDiv1(v, av), sv)));
 }
 
 function qExp(a) {
-  let e = {qx: Math.exp(a.qx), qy: 0, qz: 0, qw: 0};
-  let v = {qx: 0, qy: a.qy, qz: a.qz, qw: 0};
+  let e = {
+    qx: Math.exp(a.qx),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let v = {
+    qx: 0,
+    qy: a.qy,
+    qz: a.qz,
+    qw: 0
+  };
   let absv = Math.hypot(a.qy, a.qz);
 
-  let cv = {qx: Math.cos(absv), qy:0, qz: 0, qw: 0};
-  let sv = {qx: Math.sin(absv), qy:0, qz: 0, qw: 0};
-  let av = {qx: absv, qy:0, qz: 0, qw: 0};
+  let cv = {
+    qx: Math.cos(absv),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let sv = {
+    qx: Math.sin(absv),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let av = {
+    qx: absv,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
 
   return qMult(e, qAdd(cv, qMult(qDiv1(v, av), sv)));
 }
 
 function qLogZ(z) {
   let absq = Math.hypot(z.re, z.im, z.z, 0);
-  let v = {qx: 0, qy: z.im, qz: z.z, qw: 0};
+  let v = {
+    qx: 0,
+    qy: z.im,
+    qz: z.z,
+    qw: 0
+  };
   let absv = Math.hypot(z.im, z.z);
 
-  let qln = {qx: Math.log(absq), qy: 0, qz: 0, qw: 0};
-  let qac = {qx: Math.acos(z.re / absq), qy: 0, qz: 0, qw: 0};
-  let qav = {qx: absv, qy:0, qz: 0, qw: 0};
+  let qln = {
+    qx: Math.log(absq),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let qac = {
+    qx: Math.acos(z.re / absq),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let qav = {
+    qx: absv,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
 
-  return qAdd(qln, qMult(qDiv1(v, qav),qac))
+  return qAdd(qln, qMult(qDiv1(v, qav), qac))
 }
 
 function qLog(a) {
   let absq = Math.hypot(a.qx, a.qy, a.qz, 0);
-  let v = {qx: 0, qy: a.qy, qz: a.qz, qw: 0};
+  let v = {
+    qx: 0,
+    qy: a.qy,
+    qz: a.qz,
+    qw: 0
+  };
   let absv = Math.hypot(a.qy, a.qz);
 
-  let qln = {qx: Math.log(absq), qy: 0, qz: 0, qw: 0};
-  let qac = {qx: Math.acos(a.qx / absq), qy: 0, qz: 0, qw: 0};
-  let qav = {qx: absv, qy:0, qz: 0, qw: 0};
+  let qln = {
+    qx: Math.log(absq),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let qac = {
+    qx: Math.acos(a.qx / absq),
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
+  let qav = {
+    qx: absv,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
 
-  return qAdd(qln, qMult(qDiv1(v, qav),qac))
+  return qAdd(qln, qMult(qDiv1(v, qav), qac))
 }
 
 function qSinh(a) {
-  let tmp = {qx: 2, qy:0, qz: 0, qw: 0};
+  let tmp = {
+    qx: 2,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
   return qSub((qDiv1(qExp(a), tmp)), (qDiv1(qExp(qNeg(a)), tmp)));
 }
 
 function qCosh(a) {
-  let tmp = {qx: 2, qy:0, qz: 0, qw: 0};
+  let tmp = {
+    qx: 2,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
   return qAdd((qDiv1(qExp(qNeg(a)), tmp)), (qDiv1(qExp(a), tmp)));
 }
 
@@ -2865,22 +3069,57 @@ function qTanh(a) {
 }
 
 function qPowC(a, power) {
-  let pow = {qx: power, qy:0, qz: 0, qw: 0};
+  let pow = {
+    qx: power,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
   return qExp(qMult(qLog(a), pow));
 }
 
 /* 3D */
 function mobius3D(ar, ai, aj, ak, br, bi, bj, bk, cr, ci, cj, ck, dr, di, dj, dk, norm) {
-  let preNorm0 = {qx: ar, qy: ai, qz: aj, qw: ak};
-  let preNorm1 = {qx: br, qy: bi, qz: bj, qw: bk};
-  let preNorm2 = {qx: cr, qy: ci, qz: cj, qw: ck};
-  let preNorm3 = {qx: dr, qy: di, qz: dj, qw: dk};
-  let preNorm = {q0: preNorm0, q1: preNorm1, q2: preNorm2, q3: preNorm3};
+  let preNorm0 = {
+    qx: ar,
+    qy: ai,
+    qz: aj,
+    qw: ak
+  };
+  let preNorm1 = {
+    qx: br,
+    qy: bi,
+    qz: bj,
+    qw: bk
+  };
+  let preNorm2 = {
+    qx: cr,
+    qy: ci,
+    qz: cj,
+    qw: ck
+  };
+  let preNorm3 = {
+    qx: dr,
+    qy: di,
+    qz: dj,
+    qw: dk
+  };
+  let preNorm = {
+    q0: preNorm0,
+    q1: preNorm1,
+    q2: preNorm2,
+    q3: preNorm3
+  };
   let mobius = norm == 0 ? qMatNorm(preNorm) : preNorm;
 
   return z => {
     mobius = ak != 0 || bk != 0 || ck != 0 || dk != 0 ? (Math.random() > 0.5 ? mobius : qMatInv(mobius)) : mobius;
-    let zin = {qx: z.re, qy: z.im, qz: z.z, qw: 0};
+    let zin = {
+      qx: z.re,
+      qy: z.im,
+      qz: z.z,
+      qw: 0
+    };
     let zout = qDiv1(qAdd(qMult(zin, mobius.q0), mobius.q1), qAdd(qMult(zin, mobius.q2), mobius.q3));
 
     return {
@@ -2893,10 +3132,25 @@ function mobius3D(ar, ai, aj, ak, br, bi, bj, bk, cr, ci, cj, ck, dr, di, dj, dk
 }
 
 function hypershift3D(x, y, _z) {
-  let p = {qx: x, qy: y, qz: _z, qw: 0};
-  let qr = {qx: 1, qy: 0, qz: 0, qw: 0};
+  let p = {
+    qx: x,
+    qy: y,
+    qz: _z,
+    qw: 0
+  };
+  let qr = {
+    qx: 1,
+    qy: 0,
+    qz: 0,
+    qw: 0
+  };
   return z => {
-    let q = {qx: z.re, qy: z.im, qz: z.z, qw: 0};
+    let q = {
+      qx: z.re,
+      qy: z.im,
+      qz: z.z,
+      qw: 0
+    };
     let hs = qDiv1(qAdd(q, p), qAdd(qMult(q, qConj(p)), qr));
     return {
       ...z,
@@ -2910,7 +3164,7 @@ function hypershift3D(x, y, _z) {
 
 function bubble3D() {
   return z => {
-    let r = 4 / ((z.re**2 + z.im**2 + z.z**2) + 4)
+    let r = 4 / ((z.re ** 2 + z.im ** 2 + z.z ** 2) + 4)
     return {
       ...z,
       re: z.re * r,
@@ -2922,13 +3176,13 @@ function bubble3D() {
 
 function julian3D(power) {
   let abspow = Math.abs(power);
-  let powc = (1/power-1)*0.5;
+  let powc = (1 / power - 1) * 0.5;
   return z => {
     let zz = z.z / abspow;
     let r2d = dot(z, z);
-    let r = (r2d + zz * zz)**powc;
+    let r = (r2d + zz * zz) ** powc;
 
-    let r2 = r * r2d**0.5;
+    let r2 = r * r2d ** 0.5;
     let rnd = Math.floor(Math.random() * abspow);
     let ang = (Math.atan2(z.im, z.re) + 2 * Math.PI * rnd) / power;
     return {
@@ -2950,8 +3204,8 @@ function juliaq3D(power, divisor) {
 
     let zz = z.z * absinvpow;
     let r2d = dot(z, z);
-    let r = (r2d + ssqr(zz))**halfinvpow;
-    let r2 = r * r2d**0.5;
+    let r = (r2d + ssqr(zz)) ** halfinvpow;
+    let r2 = r * r2d ** 0.5;
     return {
       ...z,
       re: r2 * Math.cos(ang),
@@ -2963,17 +3217,22 @@ function juliaq3D(power, divisor) {
 
 function parabola3D() {
   return z => {
-    let qz = {qx: z.re, qy: z.im, qz: z.z, qw: 0};
+    let qz = {
+      qx: z.re,
+      qy: z.im,
+      qz: z.z,
+      qw: 0
+    };
     return {
       ...z,
-      ...qMult(qz,qz)
+      ...qMult(qz, qz)
     }
   }
 }
 
 function sphereInv() {
   return z => {
-    let r = 1 / (z.re**2 + z.im**2 + z.z**2);
+    let r = 1 / (z.re ** 2 + z.im ** 2 + z.z ** 2);
     return {
       ...z,
       re: z.re * r,
@@ -2985,7 +3244,12 @@ function sphereInv() {
 
 function trigCosh3D() {
   return z => {
-    let qz = qCosh({qx: z.re, qy: z.im, qz: z.z, qw: 0});
+    let qz = qCosh({
+      qx: z.re,
+      qy: z.im,
+      qz: z.z,
+      qw: 0
+    });
     return {
       ...z,
       re: qz.qx,
@@ -3021,7 +3285,12 @@ function trigLog3D() {
 
 function trigSinh3D() {
   return z => {
-    let qz = qSinh({qx: z.re, qy: z.im, qz: z.z, qw: 0});
+    let qz = qSinh({
+      qx: z.re,
+      qy: z.im,
+      qz: z.z,
+      qw: 0
+    });
     return {
       ...z,
       re: qz.qx,
@@ -3033,7 +3302,12 @@ function trigSinh3D() {
 
 function trigTanh3D() {
   return z => {
-    let qz = qTanh({qx: z.re, qy: z.im, qz: z.z, qw: 0});
+    let qz = qTanh({
+      qx: z.re,
+      qy: z.im,
+      qz: z.z,
+      qw: 0
+    });
     return {
       ...z,
       re: qz.qx,
@@ -3045,7 +3319,7 @@ function trigTanh3D() {
 
 function unbubble3D() {
   return z => {
-    let r = (z.re**2 + z.im**2 + z.z**2);
+    let r = (z.re ** 2 + z.im ** 2 + z.z ** 2);
     let b = (Math.SQRT2 - Math.sqrt(2 - r)) / r;
     return {
       ...z,
@@ -3285,27 +3559,27 @@ function normalMap() {
 }
 
 function heightMap() {
-    let low = Infinity;
-    let high = -Infinity;
-    return z => {
-      if(z.z === 0){
-        return z;
-      }
-      if(z.z > high){
-        high = z.z;
-      }
-      if(z.z < low){
-        low = z.z;
-      }
-      let height = 1-(z.z-low)/(high-low);
-      return {
-        ...z,
-        red: height,
-        green: height,
-        blue: height,
-      }
+  let low = Infinity;
+  let high = -Infinity;
+  return z => {
+    if(z.z === 0) {
+      return z;
+    }
+    if(z.z > high) {
+      high = z.z;
+    }
+    if(z.z < low) {
+      low = z.z;
+    }
+    let height = 1 - (z.z - low) / (high - low);
+    return {
+      ...z,
+      red: height,
+      green: height,
+      blue: height,
     }
   }
+}
 
 function basicLighting(theta, diffuse) {
   let sinTheta = Math.sin(theta);
@@ -4092,81 +4366,84 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   }],
   //shaders
   rainbowCirc: [{
-    name: "x",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "y",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "_z",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "start",
-    type: "number",
-    default: 1
-  }],
+      name: "x",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "y",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "_z",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "start",
+      type: "number",
+      default: 1
+    }
+  ],
   rainbowCircAdd: [{
-    name: "x",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "y",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "_z",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "start",
-    type: "number",
-    default: 1
-  }],
+      name: "x",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "y",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "_z",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "start",
+      type: "number",
+      default: 1
+    }
+  ],
   paletteMod: [{
-    name: "a",
-    type: "object",
-    default: {
-      red: 0.5,
-      green: 0.5,
-      blue: 0.5
+      name: "a",
+      type: "object",
+      default: {
+        red: 0.5,
+        green: 0.5,
+        blue: 0.5
+      }
+    },
+    {
+      name: "b",
+      type: "object",
+      default: {
+        red: 0.5,
+        green: 0.5,
+        blue: 0.5
+      }
+    },
+    {
+      name: "c",
+      type: "object",
+      default: {
+        red: 0.5,
+        green: 0.5,
+        blue: 0.5
+      }
+    },
+    {
+      name: "d",
+      type: "object",
+      default: {
+        red: 0.5,
+        green: 0.5,
+        blue: 0.5
+      }
     }
-  },
-  {
-    name: "b",
-    type: "object",
-    default: {
-      red: 0.5,
-      green: 0.5,
-      blue: 0.5
-    }
-  },
-  {
-    name: "c",
-    type: "object",
-    default: {
-      red: 0.5,
-      green: 0.5,
-      blue: 0.5
-    }
-  },
-  {
-    name: "d",
-    type: "object",
-    default: {
-      red: 0.5,
-      green: 0.5,
-      blue: 0.5
-    }
-  }],
+  ],
   gamma: [{
     name: "gamma",
     type: "number",
@@ -4317,105 +4594,107 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   }],
   //3D transforms
   mobius3D: [{
-    name: "ar",
-    type: "number",
-    default: 1
-  },
-  {
-    name: "ai",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "aj",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "ak",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "br",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "bi",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "bj",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "bk",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "cr",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "ci",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "cj",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "ck",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "dr",
-    type: "number",
-    default: 1
-  },
-  {
-    name: "di",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "dj",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "dk",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "norm",
-    type: "number",
-    default: 1
-  }],
+      name: "ar",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "ai",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "aj",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "ak",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "br",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "bi",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "bj",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "bk",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "cr",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "ci",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "cj",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "ck",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "dr",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "di",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "dj",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "dk",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "norm",
+      type: "number",
+      default: 1
+    }
+  ],
   hypershift3D: [{
-    name: "x",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "y",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "_z",
-    type: "number",
-    default: 0
-  }],
+      name: "x",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "y",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "_z",
+      type: "number",
+      default: 0
+    }
+  ],
   matrix3D: [{
     name: "matrix",
     type: "array",
@@ -4428,15 +4707,16 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 1
   }],
   juliaq3D: [{
-    name: "power",
-    type: "number",
-    default: 1
-  },
-  {
-    name: "divisor",
-    type: "number",
-    default: 1
-  }],
+      name: "power",
+      type: "number",
+      default: 1
+    },
+    {
+      name: "divisor",
+      type: "number",
+      default: 1
+    }
+  ],
   parabola3D: [],
   sphereInv: [],
   trigCosh3D: [],
@@ -4603,32 +4883,33 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       name: "p",
       type: "number",
       default: 4
-  },
-  {
+    },
+    {
       name: "q",
       type: "number",
       default: 5
-  },
-  {
+    },
+    {
       name: "iterations",
       type: "number",
       default: 10
-  },
-  {
+    },
+    {
       name: "checks0",
       type: "number",
       default: 1
-  },
-  {
+    },
+    {
       name: "checks1",
       type: "number",
       default: 1
-  },
-  {
+    },
+    {
       name: "checks2",
       type: "number",
       default: 1
-  }],
+    }
+  ],
   disc: [],
   dragon: [{
       name: "a",
@@ -4671,17 +4952,18 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0.5
     }
   ],
-  ePush:[{
-    name: "push",
-    type: "number",
-    default: 0
-  },
-  {
-    name: "rotation",
-    type: "number",
-    default: 0
-  }],
-  eRotate:[{
+  ePush: [{
+      name: "push",
+      type: "number",
+      default: 0
+    },
+    {
+      name: "rotation",
+      type: "number",
+      default: 0
+    }
+  ],
+  eRotate: [{
     name: "rotationAngle",
     type: "number",
     default: 0
@@ -4930,30 +5212,32 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 1
   }],
   schwarzChristoffelmap: [{
-    name: "n",
-    type: "number",
-    default: 3
-  },
-  {
-    name: "k",
-    type: "number",
-    default: 0.5
-  }],
+      name: "n",
+      type: "number",
+      default: 3
+    },
+    {
+      name: "k",
+      type: "number",
+      default: 0.5
+    }
+  ],
   schwarzTriangle: [{
-    name: "_alph",
-    type: "number",
-    default: 60
-  },
-  {
-    name: "_bet",
-    type: "number",
-    default: 60
-  },
-  {
-    name: "_gam",
-    type: "number",
-    default: 60
-  }],
+      name: "_alph",
+      type: "number",
+      default: 60
+    },
+    {
+      name: "_bet",
+      type: "number",
+      default: 60
+    },
+    {
+      name: "_gam",
+      type: "number",
+      default: 60
+    }
+  ],
   sinusoidal: [],
   skew: [{
       name: "real",

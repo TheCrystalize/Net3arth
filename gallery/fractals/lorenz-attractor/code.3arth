@@ -35,20 +35,11 @@ rotate3D(0, 90, 0)
 -> scale(0.025)
 -> translate(0,0.59);
 
-shade(){
-  let h = heightMap();
-  let am = ambientOcclusion(5);
-  return z=>{
-    let v1 = h(z);
-    let v2 = am(z);
-    return {
-      ...z,
-      red:   z.red*(v1.red*v2.red*0.7+0.3),
-      green: z.green*(v1.green*v2.green*0.7+0.3),
-      blue:  z.blue*(v1.blue*v2.blue*0.7+0.3)
-    };
-  }
-}
-
 shader:
-shade();
+productColor{
+  1: scale(1);
+  1: sumColor{
+    0.5: reset();
+    0.5: heightMap();
+  };
+};

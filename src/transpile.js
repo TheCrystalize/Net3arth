@@ -1303,6 +1303,7 @@ function parseEverything(code) {
               jsCode = jsCode.replace(/\bzBuffer\( *\)/g, 'zBuffer(oldBuffer, newBuffer)');
               jsCode = jsCode.replace(/\bfirstBuffer\( *\)/g, 'firstBuffer(oldBuffer, newBuffer)');
               jsCode = jsCode.replace(/\blastBuffer\( *\)/g, 'lastBuffer(oldBuffer, newBuffer)');
+              jsCode = jsCode.replace(/\baverageBuffer\( *\)/g, 'averageBuffer(oldBuffer, newBuffer)');
 
               let match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i\b/);
               while(match) {
