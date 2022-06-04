@@ -1,0 +1,161 @@
+unifier(number b, number c, number dr, number di) {
+  let mo1 = mobius(0+0i, C(b,0), C(c,0), C(dr, di));
+  return z => {
+    if(z.re < 0) {
+      return {
+        ...z,
+        ...mo1(z)
+      }
+    } else {
+      return z
+    }
+  }
+}
+
+const real = 1.707106785475643;
+const imag =1.7071067561878663;
+
+body:
+  choose{
+    2:
+      mobius(0,1,-1,C(real,imag))
+      -> lerpColor(colorHSL(0.3, 1, 0.5), 0.25);
+    2:
+      mobius(0, 1, 1, C(0,2))
+      -> lerpColor(colorHSL(0.35, 1, 0.5), 0.5);
+    2:
+      mobius(0, 1, 1, C(0,-(2**0.5)))
+      -> lerpColor(colorHSL(0.3, 1, 0.5), 0.25);
+    1:
+      rotate(180)
+      -> translate(real, 2**0.5 - imag);
+    0.25:
+      scale(1/(2+2**0.5))
+      -> rotate(90)
+      -> tileHelp()
+      -> tileLog(0)
+      -> rotate(-90)
+      -> scale(2+2**0.5);
+    0.1:
+      blurSine(1)
+      -> mobius(1,-1,1,1)
+      -> translate(-1, 0)
+      -> color(colorHSL(0, 1, 0.5));
+    0.25:
+      translate(0, 1)
+      -> circleInv()
+      -> translate(1, 0)
+      -> pointSymmetry(0, 0, 2)
+      -> translate(-1, 0)
+      -> circleInv()
+      -> translate(0, -1);
+    0.25:
+      translate(0, 1)
+      -> circleInv()
+      -> translate(1, 0)
+      -> rotate(90)
+      -> tileHelp()
+      -> tileLog(0)
+      -> rotate(-90)
+      -> translate(-1, 0)
+      -> circleInv()
+      -> translate(0, -1);
+    0.25:
+      hypershift(C(0,-paraSize(4)))
+      -> circleInv()
+      -> hypershift(C(0,paraSize(4)));
+    0.25:
+      translate(0, 1)
+      -> circleInv()
+      -> translate(-(0.5**0.5), 0)
+      -> pointSymmetry(0, 0, 2)
+      -> scale(1/(4+2**0.5*2))
+      -> tileHelp()
+      -> tileLog(0)
+      -> scale(4+2**0.5*2)
+      -> translate(0.5**0.5, 0)
+      -> circleInv()
+      -> translate(0, -1);
+    0.1:
+      unifier(1, -1, real, imag)
+      -> hypershift(C(0,-paraSize(4)))
+      -> arcsinh()
+      -> hypershift(paraSize(4))
+      -> pointSymmetry(0, 0, 4)
+      -> scale(paraSize(4))
+      -> xaos{
+        1:e:[0,1,1]:
+          scale(1);
+        0.25:_:[0,1,1]:
+          scale(2**0.5-1)
+          -> rotate(45);
+        1:o:[0,0,1]:
+          scale(1);
+      }
+      -> choose{
+        1:
+          rotate(45)
+          -> hypershift(paraSize(4))
+          -> scale(0.5**0.5)
+          -> translate(-1, 0.5**0.5);
+        1:
+          scale(0.5)
+          -> tileHelp()
+          -> tileLog(0)
+          -> translate(0.5, 0)
+          -> rotate(90)
+          -> translate(-1, 0)
+          -> circleInv()
+          -> translate(0, -1);
+      }
+      -> hslShift(0.2, 0, 0);
+    0.25:
+      rotate3D(0, 180, 0)
+      -> translate(0, -2);
+    0.25:
+      hypershift(C(0,1-2**0.5))
+      -> choose{
+        1:
+          scale(1);
+        1:
+          rotate(180)
+          -> translate(real*4, 0);
+      }
+      -> hypershift(C(0,2**0.5-1));
+    0.25:
+      hypershift(C(0,1-2**0.5))
+      -> mobius(1,1,-1,1)
+      -> pointSymmetry(0, 0, 4)
+      -> scale(2**0.5-1)
+      -> choose{
+        1:
+          scale(1);
+        1:
+          circleInv();
+      }
+      -> scale(2**0.5+1)
+      -> mobius(1,-1,1,1)
+      -> hypershift(C(0,2**0.5-1))
+      -> hslShift(0.2, 0, 0);
+  };
+
+camera:
+  hypershift(C(0,1-2**0.5))
+  -> mobius(1,1,-1,1)
+  -> pointSymmetry(0, 0, 4)
+  -> scale(2**0.5-1)
+  -> choose{
+    1:
+      scale(1);
+    1:
+      circleInv();
+  }
+  -> rotate(45)
+  -> hypershift(0.1-0.07i)
+  -> rotate(-30)
+  -> translate(0.7, 0)
+  -> scale(0.25)
+  -> paletteMod(colorRGB(0.25, 0.25, 0.25), colorRGB(0.5, 0.5, 0.5), colorRGB(0.5, 1, 0.5), colorRGB(0.3, 0.8, 0.45));
+
+shader:
+  gamma(7);
