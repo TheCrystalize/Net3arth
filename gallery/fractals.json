@@ -20,18 +20,23 @@
     "author": "Edward Haas"
   },
   {
-    "folder": "mandelbulb",
-    "title": "Mandelbulb",
-    "author": "Edward Haas"
-  },
-  {
     "folder": "barnsley-fern",
     "title": "Barnsley Fern",
     "author": "Edward Haas"
   },
   {
+    "folder": "mandelbulb",
+    "title": "Mandelbulb",
+    "author": "Edward Haas"
+  },
+  {
     "folder": "pythagorean-tree",
     "title": "pythagorean Tree",
+    "author": "Edward Haas"
+  },
+  {
+    "folder": "menger-sponge",
+    "title": "Menger Sponge",
     "author": "Edward Haas"
   }
 ]

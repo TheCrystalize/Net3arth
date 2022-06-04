@@ -1,0 +1,53 @@
+// https://en.wikipedia.org/wiki/Menger_sponge
+
+buffer() {
+  return zBuffer();
+}
+
+body:
+setAlpha(255)
+-> choose{
+  1: translate3D(-1,-1,-1) -> lerpColor(colorRGB(1,0,1), 0.5);
+  1: translate3D(-1, 0,-1) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D(-1, 1,-1) -> lerpColor(colorRGB(1,0,1), 0.5);
+  1: translate3D( 0,-1,-1) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D( 0, 1,-1) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D( 1,-1,-1) -> lerpColor(colorRGB(1,0,1), 0.5);
+  1: translate3D( 1, 0,-1) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D( 1, 1,-1) -> lerpColor(colorRGB(1,0,1), 0.5);
+
+  1: translate3D(-1,-1, 0) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D(-1, 1, 0) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D( 1,-1, 0) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D( 1, 1, 0) -> lerpColor(colorRGB(0,1,1), 0.5);
+
+  1: translate3D(-1,-1, 1) -> lerpColor(colorRGB(1,0,1), 0.5);
+  1: translate3D(-1, 0, 1) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D(-1, 1, 1) -> lerpColor(colorRGB(1,0,1), 0.5);
+  1: translate3D( 0,-1, 1) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D( 0, 1, 1) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D( 1,-1, 1) -> lerpColor(colorRGB(1,0,1), 0.5);
+  1: translate3D( 1, 0, 1) -> lerpColor(colorRGB(0,1,1), 0.5);
+  1: translate3D( 1, 1, 1) -> lerpColor(colorRGB(1,0,1), 0.5);
+}
+-> scale3D(1/3);
+
+camera:
+scale3D(1/2)
+-> rotate3D(30, 0, 0)
+-> rotate3D(0, 30, 0)
+-> translate3D(0, 0, 1)
+-> perspective3D();
+
+shader:
+productColor{
+  1: basicEnvironmentOrth(-40, -50, 1, 0);
+  1.3: sumColor{
+    0.5: reset();
+    0.5: heightMap();
+  };
+  1: sumColor{
+    0.5: ambientOcclusion(20);
+    0.5: ambientOcclusionBig(20,1,-0.01);
+  };
+};
