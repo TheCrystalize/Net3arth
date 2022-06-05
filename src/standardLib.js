@@ -193,14 +193,6 @@ function log(z) {
   }
 }
 
-function pow(z, p) {
-  let n = p * Math.atan2(z.im, z.re);
-  let m = Math.exp(p * Math.log(z.re * z.re + z.im * z.im));
-  return {
-    re: Math.cos(n) * m,
-    im: Math.sin(n) * m
-  }
-}
 
 function exp(z) {
   const e = Math.exp(z.re);
