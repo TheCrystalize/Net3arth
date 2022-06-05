@@ -31,11 +31,15 @@ function lastBuffer(oldBuffer, newBuffer) {
 }
 
 function averageBuffer(oldBuffer, newBuffer) {
+  let total = oldBuffer.z + 1;
+  if(newBuffer.z > 0){
+    add = oldBuffer.z + newBuffer.z;
+  }
   return {
-    red: (oldBuffer.red * oldBuffer.z + newBuffer.red) / (oldBuffer.z + 1),
-    green: (oldBuffer.green * oldBuffer.z + newBuffer.green) / (oldBuffer.z + 1),
-    blue: (oldBuffer.blue * oldBuffer.z + newBuffer.blue) / (oldBuffer.z + 1),
-    z: oldBuffer.z + 1,
+    red: (oldBuffer.red * oldBuffer.z + newBuffer.red) / total,
+    green: (oldBuffer.green * oldBuffer.z + newBuffer.green) / total,
+    blue: (oldBuffer.blue * oldBuffer.z + newBuffer.blue) / total,
+    z: total,
   }
 }
 
@@ -49,6 +53,45 @@ function zBuffer(oldBuffer, newBuffer) {
     blue: newBuffer.blue * newBuffer.alpha,
     z: newBuffer.z
   };
+}
+
+function shaderPass(transform) {
+  let newBuffer;
+  let newZbuffer;
+  return z => {
+    if(z.re === z.width-1 && z.im === z.height-1) {
+      newBuffer = [
+        new Float64Array(z.width * z.height),
+        new Float64Array(z.width * z.height),
+        new Float64Array(z.width * z.height),
+      ];
+      newZBuffer = new Float64Array(z.width * z.height);
+      for(let i = z.zBuffer.length - 1; i >= 0; i--) {
+        let ans = transform({
+          ...z,
+          re: i % z.width,
+          im: (i / z.width) >> 0,
+          z: z.zBuffer[i],
+          red: z.mainBuffer[0][i],
+          green: z.mainBuffer[1][i],
+          blue: z.mainBuffer[2][i],
+        });
+        newBuffer[0][i] = ans.red;
+        newBuffer[1][i] = ans.green;
+        newBuffer[2][i] = ans.blue;
+        newZBuffer[i] = ans.z;
+      }
+    }
+    return {
+      ...z,
+      zBuffer: newZBuffer,
+      mainBuffer: newBuffer,
+      red: newBuffer[0][(z.re - 1) + z.im * z.width],
+      green: newBuffer[1][(z.re - 1) + z.im * z.width],
+      blue: newBuffer[2][(z.re - 1) + z.im * z.width],
+      z: newZBuffer[(z.re - 1) + z.im * z.width],
+    };
+  }
 }
 
 /* helper functions */
@@ -3562,9 +3605,6 @@ function heightMap() {
   let low = Infinity;
   let high = -Infinity;
   return z => {
-    if(z.z === 0) {
-      return z;
-    }
     if(z.z > high) {
       high = z.z;
     }
@@ -3760,19 +3800,18 @@ function ambientOcclusion(s) {
     }
   }
   return z => {
-    if(z.z === 0) {
-      return z;
-    }
     let acc = 0;
     for(let i = -s; i <= s; i++) {
       for(let j = -s; j <= s; j++) {
-        if(z.re + i >= 0 || z.re + i < 0 || z.im + j < z.width || z.im + j < z.height) {
-          if(!(i === 0 && j === 0)) {
-            let d = weights[i + s][j + s];
-            let sample = z.zBuffer[z.re + i + (z.im + j) * z.width];
-            if(sample === 0 || sample > z.z) {
-              acc += d;
-            }
+        if(z.re + i < 0 || z.re + i >= z.width || z.im + j < 0 || z.im + j >= z.height){
+          acc += weights[i + s][j + s];
+          continue;
+        }
+        if(!(i === 0 && j === 0)) {
+          let d = weights[i + s][j + s];
+          let sample = z.zBuffer[z.re + i + (z.im + j) * z.width];
+          if(sample === 0 || sample > z.z) {
+            acc += d;
           }
         }
       }
@@ -3801,19 +3840,18 @@ function ambientOcclusionBig(s, step, depth) {
     }
   }
   return z => {
-    if(z.z === 0) {
-      return z;
-    }
     let acc = 0;
     for(let i = -s; i <= s; i++) {
       for(let j = -s; j <= s; j++) {
-        if(z.re + i * step >= 0 || z.re + i * step < 0 || z.im + j * step < z.width || z.im + j * step < z.height) {
-          if(!(i === 0 && j === 0)) {
-            let d = weights[i + s][j + s];
-            let sample = z.zBuffer[z.re + i * step + (z.im + j * step) * z.width];
-            if(sample === 0 || sample > z.z + depth) {
-              acc += d;
-            }
+        if(z.re + i * step < 0 || z.re + i * step >= z.width || z.im + j * step < 0 || z.im + j * step >= z.height){
+          acc += weights[i + s][j + s];
+          continue;
+        }
+        if(!(i === 0 && j === 0)) {
+          let d = weights[i + s][j + s];
+          let sample = z.zBuffer[z.re + i * step + (z.im + j * step) * z.width];
+          if(sample === 0 || sample > z.z + depth) {
+            acc += d;
           }
         }
       }
@@ -3839,9 +3877,6 @@ function specularOrth(theta1, theta2, ior, environment, p) {
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
-    if(z.z === 0) {
-      return z;
-    }
     let normal = getNormal(z);
     let reflected = reflect([0, 0, 1], [normal[0], normal[1], normal[2]]);
     let n = rotation1(rotation2({
@@ -3873,9 +3908,6 @@ function basicEnvironmentOrth(theta1, theta2, ior, environment) {
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
-    if(z.z === 0) {
-      return z;
-    }
     let normal = getNormal(z);
     let reflected = reflect([0, 0, 1], [normal[0], normal[1], normal[2]]);
     let norm = rotation1(rotation2({
@@ -3914,9 +3946,6 @@ function advancedLightingOrth(theta1, theta2, ior, environment) {
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
-    if(z.z === 0) {
-      return z;
-    }
     let cameraSize = Math.min(z.width, z.height);
     let normal = getNormal(z);
     let reflected = reflect([0, 0, 1], [normal[0], normal[1], normal[2]]);
@@ -4058,9 +4087,6 @@ function specular(theta1, theta2, ior, environment, p) {
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
-    if(z.z === 0) {
-      return z;
-    }
     let normal = getNormal(z);
     let reflected = reflect([0, 0, -1], [normal[0], normal[1], -normal[2]]);
     let n = rotation1(rotation2({
@@ -4092,9 +4118,6 @@ function basicEnvironment(theta1, theta2, ior, environment) {
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
-    if(z.z === 0) {
-      return z;
-    }
     let normal = getNormal(z);
     let n = rotation1(rotation2({
       re: normal[0],
@@ -4126,9 +4149,6 @@ function advancedLighting(theta1, theta2, ior, environment) {
 
   return z => {
     let cameraSize = Math.min(z.width, z.height);
-    if(z.z === 0) {
-      return z;
-    }
     let normal = getNormal(z);
     let _normal = normal;
     let n = rotation1(rotation2({
@@ -4287,6 +4307,7 @@ function dither(s) {
 const BUILT_IN_TRANSFORMS = {
   dither: dither,
   //shaders
+  shaderPass: shaderPass,
   rainbowCirc: rainbowCirc,
   rainbowCircAdd: rainbowCircAdd,
   paletteMod: paletteMod,
@@ -4407,6 +4428,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 5
   }],
   //shaders
+  shaderPass: [{
+    name: "transform",
+    type: "function",
+    default: "heightMap()"
+  }],
   rainbowCirc: [{
       name: "x",
       type: "number",

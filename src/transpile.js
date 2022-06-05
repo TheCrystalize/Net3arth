@@ -187,6 +187,7 @@ function getTypeOfWord(word) {
     case (word === 'string'):
     case (word === 'complex'):
     case (word === 'object'):
+    case (word === 'function'):
       return 'type';
     case (word === 'true'):
     case (word === 'false'):
@@ -389,7 +390,7 @@ function getPrecomputeString(preComputeStuff) {
   let preComputeString = '';
   for(let thing in preComputeStuff) {
     switch (preComputeStuff[thing].is) {
-      case 'function':
+      case '_function':
         preComputeString += `function ${preComputeStuff[thing].name}(${preComputeStuff[thing].params.map(p=>`${p.name}`).join(',')}){${preComputeStuff[thing].code}}`;
         break;
       case 'const':
@@ -522,6 +523,9 @@ function parseEverything(code) {
                     break;
                   case 'object':
                     replacement = '{re: 0, im: 0, z: 0, red: 0, green: 0, blue: 0, alpha: 0, h: 0, s: 0, l: 0}';
+                    break;
+                  case 'function':
+                    replacement = '_=>0';
                     break;
                   default:
                     newGeneralError(`Unhandeled type test: ${customTransformParams[i].type}`);
@@ -691,7 +695,7 @@ function parseEverything(code) {
 
         function postParams() {
           switch (parseState[0].is) {
-            case 'function':
+            case '_function':
               parseState.unshift({
                 is: 'js'
               });
@@ -950,6 +954,10 @@ function parseEverything(code) {
             }
           }
 
+          if(typeof ans === 'function'){
+            ans = {functionCode: ans + ''};
+          }
+
           word = words[j].word;
           wordType = getTypeOfWord(word);
           newError = _3arthError(words[j], i, code[i]);
@@ -979,6 +987,7 @@ function parseEverything(code) {
           case 'string':
           case 'array':
           case 'object':
+          case 'function':
             if(verbose) {
               console.log('get value:');
             }
@@ -1055,13 +1064,19 @@ function parseEverything(code) {
                   }
                   break;
                 case 'object':
-                  if(desiredType !== 'complex') {
+                  if(desiredType !== 'complex' && desiredType !== 'function') {
                     if(desiredType !== 'array' || !Array.isArray(val)) {
                       if(desiredType !== 'object') {
                         typeError(desiredType);
                       }
                     }
-                  } else if(Object.keys(val).join(',') === 're,im') {
+                  }
+                  else if(desiredType !== 'complex'){
+                    if(!val.hasOwnProperty('functionCode')){
+                      typeError(desiredType);
+                    }
+                  }
+                  else if(Object.keys(val).join(',') === 're,im') {
                     if(typeof val.re !== 'number' || isNaN(val.re)) {
                       General3arthError({
                         word: val,
@@ -1174,7 +1189,7 @@ function parseEverything(code) {
                 break;
               case 'word':
                 parseState.unshift({
-                  is: 'function',
+                  is: '_function',
                   name: word
                 });
                 break;
@@ -1182,17 +1197,17 @@ function parseEverything(code) {
                 newError('function, "body", "camera", or "shader"');
             }
             break;
-          case 'function':
+          case '_function':
             if(wordType === '(') {
               parseState.unshift({
-                is: 'function params',
+                is: '_function params',
                 params: []
               });
             } else {
-              newError('function declaration');
+              newError('_function declaration');
             }
             break;
-          case 'function param':
+          case '_function param':
             switch (wordType) {
               case ',':
                 parseState.shift();
@@ -1207,14 +1222,14 @@ function parseEverything(code) {
                 newError('"," or ")"');
             }
             break;
-          case 'function params':
+          case '_function params':
             if(wordType === 'type') {
               parseState.unshift({
-                is: 'function param',
+                is: '_function param',
                 type: word
               });
               parseState.unshift({
-                is: 'function param name'
+                is: '_function param name'
               });
             } else if(wordType === ')') {
               parseState.shift();
@@ -1224,7 +1239,7 @@ function parseEverything(code) {
               newError('type definition or ")"');
             }
             break;
-          case 'function param name':
+          case '_function param name':
             if(wordType === 'word') {
               parseState.shift();
               parseState[1].params.push({
@@ -1241,6 +1256,7 @@ function parseEverything(code) {
           case 'string param':
           case 'array param':
           case 'object param':
+          case 'function param':
             endParam();
             break;
           case 'number weight':
@@ -1338,9 +1354,10 @@ function parseEverything(code) {
               }
 
               try {
-                let ans; {
+                let ans;
+                {
                   let preComputeString = getPrecomputeString(preComputeStuff);
-                  let testFunction = new Function(...parseState[0].params.map(a => a.name), preComputeString + jsCode);
+                  let testfunction = new Function(...parseState[0].params.map(a => a.name), preComputeString + jsCode);
                   let sampleParams = parseState[0].params.map(a => {
                     switch (a.type) {
                       case 'string':
@@ -1355,11 +1372,13 @@ function parseEverything(code) {
                         return {
                           red: 0, green: 0, blue: 0, h: 0, s: 0, l: 0, re: 0, im: 0, z: 0, alpha: 0
                         };
+                      case 'function':
+                        return _ => 0;
                       default:
                         return 0;
                     }
                   });
-                  ans = testFunction(...sampleParams);
+                  ans = testfunction(...sampleParams);
                 }
                 if(parseState[0].name === 'buffer') {
                   if(!ans.hasOwnProperty('red') || !ans.hasOwnProperty('green') || !ans.hasOwnProperty('blue') || !ans.hasOwnProperty('z')) {
@@ -1382,7 +1401,7 @@ function parseEverything(code) {
               }
 
               customFunctions[parseState[0].name] = {
-                is: 'function',
+                is: '_function',
                 name: parseState[0].name,
                 params: parseState[0].params,
                 code: jsCode,
@@ -1521,7 +1540,7 @@ function parseEverything(code) {
                     continue wordLoop;
                   }
                 }
-                newGeneralError(`Function undefined: ${word}`);
+                newGeneralError(`function undefined: ${word}`);
                 break;
               default:
                 newError('transform');
@@ -1718,7 +1737,7 @@ function parseEverything(code) {
                 switch (parseState[0].is) {
                   case 'new transform':
                     parseState.unshift({
-                      is: 'function params',
+                      is: '_function params',
                       params: []
                     });
                     parseState.unshift({

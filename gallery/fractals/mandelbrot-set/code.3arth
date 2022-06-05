@@ -4,16 +4,17 @@ buffer() {
   return averageBuffer();
 }
 
-const iterations = 500;
-
-mandelbrot() {
-  let Z, a, b;
+mandelbrot(number x, number y, number s, number iterations) {
+  let X, Y, A, B;
   return z => {
-    Z = [z.re, z.im];
+    X = x + z.re * s;
+    Y = -y + z.im * s;
+
+    Z = [X, Y];
     for(let i = 0; i < iterations; i++) {
-      let a = Z[0] * Z[0],
-        b = Z[1] * Z[1];
-      if(a + b > 4) {
+      A = Z[0] * Z[0];
+      B = Z[1] * Z[1];
+      if(A + B > 4) {
         return {
           ...z,
           red: i / iterations,
@@ -22,8 +23,8 @@ mandelbrot() {
         };
       }
       Z = [
-        a - b + z.re,
-        2 * Z[0] * Z[1] + z.im
+        A - B + X,
+        2 * Z[0] * Z[1] + Y
       ];
     }
     return {
@@ -37,6 +38,7 @@ mandelbrot() {
 
 colorGradient() {
   const colors = [
+    colorRGB( 25 / 255,   7 / 255,  26 / 255),
     colorRGB(  9 / 255,   1 / 255,  47 / 255),
     colorRGB(  4 / 255,   4 / 255,  73 / 255),
     colorRGB(  0 / 255,   7 / 255, 100 / 255),
@@ -52,10 +54,9 @@ colorGradient() {
     colorRGB(153 / 255,  87 / 255,   0 / 255),
     colorRGB(106 / 255,  52 / 255,   3 / 255),
     colorRGB( 66 / 255,  30 / 255,  15 / 255),
-    colorRGB( 25 / 255,   7 / 255,  26 / 255),
   ];
   return z => {
-    let c = Math.pow(z.red, 0.75) * 40;
+    let c = Math.pow(z.red+0.05, 0.3) * 40;
     if(c === 1) {
       c = 0;
     }
@@ -76,11 +77,28 @@ colorGradient() {
 
 body:
 blurSquare()
--> scale(4)
--> mandelbrot();
+//-> mandelbrot(0, 0, 4, 100);// main brot
+//-> mandelbrot(-0.7433, -0.1313, 2**-9, 1000);// spiral
+//-> mandelbrot(-1.76, 0, 0.0625, 500);// main minibrot
+//-> mandelbrot(-0.159531, -1.034628, 2**-5, 500);// 2nd mini brot
+//-> mandelbrot(-1.7484054379910234, 0.001249227784574026, 2**-25.5, 10000);// Mini Julia
+//-> mandelbrot(-0.743, -0.131, 2**-31, 10000);// close spiral
+-> mandelbrot(-0.7436447, -0.1318265, 2**-19, 7000);// minibrot arms
+//-> mandelbrot(-0.74364388717342, -0.13182590425182, 2**-31.2, 4000);// julia island
+//-> mandelbrot(-0.7436438870371415, -0.13182590420541757, 2**-34.2, 4000);// julia island zoomed
 
-camera:
-scale(1 / 4);
+redz(object z) {
+  return {
+    ...z,
+    z: 1-z.red
+  };
+}
 
 shader:
-colorGradient();
+shaderPass(redz)
+-> productColor{
+  1: colorGradient();
+  1: sumColor{
+    1: ambientOcclusionBig(10, 2, -0.001);
+  };
+};

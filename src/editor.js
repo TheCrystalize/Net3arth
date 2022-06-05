@@ -16,7 +16,7 @@ var customWordCompleter = {
   getCompletions: function(editor, session, pos, prefix, callback) {
     var wordList = [
       ["TEMPLATE", ["JavaScript TRANSFORM"]],
-      ["BUFFER", ["JavaScript BUFFER"]],
+      ["BUFFER", ["JavaScript BUFFER", "averageBuffer", "firstBuffer", "lastBuffer", "zBuffer"]],
       ["CONST", ["const"]],
       ["TRANSFORM", ["transform"]],
       ["BODY", ["body"]],
@@ -53,7 +53,11 @@ var customWordCompleter = {
             post = "myTransform() {\n  return z => {\n    return {\n      ...z,\n      re: z.re,\n      im: z.im\n    }\n  }\n}\n";
             break;
           case "BUFFER":
-            post = "buffer() {\n  return {\n    red: oldBuffer.red + newBuffer.red * newBuffer.alpha,\n    green: oldBuffer.green + newBuffer.green * newBuffer.alpha,\n    blue: oldBuffer.blue + newBuffer.blue * newBuffer.alpha,\n    z: 0,\n  }\n}\n";
+            if(word === "JavaScript BUFFER"){
+              post = "buffer() {\n  return {\n    red: oldBuffer.red + newBuffer.red * newBuffer.alpha,\n    green: oldBuffer.green + newBuffer.green * newBuffer.alpha,\n    blue: oldBuffer.blue + newBuffer.blue * newBuffer.alpha,\n    z: 0,\n  }\n}\n";}
+            else{
+              post = `buffer() {\n  return ${word}();\n}\n`;
+            }
             break;
           case "XAOS":
             post = "xaos{\n  1:eo:[1,1]:\n}";

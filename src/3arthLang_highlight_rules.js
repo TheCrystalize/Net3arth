@@ -81,6 +81,7 @@ unbubble
 brighten
 color
 dither
+shaderPass
 rainbowCirc
 rainbowCircAdd
 paletteMod

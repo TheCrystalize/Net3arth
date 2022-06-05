@@ -1,3 +1,11 @@
+function populateFunctionParams(params) {
+  for(let i = 0; i < params.length; i++){
+    if(typeof params[i] === 'object' && params[i].hasOwnProperty('functionCode')) {
+      params[i] = eval('('+params[i].functionCode+')');
+    }
+  }
+}
+
 function sumStuff(stuff, val) {
   let total = {
     re: 0,
@@ -203,9 +211,11 @@ function populateFunctions(job) {
       return;
     }
     if(BUILT_IN_TRANSFORMS.hasOwnProperty(job[0])) {
+      populateFunctionParams(job[1]);
       job[0] = BUILT_IN_TRANSFORMS[job[0]](...job[1]);
       return;
     } else if(customFunctions.hasOwnProperty(job[0])) {
+      populateFunctionParams(job[1]);
       job[0] = globalThis[job[0]](...job[1]);
       return;
     }
@@ -225,7 +235,7 @@ function populateFunctions(job) {
 function loadPreCompute(stuff) {
   for(let thing in stuff) {
     switch (stuff[thing].is) {
-      case 'function':
+      case '_function':
         globalThis[stuff[thing].name] = new Function(...stuff[thing].params.map(a => a.name), stuff[thing].code);
         stuff[thing] = globalThis[stuff[thing].name];
         break;
