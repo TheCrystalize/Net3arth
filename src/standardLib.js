@@ -61,9 +61,9 @@ function shaderPass(transform) {
   return z => {
     if(z.re === z.width-1 && z.im === z.height-1) {
       newBuffer = [
-        new Float64Array(z.width * z.height),
-        new Float64Array(z.width * z.height),
-        new Float64Array(z.width * z.height),
+        new Float32Array(z.width * z.height),
+        new Float32Array(z.width * z.height),
+        new Float32Array(z.width * z.height),
       ];
       newZBuffer = new Float64Array(z.width * z.height);
       for(let i = z.zBuffer.length - 1; i >= 0; i--) {
@@ -90,6 +90,27 @@ function shaderPass(transform) {
       green: newBuffer[1][(z.re - 1) + z.im * z.width],
       blue: newBuffer[2][(z.re - 1) + z.im * z.width],
       z: newZBuffer[(z.re - 1) + z.im * z.width],
+    };
+  }
+}
+
+function normalizeColors() {
+  let brightness;
+  return z => {
+    if(z.re === z.width-1 && z.im === z.height-1) {
+      for(let i = z.zBuffer.length - 1; i >= 0; i--) {
+        brightness = Math.max(
+          brightness,
+          z.mainBuffer[0][i],
+          z.mainBuffer[1][i],
+          z.mainBuffer[2][i]);
+      }
+    }
+    return {
+      ...z,
+      red: z.red / brightness,
+      green:  z.green / brightness,
+      blue: z.blue / brightness,
     };
   }
 }
