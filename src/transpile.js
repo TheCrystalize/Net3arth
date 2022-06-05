@@ -186,6 +186,7 @@ function getTypeOfWord(word) {
     case (word === 'bool'):
     case (word === 'string'):
     case (word === 'complex'):
+    case (word === 'array'):
     case (word === 'object'):
     case (word === 'function'):
       return 'type';
@@ -1366,6 +1367,8 @@ function parseEverything(code) {
                         return false;
                       case 'number':
                         return 0;
+                      case 'array':
+                        return [];
                       case 'complex':
                         return C(0, 0);
                       case 'object':

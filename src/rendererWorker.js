@@ -102,16 +102,16 @@ async function updateImage(msg) {
   console.log(`${id} | WAIT`);
   await sleep(100);
   console.log(`${id} | RENDER STARTING`);
-  const brightest = getBrightest();
+  //const brightest = getBrightest();
 
   for(let i = WIDTH * HEIGHT - 1; i >= 0; i--) {
     let shaderResult = loopStuff(stuffToDo.shader, {
       re: i % WIDTH,
       im: (i / WIDTH) >> 0,
       z: mainZBuffer[i],
-      red: mainBuffer[0][i] / brightest,
-      green: mainBuffer[1][i] / brightest,
-      blue: mainBuffer[2][i] / brightest,
+      red: mainBuffer[0][i],
+      green: mainBuffer[1][i],
+      blue: mainBuffer[2][i],
       alpha: 1,
       zBuffer: mainZBuffer,
       mainBuffer: mainBuffer,

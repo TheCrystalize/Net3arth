@@ -29,8 +29,7 @@ transform square(number side, number area):
   -> scale3D3(side, 1, 1);
 
 body:
-  setAlpha(255)
-  -> choose{
+  choose{
     1:
       blurCube();
     3*areaA:

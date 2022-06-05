@@ -82,6 +82,7 @@ brighten
 color
 dither
 shaderPass
+normalizeColors
 rainbowCirc
 rainbowCircAdd
 paletteMod
@@ -252,11 +253,10 @@ var EarthLangHighlightRules = function(options) {
         "storage.type":
             "const|let|var|function",
         "constant.language":
-            "null|Infinity|NaN|undefined",
+            "null|Infinity|NaN|undefined|"+StandardLibConstantsNames,
         "support.function":
             "alert",
         "constant.language.boolean": "true|false",
-        "constant.language": StandardLibConstantsNames,
         "support.function": StandardLibHelperNames,
     }, "identifier");
 
@@ -540,7 +540,7 @@ var EarthLangHighlightRules = function(options) {
             comments("earthLangFunctionType"),
             {
                 token: "storage.type",
-                regex: "(?:number|complex|bool|string|array|object)",
+                regex: "(?:number|complex|bool|string|array|object|function)",
                 push: "earthLangFunctionType",
                 next: "earthLangFunction"
             },
@@ -619,7 +619,7 @@ var EarthLangHighlightRules = function(options) {
             comments("earthLangCustomTransformParams"),
             {
                 token: "storage.type",
-                regex: "(?:number|complex|bool|string|array|object)"
+                regex: "(?:number|complex|bool|string|array|object|function)"
             },
             {
                 token: "entity.function.name",
@@ -670,7 +670,7 @@ var EarthLangHighlightRules = function(options) {
             },
             {
                 token: "storage.type",
-                regex: "number|complex|bool|string|array|object",
+                regex: "number|complex|bool|string|array|object|function",
                 next: "earthLangFunction"
             },
             {
@@ -851,7 +851,7 @@ var EarthLangHighlightRules = function(options) {
             },
             {
                 token: "storage.type",
-                regex: "number|complex|bool|string|array|object",
+                regex: "number|complex|bool|string|array|object|function",
                 next: "earthLangFunction"
             },
             {

@@ -8,9 +8,9 @@ decodeGradient(string txt) {
   for(var i = 0; i < t.length; i += 6) {
     ans.push(
       colorRGB(
-        Number.parseInt(t[i + 0] + t[i + 1], 16),
-        Number.parseInt(t[i + 2] + t[i + 3], 16),
-        Number.parseInt(t[i + 4] + t[i + 5], 16)
+        Number.parseInt(t[i + 0] + t[i + 1], 16) / 255,
+        Number.parseInt(t[i + 2] + t[i + 3], 16) / 255,
+        Number.parseInt(t[i + 4] + t[i + 5], 16) / 255
       )
     );
   }

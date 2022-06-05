@@ -98,6 +98,7 @@ function normalizeColors() {
   let brightness;
   return z => {
     if(z.re === z.width-1 && z.im === z.height-1) {
+      brightness = 0;
       for(let i = z.zBuffer.length - 1; i >= 0; i--) {
         brightness = Math.max(
           brightness,
@@ -214,6 +215,14 @@ function log(z) {
   }
 }
 
+function pow(z, p) {
+  let n = p * Math.atan2(z.im, z.re);
+  let m = Math.exp(p * Math.log(z.re * z.re + z.im * z.im));
+  return {
+    re: Math.cos(n) * m,
+    im: Math.sin(n) * m
+  }
+}
 
 function exp(z) {
   const e = Math.exp(z.re);
@@ -794,7 +803,7 @@ function gammaLanczos(z) {
   return y;
 }
 
-function tpow(z, c) {
+function tcPow(z, c) {
   let a = Math.atan2(z.im, z.re);
   let lnr = 0.5 * Math.log(dot(z, z));
   let m = Math.exp(c.re * lnr - c.im * a);
@@ -811,7 +820,7 @@ function dynamicGamma(z) {
 
   let prod = div(C(1, 0), z);
   for(let i = 1; i < 40; i++) {
-    prod = mult(prod, tpow(C(1 + 1 / i, 0), z));
+    prod = mult(prod, tcPow(C(1 + 1 / i, 0), z));
     prod = div(prod, addScalar(div(z, C(i, 0)), 1))
   }
   gammaMap.set(z, prod)
@@ -822,7 +831,7 @@ function cGamma(z) {
   let eps = 0.01;
   let sum = C(0, 0);
   for(let i = 0; i < 10; i += eps) {
-    sum = add(sum, multScalar(mult(tpow(C(i, 0), addScalar(z, -1)), exp(C(-i, 0))), eps));
+    sum = add(sum, multScalar(mult(tcPow(C(i, 0), addScalar(z, -1)), exp(C(-i, 0))), eps));
   }
   return sum
 }
@@ -854,7 +863,7 @@ function round(x) {
   return f + n;
 }
 
-function pow(z, p) {
+function ccpow(z, p) {
   return exp(multScalar(log(z), p))
 }
 
@@ -862,7 +871,7 @@ function hypergeo2F1PowSerI(a, b, c, z) {
   let y = C(0, 0);
   let yp = C(0, 0);
   for(let k = 0; k < 40; k++) {
-    yp = divScalar(multScalar(pow(z, k), pochhammer(a, k) * pochhammer(b, k)), gammaLanczos(c + k) * factorial(k));
+    yp = divScalar(multScalar(ccpow(z, k), pochhammer(a, k) * pochhammer(b, k)), gammaLanczos(c + k) * factorial(k));
     y = add(y, yp);
   }
   return y;
@@ -872,7 +881,7 @@ function powSerO(a, b, c, z) {
   let y = C(0, 0);
   let yp = C(0, 0);
   for(let k = 0; k < 40; k++) {
-    yp = divScalar(multScalar(pow(z, -k), pochhammer(a, k) * pochhammer(a - c + 1, k)), factorial(k) * gammaLanczos(a - b + k + 1));
+    yp = divScalar(multScalar(ccpow(z, -k), pochhammer(a, k) * pochhammer(a - c + 1, k)), factorial(k) * gammaLanczos(a - b + k + 1));
     y = add(y, yp);
   }
   return y;
@@ -880,8 +889,8 @@ function powSerO(a, b, c, z) {
 
 function hypergeo2F1PowSerO(a, b, c, z) {
   let sc = Math.PI / Math.sin(Math.PI * (b - a));
-  let px = divScalar(pow(neg(z), -a), gammaLanczos(b) * gammaLanczos(c - a));
-  let py = divScalar(pow(neg(z), -b), gammaLanczos(a) * gammaLanczos(c - b));
+  let px = divScalar(ccpow(neg(z), -a), gammaLanczos(b) * gammaLanczos(c - a));
+  let py = divScalar(ccpow(neg(z), -b), gammaLanczos(a) * gammaLanczos(c - b));
   let x = powSerO(a, b, c, z);
   let y = powSerO(b, a, c, z);
   return multScalar(add(mult(px, x), neg(mult(py, y))), sc)
@@ -933,9 +942,9 @@ function scHGt(z, n, k) {
     694702008000 * Math.pow(n, 17) * (1 + 17 * n), 12504636144000 * Math.pow(n, 18) * (1 + 18 * n), 118794043368000 * Math.pow(n, 19) * (1 + 19 * n), 2375880867360000 * Math.pow(n, 20) * (1 + 20 * n), 24946749107280000 * Math.pow(n, 21) * (1 + 21 * n)
   ];
   let sum = C(1, 0);
-  let fin = div(multScalar(pow(z, n), 2), C(n + Math.pow(n, 2), 0));
+  let fin = div(multScalar(ccpow(z, n), 2), C(n + Math.pow(n, 2), 0));
   for(let i = 2; i < 22; i++) {
-    sum = add(sum, div(multScalar(pow(z, i * n), (i == 3 ? 2 : 1) * nums[i]), C(dens[i], 0)));
+    sum = add(sum, div(multScalar(ccpow(z, i * n), (i == 3 ? 2 : 1) * nums[i]), C(dens[i], 0)));
   }
   return mult(z, add(sum, fin));
 }
@@ -951,7 +960,7 @@ function hypergeo2F1Coefficients(a, b, c, nomial) {
 function hypergeo2F1pn(z, poly) {
   let sum = C(0, 0);
   for(let i = 0; i < poly.length; i++) {
-    sum = add(sum, mult(pow(z, i), poly[i]))
+    sum = add(sum, mult(ccpow(z, i), poly[i]))
   }
   return sum
 }
@@ -962,7 +971,7 @@ function beta(x, y) {
 
 function scFunc(a, b, c, x, z) {
   let fr = Math.pow(x, b - 1) * Math.pow(1 - x, c - b - 1);
-  let cr = pow(addScalar(neg(multScalar(z, x)), 1), -a)
+  let cr = ccpow(addScalar(neg(multScalar(z, x)), 1), -a)
   return multScalar(cr, fr)
 }
 
@@ -1005,11 +1014,11 @@ function hypergeo2F1fast(z, polyMap) {
 }
 
 function scHG(z, n, k, poly) {
-  return mult(z, hypergeo2F1pn(pow(z, n), poly))
+  return mult(z, hypergeo2F1pn(ccpow(z, n), poly))
 }
 
 function scHGfast(z, n, k, polyMap) {
-  return mult(z, hypergeo2F1fast(pow(z, n), polyMap))
+  return mult(z, hypergeo2F1fast(ccpow(z, n), polyMap))
 }
 
 /* (c^(
@@ -1087,7 +1096,7 @@ function schwarzChristoffelmap(n, k) {
 
 /*function schwarzChristoffelmap(n, k) {
   function funcyN(c) {
-      return pow(add(C(1,0),neg(pow(c, n))),-2/n);
+      return ccpow(add(C(1,0),neg(ccpow(c, n))),-2/n);
   }
   return z => {
     return {
@@ -1972,7 +1981,7 @@ function schwarzTriangle(_alph, _bet, _gam) {
   let nc = 2 - c;
 
   return z => {
-    let nz = pow(z, alph);
+    let nz = ccpow(z, alph);
     let hg = hypergeo2F1(a, b, c, z);
     let nhg = hypergeo2F1(na, nb, nc, z);
 
@@ -4321,6 +4330,7 @@ const BUILT_IN_TRANSFORMS = {
   dither: dither,
   //shaders
   shaderPass: shaderPass,
+  normalizeColors: normalizeColors,
   rainbowCirc: rainbowCirc,
   rainbowCircAdd: rainbowCircAdd,
   paletteMod: paletteMod,
@@ -4446,6 +4456,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "function",
     default: "heightMap()"
   }],
+  normalizeColors: [],
   rainbowCirc: [{
       name: "x",
       type: "number",

@@ -48,5 +48,15 @@
     "folder": "infectious-infinities",
     "title": "Infectious Infinities",
     "author": "The Crystalize"
+  },
+  {
+    "folder": "newton-fractal",
+    "title": "Newton Fractal",
+    "author": "Edward Haas"
+  },
+  {
+    "folder": "newton-fractal-map",
+    "title": "Newton Fractal Map",
+    "author": "Edward Haas"
   }
 ]

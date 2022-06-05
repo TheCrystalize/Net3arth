@@ -18,3 +18,6 @@ color(colorRGB(0, 1, 0))
 camera:
 translate(0, 5.5)
 -> scale(1/12);
+
+shader:
+normalizeColors();

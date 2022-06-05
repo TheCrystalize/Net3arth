@@ -60,4 +60,5 @@ camera:
   -> scale(0.35);
 
 shader:
-  gamma(8);
+  normalizeColors()
+  -> gamma(8);

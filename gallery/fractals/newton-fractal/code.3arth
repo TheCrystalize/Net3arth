@@ -1,0 +1,122 @@
+// https://en.wikipedia.org/wiki/Newton_fractal
+
+buffer() {
+  return averageBuffer();
+}
+
+factor(array roots) {
+  let o = [...roots, 0].fill(C(0, 0));
+  for (let i = 0; i < 2 ** roots.length; i++) {
+    let a = C(1, 0);
+    let t_index = 0;
+    for (let j = 0; j < roots.length; j++) {
+      if (i & (1 << j)) {
+        a = mult(a, roots[j]);
+      } else {
+        a = mult(a, C(-1, 0));
+        t_index++;
+      }
+    }
+    o[t_index] = add(o[t_index], a);
+  }
+  return o;
+}
+
+newton(number x, number y, number s, number iterations, array roots) {
+  let X, Y, Z, A, B, closest, ans, slope, i, j, len = roots.length;
+
+  let closestRoot = Infinity;
+
+  for(i = 0; i < len; i++){
+    for(j = 0; j < len; j++){
+      A = roots[i].re - roots[j].re;
+      B = roots[i].im - roots[j].im;
+      A = A * A + B * B;
+
+      if(A > 0 && A < closestRoot) {
+        closestRoot = A;
+      }
+    }
+  }
+
+  closestRoot = (Math.sqrt(closestRoot) / 8 / len) ** 2;
+
+  let polynomial = factor(roots);
+
+  let derivative = [];
+  for(i = 1; i <= len; i++){
+    derivative.push(multScalar(polynomial[i], i));
+  }
+
+  return z => {
+    X = x + z.re * s;
+    Y = -y + z.im * s;
+
+    Z = C(X, Y);
+    for(i = 0; i < iterations; i++) {
+      ans = polynomial[0];
+      for(let j = 1; j <= len; j++) {
+        ans = add(ans, mult(polynomial[j], ccpow(Z, j)));
+      }
+
+      slope = derivative[0];
+      for(let j = 1; j < len; j++) {
+        slope = add(slope, mult(derivative[j], ccpow(Z, j)));
+      }
+
+      Z = sub(Z, div(ans, slope));
+
+      ans = 0;
+      closest = Infinity;
+
+      for(j = 0; j < len; j++){
+        A = Z.re - roots[j].re;
+        B = Z.im - roots[j].im;
+        A = A * A + B * B;
+
+        if(A < closest) {
+          ans = j;
+          closest = A;
+        }
+      }
+
+      if(closest < closestRoot) {
+        return {
+          ...z,
+          red: i / iterations,
+          green: 0,
+          blue: ans / len
+        };
+      }
+    }
+
+    return {
+      ...z,
+      red: 1,
+      green: 1,
+      blue: 0
+    };
+  };
+}
+
+body:
+blurSquare()
+-> newton(-0.2, 0, 1, 1000, [
+  C(-1.76,0.031),
+  C(0.88, -0.59),
+  C(0.88,  0.59)
+]);
+
+//-> newton(0, 0, 4, 1000, [C(1,0), C(-1/2, -Math.sqrt(3)/2), C(-1/2, Math.sqrt(3)/2)]);// z^3-1
+
+colorGrade(){
+  return z=>{
+    return {
+      ...z,
+      ...hslToRgb(z.blue, 1, (Math.pow(z.red*15, 0.5)) * (1 - z.green))
+    };
+  }
+}
+
+shader:
+colorGrade();
