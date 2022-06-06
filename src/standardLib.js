@@ -1245,6 +1245,22 @@ function blurTriangle(a, b, c) {
   }
 }
 
+function triangle3D(x1, y1, z1, x2, y2, z2, x3, y3, z3) {
+    let t1 = Math.random();
+    let t2 = Math.random();
+
+    if(t1 + t2 > 1){
+      t1 = 1 - t1;
+      t2 = 1 - t2;
+    }
+
+    return {
+      re: x1 + (x2 - x1) * t1  + (x3 - x1) * t2,
+      im: y1 + (y2 - y1) * t1  + (y3 - y1) * t2,
+      z: z1 + (z2 - z1) * t1  + (z3 - z1) * t2,
+    };
+  }
+
 function bTransform(rotate, power, move, split) {
   return z => {
     let tau = 0.5 * (Math.log((z.re + 1) * (z.re + 1) + z.im * z.im) - Math.log((z.re - 1) * (z.re - 1) + z.im * z.im)) / power + move,
@@ -3647,6 +3663,14 @@ function heightMap() {
   let low = Infinity;
   let high = -Infinity;
   return z => {
+    if(z.z === 0 && z.red === 0 && z.green === 0 && z.blue === 0) {
+      return {
+        ...z,
+        red: 0,
+        blue: 0,
+        green: 0
+      };
+    }
     if(z.z > high) {
       high = z.z;
     }
@@ -3710,6 +3734,32 @@ function environmentLight(x, y, z, lights) {
     }
   }
   return sum;
+}
+
+function oneLightEnvironment(x, y, z) {
+  let lights = [
+    [normalize3([0, 0, 1]), 0.2, 1],
+  ];
+  for(let i = 0; i < lights.length; i++) {
+    if(Math.hypot(x - lights[i][0][0], y + lights[i][0][1], z - lights[i][0][2]) < lights[i][1]) {
+      return {
+        red: lights[i][2],
+        green: lights[i][2],
+        blue: lights[i][2]
+      }
+    }
+  }
+  return {
+    red: 0.2,
+    green: 0.2,
+    blue: 0.2,
+  }
+}
+
+function oneLightLights(x, y, z) {
+  return environmentLight(x, y, z, [
+    [normalize3([0, 0, 1]), 0.2, 0.9]
+  ]);
 }
 
 function lightRoomEnvironment(x, y, z) {
@@ -3914,11 +3964,19 @@ function reflect(vector, normal) {
 }
 
 function specularOrth(theta1, theta2, ior, environment, p) {
-  let skyBoxLights = [lightRoomLights, dayLights][environment];
+  let skyBoxLights = [lightRoomLights, dayLights, oneLightLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
+    if(z.z === 0 && z.red === 0 && z.green === 0 && z.blue === 0) {
+      return {
+        ...z,
+        red: 0,
+        blue: 0,
+        green: 0
+      };
+    }
     let normal = getNormal(z);
     let reflected = reflect([0, 0, 1], [normal[0], normal[1], normal[2]]);
     let n = rotation1(rotation2({
@@ -3944,12 +4002,20 @@ function specularOrth(theta1, theta2, ior, environment, p) {
 }
 
 function basicEnvironmentOrth(theta1, theta2, ior, environment) {
-  let skyBox = [lightRoomEnvironment, dayEnvironment][environment];
-  let skyBoxLights = [lightRoomLights, dayLights][environment];
+  let skyBox = [lightRoomEnvironment, dayEnvironment, oneLightEnvironment][environment];
+  let skyBoxLights = [lightRoomLights, dayLights, oneLightLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
+    if(z.z === 0 && z.red === 0 && z.green === 0 && z.blue === 0) {
+      return {
+        ...z,
+        red: 0,
+        blue: 0,
+        green: 0
+      };
+    }
     let normal = getNormal(z);
     let reflected = reflect([0, 0, 1], [normal[0], normal[1], normal[2]]);
     let norm = rotation1(rotation2({
@@ -3982,8 +4048,8 @@ function basicEnvironmentOrth(theta1, theta2, ior, environment) {
 function advancedLightingOrth(theta1, theta2, ior, environment) {
   let p = 20;
   let specularWeight = 2;
-  let skyBox = [lightRoomEnvironment, dayEnvironment][environment];
-  let skyBoxLights = [lightRoomLights, dayLights][environment];
+  let skyBox = [lightRoomEnvironment, dayEnvironment, oneLightEnvironment][environment];
+  let skyBoxLights = [lightRoomLights, dayLights, oneLightLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
@@ -4124,11 +4190,19 @@ function advancedLightingOrth(theta1, theta2, ior, environment) {
 }
 
 function specular(theta1, theta2, ior, environment, p) {
-  let skyBoxLights = [lightRoomLights, dayLights][environment];
+  let skyBoxLights = [lightRoomLights, dayLights, oneLightLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
+    if(z.z === 0 && z.red === 0 && z.green === 0 && z.blue === 0) {
+      return {
+        ...z,
+        red: 0,
+        blue: 0,
+        green: 0
+      };
+    }
     let normal = getNormal(z);
     let reflected = reflect([0, 0, -1], [normal[0], normal[1], -normal[2]]);
     let n = rotation1(rotation2({
@@ -4154,12 +4228,20 @@ function specular(theta1, theta2, ior, environment, p) {
 }
 
 function basicEnvironment(theta1, theta2, ior, environment) {
-  let skyBox = [lightRoomEnvironment, dayEnvironment][environment];
-  let skyBoxLights = [lightRoomLights, dayLights][environment];
+  let skyBox = [lightRoomEnvironment, dayEnvironment, oneLightEnvironment][environment];
+  let skyBoxLights = [lightRoomLights, dayLights, oneLightLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
+    if(z.z === 0 && z.red === 0 && z.green === 0 && z.blue === 0) {
+      return {
+        ...z,
+        red: 0,
+        blue: 0,
+        green: 0
+      };
+    }
     let normal = getNormal(z);
     let n = rotation1(rotation2({
       re: normal[0],
@@ -4184,12 +4266,20 @@ function basicEnvironment(theta1, theta2, ior, environment) {
 }
 
 function advancedLighting(theta1, theta2, ior, environment) {
-  let skyBox = [lightRoomEnvironment, dayEnvironment][environment];
-  let skyBoxLights = [lightRoomLights, dayLights][environment];
+  let skyBox = [lightRoomEnvironment, dayEnvironment, oneLightEnvironment][environment];
+  let skyBoxLights = [lightRoomLights, dayLights, oneLightLights][environment];
   let rotation1 = rotate3D(theta1, 0, 0);
   let rotation2 = rotate3D(0, theta2, 0);
 
   return z => {
+    if(z.z === 0 && z.red === 0 && z.green === 0 && z.blue === 0) {
+      return {
+        ...z,
+        red: 0,
+        blue: 0,
+        green: 0
+      };
+    }
     let cameraSize = Math.min(z.width, z.height);
     let normal = getNormal(z);
     let _normal = normal;
@@ -4295,6 +4385,91 @@ function advancedLighting(theta1, theta2, ior, environment) {
         }
       }
     }
+  }
+}
+
+function decodeSTL(stl){
+  let file = Uint8Array.from(window.atob(stl), v => v.charCodeAt(0));
+
+  let at = 84;
+
+  let buf = new ArrayBuffer(4);
+  let int8 = new Uint8Array(buf);
+  let f32 = new Float32Array(buf);
+
+  let n = file[80]+(file[81]<<8)+(file[82]<<16)+(file[83]<<24);
+
+  let triangles = [];
+
+  for(let i=0;i<n;i++){
+    at += 12;
+
+    int8[0] = file[at++];
+    int8[1] = file[at++];
+    int8[2] = file[at++];
+    int8[3] = file[at++];
+    let x1 = f32[0];
+    int8[0] = file[at++];
+    int8[1] = file[at++];
+    int8[2] = file[at++];
+    int8[3] = file[at++];
+    let y1 = f32[0];
+    int8[0] = file[at++];
+    int8[1] = file[at++];
+    int8[2] = file[at++];
+    int8[3] = file[at++];
+    let z1 = f32[0];
+    int8[0] = file[at++];
+    int8[1] = file[at++];
+    int8[2] = file[at++];
+    int8[3] = file[at++];
+
+    let x2 = f32[0];
+    int8[0] = file[at++];
+    int8[1] = file[at++];
+    int8[2] = file[at++];
+    int8[3] = file[at++];
+    let y2 = f32[0];
+    int8[0] = file[at++];
+    int8[1] = file[at++];
+    int8[2] = file[at++];
+    int8[3] = file[at++];
+    let z2 = f32[0];
+    int8[0] = file[at++];
+    int8[1] = file[at++];
+    int8[2] = file[at++];
+    int8[3] = file[at++];
+
+    let x3 = f32[0];
+    int8[0] = file[at++];
+    int8[1] = file[at++];
+    int8[2] = file[at++];
+    int8[3] = file[at++];
+    let y3 = f32[0];
+    int8[0] = file[at++];
+    int8[1] = file[at++];
+    int8[2] = file[at++];
+    int8[3] = file[at++];
+    let z3 = f32[0];
+
+    at += 2;
+
+    let triangle = {
+      points: [x1,y1,z1,x2,y2,z2,x3,y3,z3]
+    };
+
+    triangles.push(triangle);
+  }
+
+  return triangles;
+}
+
+function stl(stl){
+  let triangles = decodeSTL(stl);
+  let len = triangles.length;
+  return z=>{
+    let t = Math.random() * t >> 0;
+    return triangles[t](z);
   }
 }
 
