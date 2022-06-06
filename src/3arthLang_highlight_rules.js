@@ -29,6 +29,7 @@ bent
 blurCircle
 blurGasket
 blurGaussian
+blurNgon
 blurSine
 blurSquare
 blurTriangle
