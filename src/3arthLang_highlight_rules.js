@@ -1,6 +1,9 @@
 const StandardLibNamesArray =
 `blurSphere
 blurCube
+blurDodecahedron
+blurTeapot
+stl
 mobius3D
 hypershift3D
 bubble3D
@@ -114,7 +117,8 @@ specular
 specularOrth`.split('\n');
 
 const StandardLibHelperNamesArray =
-`rgbToHsl
+`decodeSTL
+rgbToHsl
 hslToRgb
 conj
 div

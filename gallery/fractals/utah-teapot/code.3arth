@@ -1,0 +1,16 @@
+buffer() {
+  return zBuffer();
+}
+
+body:
+blurTeapot();
+
+camera:
+scale3D(1/15)
+-> rotate3D(0, 90, 0)
+-> rotate3D(20, 0, 0)
+-> rotate3D(0, 15, 0)
+-> translate3D(0,0.2,0);
+
+shader:
+basicEnvironment(20, -30, 1.4, 1);

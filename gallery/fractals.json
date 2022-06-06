@@ -63,5 +63,10 @@
     "folder": "arcsinh-splits",
     "title": "Arcsinh Splits",
     "author": "The Crystalize"
+  },
+  {
+    "folder": "utah-teapot",
+    "title": "Utah Teapot",
+    "author": "Edward Haas"
   }
 ]
