@@ -161,6 +161,7 @@ matrixRotateX
 matrixRotateY
 matrixRotateZ
 matrixPerspectiveProjection
+triangle3D
 getNormal
 zBuffer
 firstBuffer
