@@ -1201,6 +1201,44 @@ function blurGaussian(pow) {
   }
 }
 
+function blurNgon(n){
+  let points = [];
+  for(let i=0;i<n;i++){
+    points.push({
+      re: Math.cos(i/n*Math.PI*2),
+      im: Math.sin(i/n*Math.PI*2)
+    });
+  }
+
+  let areaSum = 0;
+  let areas = [];
+  let triangles = [];
+  for(let i=2;i<points.length;i++){
+    triangles.push(blurTriangle(
+      points[0], points[i-1], points[i]));
+    let area =
+      Math.abs(points[0].re*points[i-1].im+
+      points[i-1].re*points[i].im+
+      points[i].re*points[0].im-
+      points[0].im*points[i-1].re-
+      points[i-1].im*points[i].re-
+      points[i].im*points[0].re);
+    areaSum += area;
+    areas.push(area);
+  }
+  let len = triangles.length;
+
+  return z=>{
+    let triangle = Math.random() * areaSum;
+    for(let i=0;i<len;i++){
+      if(triangle <= areas[i]) {
+        return triangles[i](z);
+      }
+      triangle -= areas[i];
+    }
+  }
+}
+
 function blurSine(pow) {
   return z => {
     let a = Math.random() * 2 * Math.PI,
@@ -4574,6 +4612,7 @@ const BUILT_IN_TRANSFORMS = {
   blurCircle: blurCircle,
   blurGasket: blurGasket,
   blurGaussian: blurGaussian,
+  blurNgon: blurNgon,
   blurSine: blurSine,
   blurSquare: blurSquare,
   blurTriangle: blurTriangle,
@@ -5128,6 +5167,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     name: "pow",
     type: "number",
     default: 1
+  }],
+  blurNgon: [{
+      name: "n",
+      type: "number",
+      default: "3"
   }],
   blurSine: [{
     name: "pow",

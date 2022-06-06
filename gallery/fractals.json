@@ -58,5 +58,10 @@
     "folder": "newton-fractal-map",
     "title": "Newton Fractal Map",
     "author": "Edward Haas"
+  },
+  {
+    "folder": "arcsinh-splits",
+    "title": "Arcsinh Splits",
+    "author": "The Crystalize"
   }
 ]
