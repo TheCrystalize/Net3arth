@@ -31,6 +31,7 @@ blurGasket
 blurGaussian
 blurSine
 blurSquare
+blurTriangle
 bTransform
 bubble
 circleInv

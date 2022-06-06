@@ -1225,6 +1225,26 @@ function blurSquare() {
   }
 }
 
+function blurTriangle(a, b, c) {
+  let nb = sub(b, a);
+  let nc = sub(c, a);
+  return z => {
+    let t1 = Math.random();
+    let t2 = Math.random();
+    if(t1 + t2 > 1) {
+      t1 = 1 - t1;
+      t2 = 1 - t2;
+    }
+    let mb = multScalar(nb, t1)
+    let mc = multScalar(nc, t2);
+    let f = add(add(mb, mc), a)
+    return {
+      ...z,
+      ...f
+    }
+  }
+}
+
 function bTransform(rotate, power, move, split) {
   return z => {
     let tau = 0.5 * (Math.log((z.re + 1) * (z.re + 1) + z.im * z.im) - Math.log((z.re - 1) * (z.re - 1) + z.im * z.im)) / power + move,
@@ -4381,6 +4401,7 @@ const BUILT_IN_TRANSFORMS = {
   blurGaussian: blurGaussian,
   blurSine: blurSine,
   blurSquare: blurSquare,
+  blurTriangle: blurTriangle,
   bTransform: bTransform,
   bubble: bubble,
   circleInv: circleInv,
@@ -4939,6 +4960,22 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 1
   }],
   blurSquare: [],
+  blurTriangle: [{
+      name: "a",
+      type: "complex",
+      default: "C(-0.5, -Math.sqrt(3)*0.5))",
+  },
+  {
+      name: "b",
+      type: "complex",
+      default: "C(-0.5, Math.sqrt(3)*0.5))",
+  },
+  {
+      name: "c",
+      type: "complex",
+      default: "C(1, 0)",
+  }
+],
   bTransform: [{
       name: "rotate",
       type: "number",
