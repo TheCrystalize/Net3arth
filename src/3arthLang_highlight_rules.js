@@ -1,6 +1,10 @@
 const StandardLibNamesArray =
 `blurSphere
 blurCube
+blurTetrahedron
+blurNormalCube
+blurOctahedron
+blurIcosahedron
 blurDodecahedron
 blurTeapot
 stl

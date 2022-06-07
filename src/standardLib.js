@@ -4515,8 +4515,223 @@ function stl(stl) {
   }
 }
 
+function blurTetrahedron(){
+  let v = [
+    [ 1/Math.sqrt(3), 1/Math.sqrt(3), 1/Math.sqrt(3)],
+    [-1/Math.sqrt(3),-1/Math.sqrt(3), 1/Math.sqrt(3)],
+    [-1/Math.sqrt(3), 1/Math.sqrt(3),-1/Math.sqrt(3)],
+    [ 1/Math.sqrt(3),-1/Math.sqrt(3),-1/Math.sqrt(3)],
+  ];
+  let triangles = [
+    [...v[0], ...v[1], ...v[2]],
+    [...v[0], ...v[1], ...v[3]],
+    [...v[0], ...v[2], ...v[3]],
+    [...v[1], ...v[2], ...v[3]],
+  ];
+  let len = triangles.length;
+  return z=>{
+    return {
+      ...z,
+      ...triangle3D(...triangles[len*Math.random()>>0])
+    }
+  }
+}
+
+function blurNormalCube() {
+  let sqrt3 = 1 / Math.sqrt(3);
+  return z => {
+    let face = Math.random() * 6 >> 0;
+    let x = Math.random() * sqrt3 * 2 - sqrt3;
+    let y = Math.random() * sqrt3 * 2 - sqrt3;
+    switch (face) {
+      case 0:
+        return {
+          ...z,
+          re: x,
+            im: y,
+            z: -sqrt3
+        };
+      case 1:
+        return {
+          ...z,
+          re: x,
+            im: y,
+            z: sqrt3
+        };
+      case 2:
+        return {
+          ...z,
+          re: x,
+            im: -sqrt3,
+            z: y
+        };
+      case 3:
+        return {
+          ...z,
+          re: x,
+            im: sqrt3,
+            z: y
+        };
+      case 4:
+        return {
+          ...z,
+          re: -sqrt3,
+            im: x,
+            z: y
+        };
+      case 5:
+        return {
+          ...z,
+          re: sqrt3,
+            im: x,
+            z: y
+        };
+    }
+  }
+}
+
+function blurOctahedron(){
+  let v = [
+    [ 1, 0, 0],
+    [-1, 0, 0],
+    [ 0, 1, 0],
+    [ 0,-1, 0],
+    [ 0, 0, 1],
+    [ 0, 0,-1],
+  ];
+  let triangles = [
+    [...v[0], ...v[2], ...v[4]],
+    [...v[0], ...v[2], ...v[5]],
+    [...v[0], ...v[3], ...v[4]],
+    [...v[0], ...v[3], ...v[5]],
+    [...v[1], ...v[2], ...v[4]],
+    [...v[1], ...v[2], ...v[5]],
+    [...v[1], ...v[3], ...v[4]],
+    [...v[1], ...v[3], ...v[5]],
+  ];
+  let len = triangles.length;
+  return z=>{
+    return {
+      ...z,
+      ...triangle3D(...triangles[len*Math.random()>>0])
+    }
+  }
+}
+
+function blurIcosahedron(){
+  let v = [
+    [0,0,-1],
+    [0.7235999703407288,-0.5257200002670288,-0.4472149908542633],
+    [-0.27638500928878784,-0.8506399989128113,-0.4472149908542633],
+    [0.7235999703407288,0.5257200002670288,-0.4472149908542633],
+    [-0.8944249749183655,0,-0.4472149908542633],
+    [-0.27638500928878784,0.8506399989128113,-0.4472149908542633],
+    [0.8944249749183655,0,0.4472149908542633],
+    [0.27638500928878784,-0.8506399989128113,0.4472149908542633],
+    [-0.7235999703407288,-0.5257200002670288,0.4472149908542633],
+    [-0.7235999703407288,0.5257200002670288,0.4472149908542633],
+    [0.27638500928878784,0.8506399989128113,0.4472149908542633],
+    [0,0,1]
+  ];
+  let triangles = [
+    [...v[0],...v[1],...v[2]],
+    [...v[0],...v[1],...v[3]],
+    [...v[0],...v[2],...v[4]],
+    [...v[0],...v[4],...v[5]],
+    [...v[0],...v[5],...v[3]],
+    [...v[1],...v[3],...v[6]],
+    [...v[2],...v[1],...v[7]],
+    [...v[4],...v[2],...v[8]],
+    [...v[5],...v[4],...v[9]],
+    [...v[3],...v[5],...v[10]],
+    [...v[1],...v[6],...v[7]],
+    [...v[2],...v[7],...v[8]],
+    [...v[4],...v[8],...v[9]],
+    [...v[5],...v[9],...v[10]],
+    [...v[3],...v[10],...v[6]],
+    [...v[7],...v[6],...v[11]],
+    [...v[8],...v[7],...v[11]],
+    [...v[9],...v[8],...v[11]],
+    [...v[10],...v[9],...v[11]],
+    [...v[6],...v[10],...v[11]]
+    ];
+  let len = triangles.length;
+  return z=>{
+    return {
+      ...z,
+      ...triangle3D(...triangles[len*Math.random()>>0])
+    }
+  }
+}
+
 function blurDodecahedron(){
-  return stl("RXhwb3J0ZWQgZnJvbSBCbGVuZGVyLTIuNzkgKHN1YiAwKQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAD/EWT9SlgY/iMC4QIjAuECIwLhAvF1kQLN3FUEAAAAAiMC4wIjAuECIwLhAAAAAAAAAQ8RZP02WBj+IwLjAiMC4QIjAuEAAAAAAvF1kQLN3FUGIwLhAiMC4QIjAuEAAAAAAAAA+xFk/U5YGP7xdZECzdxVBAAAAALxdZMCzdxVBAAAAAIjAuMCIwLhAiMC4QAAAP8RZP1KWBj8AAAAAiMC4QIjAuECIwLhAs3cVQQAAAAC8XWRAiMC4QIjAuECIwLjAAABDxFk/TZYGPwAAAACIwLhAiMC4QIjAuMC8XWRAs3cVQQAAAACIwLhAiMC4QIjAuEAAAD7EWT9TlgY/AAAAALN3FUEAAAAAvF1kQLN3FUEAAAAAvF1kwIjAuECIwLhAiMC4wAAAUpYGPwAAAAA/xFk/iMC4QIjAuECIwLhAAAAAALxdZECzdxVBiMC4QIjAuMCIwLhAAABNlgY/AAAAAEPEWT+IwLhAiMC4wIjAuECzdxVBAAAAALxdZECIwLhAiMC4QIjAuEAAAFOWBj8AAAAAPsRZPwAAAAC8XWRAs3cVQQAAAAC8XWTAs3cVQYjAuECIwLjAiMC4QAAAAAAAAD/EWT9Slga/vF1kQLN3FUEAAAAAiMC4QIjAuECIwLjAiMC4wIjAuECIwLjAAAAAAAAAPsRZP1SWBr+IwLjAiMC4QIjAuMC8XWTAs3cVQQAAAAC8XWRAs3cVQQAAAAAAAAAAAABDxFk/TZYGv4jAuECIwLhAiMC4wAAAAAC8XWRAs3cVwYjAuMCIwLhAiMC4wAAAP8RZP1KWBr8AAAAAs3cVQQAAAAC8XWRAiMC4QIjAuMCIwLhAiMC4QIjAuMCIwLjAAAA+xFk/VJYGvwAAAACIwLhAiMC4wIjAuMCzdxVBAAAAALxdZMCzdxVBAAAAALxdZEAAAEPEWT9Nlga/AAAAAIjAuECIwLjAiMC4QLxdZECzdxXBAAAAAIjAuECIwLjAiMC4wAAAUpYGvwAAAAA/xFk/AAAAALxdZECzdxVBiMC4wIjAuECIwLhAiMC4wIjAuMCIwLhAAABUlga/AAAAAD7EWT+IwLjAiMC4wIjAuEAAAAAAvF1kwLN3FUEAAAAAvF1kQLN3FUEAAE2WBr8AAAAAQ8RZP4jAuMCIwLhAiMC4QLN3FcEAAAAAvF1kQIjAuMCIwLjAiMC4QAAAQcRZv06WBj++ypyzvF1kwLN3FUEAAAAAiMC4wIjAuECIwLjAs3cVwQAAAAC8XWRAAAA/xFm/UJYGPzshqTOzdxXBAAAAALxdZECIwLjAiMC4QIjAuEC8XWTAs3cVQQAAAAAAAD7EWb9UlgY/AAAAAIjAuMCIwLhAiMC4wLN3FcEAAAAAvF1kwLN3FcEAAAAAvF1kQAAAAAAAAD/EWb9SlgY/iMC4wIjAuMCIwLhAvF1kwLN3FcEAAAAAiMC4QIjAuMCIwLhAAAAAAAAAQ8RZv02WBj+IwLhAiMC4wIjAuEAAAAAAvF1kwLN3FUGIwLjAiMC4wIjAuEAAAAAAAAA+xFm/U5YGP7xdZMCzdxXBAAAAALxdZECzdxXBAAAAAIjAuECIwLjAiMC4QAAAUpYGPwAAAAA/xFm/iMC4QIjAuMCIwLjAAAAAALxdZMCzdxXBiMC4QIjAuECIwLjAAABNlgY/AAAAAEPEWb+IwLhAiMC4QIjAuMCzdxVBAAAAALxdZMCIwLhAiMC4wIjAuMAAAFOWBj8AAAAAPsRZvwAAAAC8XWTAs3cVwQAAAAC8XWRAs3cVwYjAuECIwLhAiMC4wAAAT5YGv1MO0bNBxFm/iMC4wIjAuMCIwLjAs3cVwQAAAAC8XWTAAAAAALxdZECzdxXBAABTlga/AAAAAD7EWb8AAAAAvF1kQLN3FcEAAAAAvF1kwLN3FcGIwLjAiMC4wIjAuMAAAFCWBr/asf0zQMRZv7N3FcEAAAAAvF1kwIjAuMCIwLhAiMC4wAAAAAC8XWRAs3cVwQAAQcRZv0+WBr9TDtGziMC4wIjAuMCIwLjAvF1kwLN3FcEAAAAAs3cVwQAAAAC8XWRAAAA+xFm/U5YGvwAAAACzdxXBAAAAALxdZECzdxXBAAAAALxdZMCIwLjAiMC4wIjAuMAAAEDEWb9Qlga/2rH9M7xdZMCzdxXBAAAAAIjAuMCIwLjAiMC4QLN3FcEAAAAAvF1kQAAAUw7Rs0HEWb9Plga/iMC4wIjAuMCIwLjAAAAAALxdZMCzdxXBvF1kQLN3FcEAAAAAAAAAAAAAPsRZv1OWBr+8XWRAs3cVwQAAAAC8XWTAs3cVwQAAAACIwLjAiMC4wIjAuMAAANqx/TNAxFm/UJYGvwAAAAC8XWTAs3cVwYjAuECIwLjAiMC4wLxdZECzdxXBAAAAAAAA");
+  let v = [
+    [-0.39024436473846436,-0.2835195064544678,-0.6314943432807922],
+    [-0.39027291536331177,0.2835503816604614,-0.6314765810966492],
+    [0.14906887710094452,0.45877963304519653,-0.631479799747467],
+    [0.48240193724632263,3.0768731562602625e-7,-0.6314753293991089],
+    [0.14907200634479523,-0.45878836512565613,-0.6314764618873596],
+    [0.7805578112602234,0.00000969648317550309,-0.14905263483524323],
+    [0.6314653158187866,-0.4587717056274414,0.14913280308246613],
+    [0.24121826887130737,-0.7423388361930847,-0.14905734360218048],
+    [-0.2412155419588089,-0.7423402070999146,0.14905862510204315],
+    [-0.6314663290977478,-0.4587700664997101,-0.14913102984428406],
+    [-0.7805584073066711,0.000009139090252574533,0.14905107021331787],
+    [-0.6314518451690674,0.45882129669189453,-0.14906848967075348],
+    [-0.2411758452653885,0.7423271536827087,0.14910291135311127],
+    [0.24117566645145416,0.7423269748687744,-0.149103581905365],
+    [0.6314517855644226,0.4588213860988617,0.14906856417655945],
+    [0.39024636149406433,-0.283531129360199,0.6314889192581177],
+    [-0.14907166361808777,-0.45878854393959045,0.6314763426780701],
+    [-0.4824022054672241,9.299139946961077e-8,0.6314752101898193],
+    [-0.1490684151649475,0.45878103375434875,0.631479024887085],
+    [0.3902744650840759,0.2835506200790405,0.6314752697944641]
+  ];
+  let triangles = [
+    [...v[0],...v[1],...v[2]],
+    [...v[2],...v[3],...v[4]],
+    [...v[2],...v[4],...v[0]],
+    [...v[4],...v[3],...v[5]],
+    [...v[5],...v[6],...v[7]],
+    [...v[5],...v[7],...v[4]],
+    [...v[0],...v[4],...v[7]],
+    [...v[7],...v[8],...v[9]],
+    [...v[7],...v[9],...v[0]],
+    [...v[1],...v[0],...v[9]],
+    [...v[9],...v[10],...v[11]],
+    [...v[9],...v[11],...v[1]],
+    [...v[2],...v[1],...v[11]],
+    [...v[11],...v[12],...v[13]],
+    [...v[11],...v[13],...v[2]],
+    [...v[14],...v[5],...v[3]],
+    [...v[3],...v[2],...v[13]],
+    [...v[3],...v[13],...v[14]],
+    [...v[7],...v[6],...v[15]],
+    [...v[15],...v[16],...v[8]],
+    [...v[15],...v[8],...v[7]],
+    [...v[9],...v[8],...v[16]],
+    [...v[16],...v[17],...v[10]],
+    [...v[16],...v[10],...v[9]],
+    [...v[11],...v[10],...v[17]],
+    [...v[17],...v[18],...v[12]],
+    [...v[17],...v[12],...v[11]],
+    [...v[13],...v[12],...v[18]],
+    [...v[18],...v[19],...v[14]],
+    [...v[18],...v[14],...v[13]],
+    [...v[5],...v[14],...v[19]],
+    [...v[19],...v[15],...v[6]],
+    [...v[19],...v[6],...v[5]],
+    [...v[17],...v[16],...v[15]],
+    [...v[15],...v[19],...v[18]],
+    [...v[15],...v[18],...v[17]]
+  ];
+  let len = triangles.length;
+  return z=>{
+    return {
+      ...z,
+      ...triangle3D(...triangles[len*Math.random()>>0])
+    }
+  }
 }
 
 function blurTeapot(){
@@ -4575,6 +4790,10 @@ const BUILT_IN_TRANSFORMS = {
   dither: dither,
   //3D models
   stl: stl,
+  blurTetrahedron: blurTetrahedron,
+  blurNormalCube: blurNormalCube,
+  blurOctahedron: blurOctahedron,
+  blurIcosahedron: blurIcosahedron,
   blurDodecahedron: blurDodecahedron,
   blurTeapot: blurTeapot,
   //shaders
@@ -4707,6 +4926,10 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "string",
     default: ""
   }],
+  blurTetrahedron: [],
+  blurNormalCube: [],
+  blurOctahedron: [],
+  blurIcosahedron: [],
   blurDodecahedron: [],
   blurTeapot: [],
   //shaders

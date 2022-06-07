@@ -1,0 +1,71 @@
+buffer() {
+  return zBuffer();
+}
+
+const areaA = 2/5;
+
+const areaB = 1 - areaA;
+
+scaleFactor(number area) {
+  return Math.sqrt(1 / area) * area;
+}
+
+getAngle(number area) {
+  return Math.acos(2 * area - 1) / Math.PI * 90;
+}
+
+transform square(number side, number area):
+  scale3D3(side, 1, 1)
+  -> translate3D(-0.5, -0.5, 0)
+  -> rotate3D(0, 0, getAngle(area))
+  -> scale3D(scaleFactor(area))
+  -> translate3D(0.5, -0.5, 0)
+  -> scale3D3(side, 1, 1);
+
+body:
+  choose{
+    1:
+      blurTeapot()
+      -> scale3D(1/10)
+      -> rotate3D(0,90,0)
+      -> color(colorRGB(1,0,0));
+    3*areaA:
+      square( 1, areaA)
+      -> hslShift(0.1, 0, 0);
+    3*areaB:
+      square(-1, areaB)
+      -> hslShift(0.1, 0, 0);
+  };
+
+camera:translate3D(0, 1.5, 5)
+  -> perspective3D()
+  -> scale3D(1.15)
+  -> translate3D(0.05,0.04,0);
+
+shader:
+  basicEnvironment(20*DEGREE, 30*DEGREE, 1, 0)
+  -> mist(0.5, 10, colorRGB(0.0, 0.1, 0.2))
+  -> sum{
+    0.1:
+      scale(1);
+    0.9:
+      product{
+        1:
+          sum{
+          1:
+            normalizeColor();
+          1:
+            specular(20*DEGREE, 30*DEGREE, 0.1, 0, 20);
+        };
+        1:
+          product{
+            1:
+              ambientOcclusion(10);
+            1:
+              sum{
+              0.5: gamma(2.2);
+              0.5: heightMap();
+            };
+          };
+      };
+  };
