@@ -4428,8 +4428,6 @@ function advancedLighting(theta1, theta2, ior, environment) {
 
 /*3D models*/
 function decodeSTL(stl) {
-  console.log(stl);
-  console.log(atob(stl));
   let file = Uint8Array.from(atob(stl), v => v.charCodeAt(0));
 
   let at = 84;
