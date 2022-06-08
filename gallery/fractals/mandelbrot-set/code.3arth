@@ -99,6 +99,6 @@ shaderPass(redz)
 -> productColor{
   1: colorGradient();
   1: sumColor{
-    1: ambientOcclusionBig(10, 2, -0.001);
+    1: ambientOcclusion(100, 1);
   };
 };
