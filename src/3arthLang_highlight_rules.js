@@ -8,6 +8,7 @@ blurIcosahedron
 blurDodecahedron
 blurTeapot
 torus
+umbilicTorus
 stl
 mobius3D
 hypershift3D
