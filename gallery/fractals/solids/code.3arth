@@ -1,0 +1,44 @@
+buffer() {
+  return zBuffer();
+}
+
+body:
+choose{
+  1: blurTetrahedron()
+    -> rotate3D(45,45,0)
+    -> translate3D(-6, -3, 0);
+  1: blurNormalCube()
+    -> rotate3D(45,45,0)
+    -> translate3D(-4, -3, 0);
+  1: blurOctahedron()
+    -> rotate3D(45,45,0)
+    -> translate3D(-2,-3, 0);
+  1: blurIcosahedron()
+    -> rotate3D(45,45,0)
+    -> translate3D(0,-3, 0);
+  1: blurDodecahedron()
+    -> rotate3D(45,45,0)
+    -> translate3D(2,-3, 0);
+
+  1: blurSphere()
+    -> rotate3D(45,45,0)
+    -> translate3D(-6, -1, 0);
+  1: torus(0.75, 0.25)
+    -> rotate3D(45,45,0)
+    -> translate3D(-4,-1, 0);
+
+  1: blurTeapot()
+    -> scale3D(1/10)
+    -> rotate3D(0,90,0)
+    -> translate3D(-6, 1.5, 0);
+};
+
+camera:
+translate3D(0, 0, 0)
+-> scale3D(1/8);
+
+shader:
+sumColor{
+  1: basicEnvironmentOrth(-30, 50, 1.4, 2);
+  1: specularOrth(-30, 50, 0.3, 2, 2);
+};

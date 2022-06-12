@@ -57,17 +57,10 @@ scale3D(2/5)
 
 shader:
 basicEnvironmentOrth(-30, -15, 2, 0)
--> sumColor{
-  0.1: scale(1);
-  0.9: productColor{
-    1: sumColor{
-      1: scale(1);
-      1: specularOrth(-30, -15, 2.5, 0, 20);
-    };
-    1: sumColor{
-      0.5: ambientOcclusionBig(20, 2, -0.05);
-      0.5: ambientOcclusionBig(20, 2, 0);
-      -0.5: ambientOcclusionBig(20, 2, 0.05);
-    };
+-> productColor{
+  1: sumColor{
+    1: scale(1);
+    1: specularOrth(-30, -15, 2.5, 0, 20);
   };
+  1: ambientOcclusionBig(200,1.25/2);
 };

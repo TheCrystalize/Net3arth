@@ -66,8 +66,5 @@ productColor{
     0.5: reset();
     0.5: heightMap();
   };
-  1: sumColor{
-    0.5: ambientOcclusionBig(20, 2, 0);
-    0.5: ambientOcclusionBig(20, 2, 0.01);
-  };
+  1: ambientOcclusion(200, 1);
 };

@@ -7,6 +7,7 @@ blurOctahedron
 blurIcosahedron
 blurDodecahedron
 blurTeapot
+torus
 stl
 mobius3D
 hypershift3D
