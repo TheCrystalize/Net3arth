@@ -4946,15 +4946,17 @@ function blurImage(url, x, y, w, h) {
         im: Infinity
       };
     }
-    let X, Y;
+    let Xr, Yr, X, Y;
     do {
-      X = Math.floor(Math.random() * img.width);
-      Y = Math.floor(Math.random() * img.height);
+      Xr = Math.random();
+      Yr = Math.random();
+      X = Math.floor(Xr * img.width);
+      Y = Math.floor(Yr * img.height);
     } while(img.data[(X + Y * img.width) * 4 + 3] === 0)
     return {
       ...z,
-      re: x + X / img.width * w,
-      im: y + Y / img.height * h,
+      re: x + Xr * w,
+      im: y + Yr * h,
       red: img.data[(X + Y * img.width) * 4] / 255,
       green: img.data[(X + Y * img.width) * 4 + 1] / 255,
       blue: img.data[(X + Y * img.width) * 4 + 2] / 255,
