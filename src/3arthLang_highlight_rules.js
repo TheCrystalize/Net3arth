@@ -57,6 +57,7 @@ flipY
 hypershape
 hypershift
 hypertile3
+jac_cd
 jac_cn
 jac_dn
 jac_elk
@@ -90,6 +91,7 @@ trigLog
 trigSinh
 trigTanh
 unbubble
+weierstrassElliptic
 brighten
 color
 dither

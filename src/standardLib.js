@@ -847,6 +847,10 @@ function binomCoeff(n, k) {
   return factorial(n) / (factorial(k) * factorial(n - k));
 }
 
+function binomCoefficient(n, k) {
+  return dynamicFactorial(n) / (dynamicFactorial(k) * dynamicFactorial(n - k));
+}
+
 function round(x) {
   let f = Math.floor(x)
   let n = x > 0 ? (Math.abs(x - f) > 0.5 ? 1 : 0) : (Math.abs(x - f) > 0.5 ? -1 : 0);
@@ -854,6 +858,7 @@ function round(x) {
 }
 
 function pow(z, p) {
+  if(p == 0) return C(1,0)
   return exp(multScalar(log(z), p))
 }
 
@@ -873,25 +878,6 @@ function powSerO(a, b, c, z) {
   for(let k = 0; k < 40; k++) {
     yp = divScalar(multScalar(pow(z, -k), pochhammer(a, k) * pochhammer(a - c + 1, k)), factorial(k) * gammaLanczos(a - b + k + 1));
     y = add(y, yp);
-  }
-  return y;
-}
-
-function hypergeo2F1PowSerO(a, b, c, z) {
-  let sc = Math.PI / Math.sin(Math.PI * (b - a));
-  let px = divScalar(pow(neg(z), -a), gammaLanczos(b) * gammaLanczos(c - a));
-  let py = divScalar(pow(neg(z), -b), gammaLanczos(a) * gammaLanczos(c - b));
-  let x = powSerO(a, b, c, z);
-  let y = powSerO(b, a, c, z);
-  return multScalar(add(mult(px, x), neg(mult(py, y))), sc)
-}
-
-function hypergeo2F1(a, b, c, z) {
-  let y = C(0, 0);
-  if(Math.hypot(z.re, z.im) > 1) {
-    y = hypergeo2F1PowSerO(a, b, c, z);
-  } else {
-    y = hypergeo2F1PowSerI(a, b, c, z);
   }
   return y;
 }
@@ -918,6 +904,32 @@ function paraSize(p) {
   return (1 / (Math.sin(Math.PI * 0.5) ** 2 / Math.sin(Math.PI / p) ** 2 - 1) ** 0.5) * (Math.sin(Math.PI * 0.5) / Math.sin(Math.PI / p) - 1);
 }
 
+function square(z) {
+  return mult(z,z)
+}
+
+function cWeierstrassElliptic(z, w2) {
+  let w1 = C(1,0);
+  let m = -100;
+  let n = 100;
+  let eps = 1;
+  let sum = C(0,0);
+  do{
+    if(m == 0) {
+      m = m + eps;
+    }
+    if(n == 0) {
+      n = n - eps;
+    }
+    let lambda = add(multScalar(w1, m), multScalar(w2, n));
+    let t = sub(div(C(1,0), square(sub(z, lambda))), div(C(1,0), square(lambda)));
+    sum = add(sum, t);
+    m += eps;
+    n -= eps;
+  } while(m < 100 && n > -100)
+  return add(div(C(1,0), square(z)), sum)
+}
+
 
 function hypergeo2F1Coefficients(a, b, c, nomial) {
   let poly = [nomial];
@@ -933,9 +945,6 @@ function hypergeo2F1pn(z, poly) {
   let zs = C(1,0);
   for(let i = 0; i < poly.length; i++) {
     sum = add(sum, mult(zs, poly[i]))
-    if(variable == 0) {
-      console.log(sum)
-    }
     zs = mult(zs, z)
   }
   variable = 10;
@@ -947,25 +956,71 @@ function scHG(z, n, k, poly) {
   return mult(z, hypergeo2F1pn(pow(z, n), poly))
 }
 
+
+/*function derivative(z, func) {
+  let h = 0.01;
+  return divScalar(sub(func(addScalar(z, h)), func(z)), h)
+}
+function hypergeo2F1pnInv(z, poly) {
+  let sum = C(0, 0);
+  if(z.re == 0 &&  z.im == 0) {
+    return poly[0]}
+  for(let i = 0; i < poly.length; i++) {
+    sum = add(sum, mult(pow(z, i), poly[i]))
+    if(variable == 0) {
+      console.log(sum)
+    }
+  }
+  variable = 10;
+  return sum
+}*/
+
+function nthDerivative(func, n, z) {
+  if(n == 0) return func(z)
+  if(n == 1) return derivative(z, func)
+  else {
+    function nuFunc(z) {
+      return derivative(z, func)
+    }
+    return nthDerivative(nuFunc, n - 1, z)
+
+  }
+}
+
+function hypergeo2F1pnInv(z, poly) {
+  let sum = C(0, 0);
+  if(z.re == 0 &&  z.im == 0) {
+    return poly[0]}
+  for(let i = 0; i < poly.length; i++) {
+    sum = add(sum, mult(pow(z, i), poly[i]))
+    if(variable == 0) {
+      console.log(sum)
+    }
+  }
+  variable = 10;
+  return sum
+}
+
+
 function numericalNthDerivative(poly, n) {
   let h = 0.001;
   let sum = 0;
   for(let i = 0; i <= n; i++) {
     let pn = hypergeo2F1pn(C(i * h, 0), poly);
+    pn.re = 1 / Math.pow(pn.re, n + 1) * binomCoefficient(n, i);
     pn.re *= Math.pow(-1, n + i);
-    pn.re = 1 / pn.re * binomCoeff(n, i);
     sum += pn.re;
   }
-  sum /= Math.pow(h, n);
-  return sum
+  sum = sum / Math.pow(h, n);
+  return C(sum, 0)
 }
+
 
 function lagrangian(poly) {
   let invPoly = [poly.length];
   invPoly[0] = C(0, 0);
   for(let i = 1; i < poly.length; i++) {
-    invPoly[i] = C(numericalNthDerivative(poly, i) / factorial(i), 0);
-    //console.log(numericalNthDerivative(poly,i))
+    invPoly[i] = divScalar(numericalNthDerivative(poly, i - 1), dynamicFactorial(i));
   }
   return invPoly
 }
@@ -973,21 +1028,20 @@ function lagrangian(poly) {
 
 /*transforms*/
 
-
 function schwarzChristoffelInverseMap(n) {
-  let nom = 2;
+  let nom = 10;
   let poly = hypergeo2F1Coefficients(1 / n, 2 / n, 1 + 1 / n, nom)
   let invPoly = lagrangian(poly);
   console.log(invPoly)
   console.log(poly)
-  console.log(hypergeo2F1pn(invPoly, C(0.5, 0)))
   return z => {
     return {
       ...z,
-      ...hypergeo2F1pn(invPoly, z)
+      ...hypergeo2F1pn(z, invPoly)
     }
   }
 }
+
 
 function reset() {
   return z => {
@@ -1655,6 +1709,29 @@ function hypertile3(p, q, r, shift) {
   }
 }
 
+function jac_cd(k) {
+  return z => {
+    let jx = jacElliptic(z.re, k);
+    let jy = jacElliptic(z.im, 1 - k);
+
+    let numxc = jx.c * jy.c;
+    let numyc = jx.d * jx.s * jy.d * jy.s;
+
+    let numxd = jx.d * jy.c * jy.d;
+    let numyd = jx.c * jx.s * jy.s * k;
+
+    let denom = 1 / (jx.s * jx.s * jy.s * jy.s * k + jy.c * jy.c);
+
+    let cn = {re: numxc * denom, im: numyc * denom}
+    let dn = {re: numxd * denom, im: numyd * denom}
+
+    return {
+      ...z,
+      ...div(cn, dn)
+    }
+  }
+}
+
 function jac_cn(k) {
   return z => {
     let jx = jacElliptic(z.re, k);
@@ -1663,8 +1740,7 @@ function jac_cn(k) {
     let numx = jx.c * jy.c;
     let numy = jx.d * jx.s * jy.d * jy.s;
 
-    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
-    denom = 1 / (denom);
+    let denom = 1 / (jx.s * jx.s * jy.s * jy.s * k + jy.c * jy.c);
 
     return {
       ...z,
@@ -1682,8 +1758,7 @@ function jac_dn(k) {
     let numx = jx.d * jy.c * jy.d;
     let numy = jx.c * jx.s * jy.s * k;
 
-    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
-    denom = 1 / (denom);
+    let denom = 1 / (jx.s * jx.s * jy.s * jy.s * k + jy.c * jy.c);
 
     return {
       ...z,
@@ -1737,8 +1812,7 @@ function jac_sn(k) {
     let numx = jx.s * jy.d;
     let numy = jx.c * jx.d * jy.c * jy.s;
 
-    let denom = jx.s ** 2 * jy.s ** 2 * k + jy.c ** 2;
-    denom = 1 / (denom);
+    let denom = 1 / (jx.s * jx.s * jy.s * jy.s * k + jy.c * jy.c);
 
     return {
       ...z,
@@ -1929,6 +2003,7 @@ function scale2(real, imaginary) {
 function schwarzChristoffelMap(n, k) {
   let nom = 500;
   let poly = hypergeo2F1Coefficients(1 / n, 2 / n, 1 + 1 / n, nom)
+  console.log(poly)
   return z => {
     return {
       ...z,
@@ -2182,6 +2257,15 @@ function unbubble() {
       ...z,
       re: z.re * b,
       im: z.im * b
+    }
+  }
+}
+
+function weierstrassElliptic(w2) {
+  return z => {
+    return {
+      ...z,
+      ...cWeierstrassElliptic(z, w2)
     }
   }
 }
@@ -5323,6 +5407,7 @@ const BUILT_IN_TRANSFORMS = {
   hypershape: hypershape,
   hypershift: hypershift,
   hypertile3: hypertile3,
+  jac_cd: jac_cd,
   jac_cn: jac_cn,
   jac_dn: jac_dn,
   jac_elk: jac_elk,
@@ -5356,6 +5441,7 @@ const BUILT_IN_TRANSFORMS = {
   trigSinh: trigSinh,
   trigTanh: trigTanh,
   unbubble: unbubble,
+  weierstrassElliptic: weierstrassElliptic,
   //color transfomrs
   brighten: brighten,
   color: color,
@@ -6084,6 +6170,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0.5
     }
   ],
+  jac_cd: [{
+    name: "k",
+    type: "number",
+    default: 0.5
+  }],
   jac_cn: [{
     name: "k",
     type: "number",
@@ -6427,6 +6518,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   trigSinh: [],
   trigTanh: [],
   unbubble: [],
+  weierstrassElliptic: [{
+      name: "w2",
+      type: "complex",
+      default: {re: 0, im: 1}
+  }],
   //color transforms
   brighten: [{
     name: "amount",
