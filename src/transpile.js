@@ -1889,11 +1889,3 @@ function run3arthLang(code) {
 }
 
 let stuffToDo;
-
-getFile("src/default.3arth", r => {
-  let pos = editor.getCursorPosition();
-  editor.setValue(r);
-  editor.moveCursorToPosition(pos);
-  editor.clearSelection();
-  //run3arthLang(r);
-});
