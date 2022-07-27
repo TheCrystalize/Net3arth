@@ -101,6 +101,7 @@ async function updateImage(msg) {
   }
   console.log(`${id} | WAIT`);
   await sleep(100);
+  await resolvePromises();
   console.log(`${id} | RENDER STARTING`);
   //const brightest = getBrightest();
 
@@ -129,7 +130,7 @@ async function updateImage(msg) {
   queue--;
 }
 
-onmessage = function(msg) {
+onmessage = async function(msg) {
   if(msg.data.hasOwnProperty('canvas')) {
     canvas = msg.data.canvas;
     ctx = canvas.getContext("2d", {
@@ -144,15 +145,18 @@ onmessage = function(msg) {
     customFunctions = stuffToDo.customFunctions;
     loadPreCompute(stuffToDo.preCompute);
     populateFunctions(stuffToDo.shader);
+    await resolvePromises();
   } else if(msg.data.hasOwnProperty('stuffToDo')) {
     stuffToDo = msg.data.stuffToDo;
 
     customFunctions = stuffToDo.customFunctions;
     loadPreCompute(stuffToDo.preCompute);
     populateFunctions(stuffToDo.shader);
+    await resolvePromises();
   } else if(msg.data.hasOwnProperty('reset')) {
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
   } else {
-    updateImage(msg);
+    await updateImage(msg);
+    await resolvePromises();
   }
 }

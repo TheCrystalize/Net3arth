@@ -93,12 +93,14 @@ function initialize(id, job, spf, width, height) {
   populateFunctions(stuffToDo.camera);
 }
 
-self.onmessage = function(msg) {
+self.onmessage = async function(msg) {
   switch (msg.data[0]) {
     case "start":
       initialize(...msg.data[1]);
+      await resolvePromises();
       break;
     case "data":
+      await resolvePromises();
       run();
       break;
     default:

@@ -189,19 +189,28 @@ function stopCode() {
   } catch (e) {}
 }
 
+let loadDefault = true;
+
 (new URL(window.location.href)).searchParams.forEach((x, y) =>{
   if(y === 'fractal') {
-    const xhttp = new XMLHttpRequest();
-    xhttp.onload = function() {
-      editor.setValue(this.responseText);
+    loadDefault = false;
+    getFile(`gallery/fractals/${x}/code.3arth`, r => {
+      editor.setValue(r);
       editor.moveCursorToPosition({
         row: 0,
         pos: 0
       });
       editor.clearSelection();
       editor.getSession().foldAll();
-    }
-    xhttp.open("GET", `gallery/fractals/${x}/code.3arth`, true);
-    xhttp.send();
+    });
   }
 });
+
+if(loadDefault) {
+  getFile("src/default.3arth", r => {
+    let pos = editor.getCursorPosition();
+    editor.setValue(r);
+    editor.moveCursorToPosition(pos);
+    editor.clearSelection();
+  });
+}

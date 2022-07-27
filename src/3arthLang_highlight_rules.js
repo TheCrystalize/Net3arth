@@ -31,6 +31,8 @@ rotate3D
 perspective3D
 viewBox
 viewSphere
+blurImage
+setImage
 reset
 arcsinh
 arctanh

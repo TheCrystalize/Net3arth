@@ -224,6 +224,27 @@ function lineToWords(line) {
   for(let i = 0; i < line.length; i++) {
     let char = line[i];
     switch (true) {
+      case (typeOfWord === '' && char === '"'):
+        currentWord = char;
+        typeOfWord = 'double-string';
+        break;
+      case (typeOfWord === '' && char === "'"):
+        currentWord = char;
+        typeOfWord = 'single-string';
+        break;
+      case ((typeOfWord === 'single-string' || typeOfWord === 'double-string') && char === '\\'):
+        currentWord += char;
+        i++;
+        currentWord += line[i];
+        break;
+      case ((typeOfWord === 'double-string' && char === '"') || (typeOfWord === 'single-string' && char === "'")):
+        currentWord += char;
+        pushWord(currentWord, i);
+        typeOfWord = '';
+        break;
+      case (typeOfWord === 'double-string' || typeOfWord === 'single-string'):
+        currentWord += char;
+        break;
       case (char === '#'):
         return words;
       case (char === '{'):
@@ -955,8 +976,10 @@ function parseEverything(code) {
             }
           }
 
-          if(typeof ans === 'function'){
-            ans = {functionCode: ans + ''};
+          if(typeof ans === 'function') {
+            ans = {
+              functionCode: ans + ''
+            };
           }
 
           word = words[j].word;
@@ -1071,13 +1094,11 @@ function parseEverything(code) {
                         typeError(desiredType);
                       }
                     }
-                  }
-                  else if(desiredType !== 'complex'){
-                    if(!val.hasOwnProperty('functionCode')){
+                  } else if(desiredType !== 'complex') {
+                    if(!val.hasOwnProperty('functionCode')) {
                       typeError(desiredType);
                     }
-                  }
-                  else if(Object.keys(val).join(',') === 're,im') {
+                  } else if(Object.keys(val).join(',') === 're,im') {
                     if(typeof val.re !== 'number' || isNaN(val.re)) {
                       General3arthError({
                         word: val,
@@ -1355,8 +1376,7 @@ function parseEverything(code) {
               }
 
               try {
-                let ans;
-                {
+                let ans; {
                   let preComputeString = getPrecomputeString(preComputeStuff);
                   let testfunction = new Function(...parseState[0].params.map(a => a.name), preComputeString + jsCode);
                   let sampleParams = parseState[0].params.map(a => {
@@ -1869,11 +1889,3 @@ function run3arthLang(code) {
 }
 
 let stuffToDo;
-
-getFile("src/default.3arth", r => {
-  let pos = editor.getCursorPosition();
-  editor.setValue(r);
-  editor.moveCursorToPosition(pos);
-  editor.clearSelection();
-  //run3arthLang(r);
-});

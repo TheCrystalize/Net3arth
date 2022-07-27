@@ -1,0 +1,45 @@
+// Based off the print by M. C. Escher
+// Angels and Devils
+
+buffer() {
+  return averageBuffer();
+}
+
+hypertile1(number p, number q) {
+  let ip = Math.floor(p);
+  p = 2 * Math.PI / p;
+  let cs = Math.cos(p);
+  let r2 = 1 - (cs - 1) / (cs + Math.cos(2 * Math.PI / q));
+  let r = r2 > 0 ? 1 / Math.sqrt(r2) : 1;
+  return z => {
+    let rnd = Math.floor(Math.random() * ip) * p;
+    let re0 = r * Math.cos(rnd);
+    let im0 = r * Math.sin(rnd);
+    let a = z.re + re0;
+    let b = z.im - im0;
+    let c = re0 * z.re - im0 * z.im + 1;
+    let d = re0 * z.im + im0 * z.re;
+    let vr = c * c + d * d;
+
+    return {
+      ...z,
+      re: (a * c + b * d) / vr,
+      im: (b * c - a * d) / vr
+    }
+  }
+}
+
+body:
+blurImage('/angel-devil.png', -1, -1, 2, 2)
+-> pointSymmetry(0, 0, 3)
+-> scale(4/3)
+-> unbubble()
+-> xaos{
+  1:e:[1,1]: hypertile1(6, 4);
+  1:o:[1,1]: scale(1);
+}
+-> rotate(30);
+
+camera:
+scale(1/2)
+-> rotate(180);
