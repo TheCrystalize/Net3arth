@@ -8,6 +8,7 @@ blurIcosahedron
 blurDodecahedron
 blurTeapot
 torus
+umbilicTorus
 stl
 mobius3D
 hypershift3D
@@ -74,7 +75,8 @@ pointSymmetry
 rotate
 scale
 scale2
-schwarzChristoffelmap
+schwarzChristoffelMap
+schwarzChristoffelInverseMap
 schwarzTriangle
 sinusoidal
 skew
