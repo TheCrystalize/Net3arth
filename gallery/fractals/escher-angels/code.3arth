@@ -30,7 +30,7 @@ hypertile1(number p, number q) {
 }
 
 body:
-blurImage('/images/angel-devil.png', -1, -1, 2, 2)
+blurImage('/angel-devil.png', -1, -1, 2, 2)
 -> pointSymmetry(0, 0, 3)
 -> scale(4/3)
 -> unbubble()

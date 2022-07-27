@@ -4871,7 +4871,11 @@ function advancedLighting(theta1, theta2, ior, environment) {
 }
 
 /*images*/
-async function getImage(url) {
+async function getImage(URL) {
+  let url = URL;
+  if(url[0] === '/') {
+    url = '/Net3arth/images' + url;
+  }
   const response = await fetch(url);
   const blob = await response.blob();
   const bitmap = await createImageBitmap(blob);
