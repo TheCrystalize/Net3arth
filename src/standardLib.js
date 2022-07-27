@@ -1,3 +1,15 @@
+let promises = [];
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function resolvePromises() {
+  while(promises.length > 0) {
+    await sleep(1000);
+  }
+}
+
 /*buffers*/
 //default buffer
 function buffer(oldBuffer, newBuffer) {
@@ -31,14 +43,15 @@ function lastBuffer(oldBuffer, newBuffer) {
 }
 
 function averageBuffer(oldBuffer, newBuffer) {
-  let total = oldBuffer.z + 1;
-  if(newBuffer.z > 0) {
-    add = oldBuffer.z + newBuffer.z;
+  if(newBuffer.alpha === 0) {
+    return oldBuffer;
   }
+
+  let total = oldBuffer.z + newBuffer.alpha;
   return {
-    red: (oldBuffer.red * oldBuffer.z + newBuffer.red) / total,
-    green: (oldBuffer.green * oldBuffer.z + newBuffer.green) / total,
-    blue: (oldBuffer.blue * oldBuffer.z + newBuffer.blue) / total,
+    red: (oldBuffer.red * oldBuffer.z + newBuffer.red * newBuffer.alpha) / total,
+    green: (oldBuffer.green * oldBuffer.z + newBuffer.green * newBuffer.alpha) / total,
+    blue: (oldBuffer.blue * oldBuffer.z + newBuffer.blue * newBuffer.alpha) / total,
     z: total,
   }
 }
@@ -4963,6 +4976,95 @@ function advancedLighting(theta1, theta2, ior, environment) {
   }
 }
 
+/*images*/
+async function getImage(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const bitmap = await createImageBitmap(blob);
+  const offscreen = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const ctx = offscreen.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0, bitmap.width, bitmap.height);
+  return ctx.getImageData(0, 0, bitmap.width, bitmap.height);
+}
+
+function setImage(url, x, y, w, h) {
+  let img = false;
+  let p = getImage(url);
+  p.then(ans => {
+    img = ans;
+    promises.shift();
+  });
+  promises.push(p);
+  return z => {
+    if(!img) {
+      return {
+        ...z,
+        red: 0,
+        green: 0,
+        blue: 0,
+        alpha: 0,
+        re: Infinity,
+        im: Infinity
+      };
+    }
+    let X = Math.floor((z.re - x) / w * img.width);
+    let Y = Math.floor((z.im - y) / h * img.height);
+    if(X < 0 || Y < 0 || X >= img.width || Y >= img.height) {
+      return {
+        ...z,
+        red: 0,
+        green: 0,
+        blue: 0,
+        alpha: 0,
+      }
+    }
+    return {
+      ...z,
+      red: img.data[(X + Y * img.width) * 4] / 255,
+      green: img.data[(X + Y * img.width) * 4 + 1] / 255,
+      blue: img.data[(X + Y * img.width) * 4 + 2] / 255,
+      alpha: img.data[(X + Y * img.width) * 4 + 3] / 255
+    };
+  }
+}
+
+function blurImage(url, x, y, w, h) {
+  let img = false;
+  let p = getImage(url);
+  p.then(ans => {
+    img = ans;
+    promises.shift();
+  });
+  promises.push(p);
+  return z => {
+    if(!img) {
+      return {
+        ...z,
+        red: 0,
+        green: 0,
+        blue: 0,
+        alpha: 0,
+        re: Infinity,
+        im: Infinity
+      };
+    }
+    let X, Y;
+    do {
+      X = Math.floor(Math.random() * img.width);
+      Y = Math.floor(Math.random() * img.height);
+    } while(img.data[(X + Y * img.width) * 4 + 3] === 0)
+    return {
+      ...z,
+      re: x + X / img.width * w,
+      im: y + Y / img.height * h,
+      red: img.data[(X + Y * img.width) * 4] / 255,
+      green: img.data[(X + Y * img.width) * 4 + 1] / 255,
+      blue: img.data[(X + Y * img.width) * 4 + 2] / 255,
+      alpha: img.data[(X + Y * img.width) * 4 + 3] / 255
+    };
+  }
+}
+
 /*3D models*/
 function decodeSTL(stl) {
   let file = Uint8Array.from(atob(stl), v => v.charCodeAt(0));
@@ -5388,6 +5490,9 @@ const BUILT_IN_TRANSFORMS = {
   perspective3D: perspective3D,
   viewBox: viewBox,
   viewSphere: viewSphere,
+  //Images
+  blurImage: blurImage,
+  setImage: setImage,
   //2D transforms
   reset: reset,
   arcsinh: arcsinh,
@@ -5951,6 +6056,49 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1
   }, ],
+  //Images
+  blurImage: [{
+    name: "url",
+    type: "string",
+    default: "'https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/1200px-Wikipedia-logo-v2.svg.png'"
+  }, {
+    name: "x",
+    type: "number",
+    default: -0.5
+  }, {
+    name: "y",
+    type: "number",
+    default: -0.5
+  }, {
+    name: "width",
+    type: "number",
+    default: 1
+  }, {
+    name: "height",
+    type: "number",
+    default: 1
+  }],
+  setImage: [{
+    name: "url",
+    type: "string",
+    default: "'https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/1200px-Wikipedia-logo-v2.svg.png'"
+  }, {
+    name: "x",
+    type: "number",
+    default: -0.5
+  }, {
+    name: "y",
+    type: "number",
+    default: -0.5
+  }, {
+    name: "width",
+    type: "number",
+    default: 1
+  }, {
+    name: "height",
+    type: "number",
+    default: 1
+  }],
   //2D transforms
   reset: [],
   arcsinh: [],
