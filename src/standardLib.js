@@ -1993,6 +1993,12 @@ function rotate(theta) {
   }
 }
 
+function identity() {
+  return function(z) {
+    return z;
+  }
+}
+
 function scale(factor) {
   return function(z) {
     return {
@@ -5434,6 +5440,7 @@ function dither(s) {
 
 /* descriptions*/
 const BUILT_IN_TRANSFORMS = {
+  identity: identity,
   dither: dither,
   //3D models
   stl: stl,
@@ -5570,6 +5577,7 @@ const BUILT_IN_TRANSFORMS = {
 };
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
+  identity: identity,
   dither: [{
     name: "matrix size",
     type: "number",

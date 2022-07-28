@@ -30,16 +30,15 @@ hypertile1(number p, number q) {
 }
 
 body:
-blurImage('/angel-devil.png', -1, -1, 2, 2)
--> pointSymmetry(0, 0, 3)
--> scale(4/3)
--> unbubble()
--> xaos{
-  1:e:[1,1]: hypertile1(6, 4);
-  1:o:[1,1]: scale(1);
-}
--> rotate(30);
+choose{
+  1:
+  blurImage('/angel-devil.png', -1, -1, 2, 2)
+  -> pointSymmetry(0, 0, 3)
+  -> scale(4 / 3)
+  -> unbubble();
+  2: hypertile1(6, 4);
+};
 
 camera:
-scale(1/2)
--> rotate(180);
+scale(1 / 2)
+-> rotate(90);
