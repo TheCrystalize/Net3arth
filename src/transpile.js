@@ -652,59 +652,83 @@ function parseEverything(code) {
         }
 
         function customTransform(params, values, transform) {
+          if(verbose){
+            console.log(`-- Custom Transform --`);
+            console.log(params);
+            console.log(values);
+            console.log(transform);
+          }
+
           if(typeof transform[0] === 'string') {
             return [transform[0], replaceParams(params, values, transform[1])];
           }
           if(!transform[0]) {
             return '';
           }
-          if(typeof transform[0][0] === 'string') {
-            switch (transform[0][0]) {
-              case 'choose':
-                return customChoose(params, values, transform);
-                break;
-              case 'xaos':
-                return customXaos(params, values, transform);
-                break;
-              case 'sum':
-                return customSum(params, values, transform);
-                break;
-              case 'sumColor':
-                return customSumColor(params, values, transform);
-                break;
-              case 'product':
-                return customProduct(params, values, transform);
-                break;
-              case 'productColor':
-                return customProductColor(params, values, transform);
-                break;
-            }
-          }
-          if(typeof transform[0][0] === 'number') {
-            console.log(transform);
-            console.log(transform[0]);
-            throw 'bad number';
-            switch (transform[0].length) {
-              case 2:
-                return customChoose(params, values, transform);
-              case 4:
-                return customXaos(params, values, transform);
-            }
-          }
 
           let ans = [];
           for(let i = 0; i < transform.length; i++) {
+            if(verbose && i > 0){
+              console.log(`-- Custom Transform ${i} --`);
+              console.log(ans[i - 1]);
+            }
+            if(typeof transform[i][0] === 'string') {
+              let cont = true;
+              switch (transform[i][0]) {
+                case 'choose':
+                  ans.push(customChoose(params, values, transform[i]));
+                  break;
+                case 'xaos':
+                  ans.push(customXaos(params, values, transform[i]));
+                  break;
+                case 'sum':
+                  ans.push(customSum(params, values, transform[i]));
+                  break;
+                case 'sumColor':
+                  ans.push(customSumColor(params, values, transform[i]));
+                  break;
+                case 'product':
+                  ans.push(customProduct(params, values, transform[i]));
+                  break;
+                case 'productColor':
+                  ans.push(customProductColor(params, values, transform[i]));
+                  break;
+                default:
+                  cont = false;
+              }
+              if(cont){
+                continue;
+              }
+            }
             ans.push(customTransform(params, values, transform[i]));
           }
+
+          if(verbose){
+            console.log(`-- Custom Transform ${ans.length} --`);
+            console.log(ans[ans.length - 1]);
+            console.log(`-- Custom Transform answer:`);
+            console.log(ans);
+          }
+
           return ans;
         }
 
         function replaceParam(params, values, txt) {
+          if(verbose){
+            console.log(`-- Replace --`);
+            console.log(params);
+            console.log(values);
+            console.log(txt);
+          }
           if(typeof txt !== 'string') {
             return txt;
           }
+
           let ans = txt;
           for(let i = 0; i < values.length; i++) {
+            if(typeof values[i] === 'object'){
+              values[i] = JSON.stringify(values[i]);
+            }
             ans = ans.replace(new RegExp('<!' + params[i].name + '!>', 'g'), values[i]);
           }
 
