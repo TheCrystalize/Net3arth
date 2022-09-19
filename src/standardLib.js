@@ -141,6 +141,27 @@ if(!Math.hypot) {
 
 const DEGREE = Math.PI / 180;
 
+function hash(str) {
+  var hash = 0,
+    i, chr;
+  if (str.length === 0) return hash;
+  for (i = 0; i < str.length; i++) {
+    chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
+
+function drawPoint() {}
+
+function draw() {
+  return z => {
+    drawPoint(z);
+    return z;
+  };
+}
+
 function C(real, imaginary) {
   return {
     re: real,
@@ -1994,7 +2015,7 @@ function rotate(theta) {
 }
 
 function identity() {
-  return function(z) {
+  return z => {
     return z;
   }
 }
@@ -5441,6 +5462,7 @@ function dither(s) {
 /* descriptions*/
 const BUILT_IN_TRANSFORMS = {
   identity: identity,
+  draw: draw,
   dither: dither,
   //3D models
   stl: stl,
@@ -5578,6 +5600,7 @@ const BUILT_IN_TRANSFORMS = {
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
   identity: identity,
+  draw: [],
   dither: [{
     name: "matrix size",
     type: "number",

@@ -102,28 +102,41 @@ function switchStuff(stuff, val) {
 }
 
 function xaosStuff(stuff, val) {
+  let hashVal = hash(JSON.stringify(stuff));
+
   let total = 0;
-  for(let i = 1; i < stuff.length; i++) {
+  for(let i = 0; i < stuff.length; i++) {
     total += stuff[i][1][0];
   }
-  let rand = Math.random() * total;
   let at = 0;
-  for(let i = 1; i < stuff.length; i++) {
-    at += stuff[i][1][0];
-    if(rand < at) {
-      at = i;
-      i = Infinity;
-    }
+  let first = false;
+  if(val.hasOwnProperty(hashVal)){
+    at = val[hashVal];
+    first = true;
   }
-
+  else {
+    let rand = Math.random() * total;
+    for(let i = 0; i < stuff.length; i++) {
+      at += stuff[i][1][0];
+      if(rand < at) {
+        at = i;
+        i = Infinity;
+      }
+    }
+    val = loopStuff(stuff[at][3], val);
+  }
   //console.log(`start`);
-  //console.log(stuff);
+  //console.log(JSON.stringify(stuff));
   while(true) {
     //console.log(`${JSON.stringify(val)} - ${at}`);
-    val = loopStuff(stuff[at][3], val);
-    if(stuff[at][1][1] && Math.random() < 0.5) {
-      return val;
+    if(!first){
+      val = loopStuff(stuff[at][3], val);
+      if(!first && stuff[at][1][1]) {
+        val[hashVal] = at;
+        return val;
+      }
     }
+    first = false;
     let on = at;
     at = Math.random() * stuff[on][0];
     total = 0;
@@ -139,6 +152,7 @@ function xaosStuff(stuff, val) {
 
 function loopStuff(stuff, val) {
   //console.log(stuff);
+  //console.log(val);
   if(typeof stuff[0] === 'function') {
     return stuff[0](val);
   }

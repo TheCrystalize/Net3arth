@@ -78,7 +78,7 @@ var customWordCompleter = {
             post = "productColor{\n  1:\n}";
             break;
           case "type":
-            post += " n = ";
+            post += " ";
             break;
           case "constructor":
           case "helper":

@@ -1,5 +1,6 @@
 const StandardLibNamesArray =
 `identity
+draw
 blurSphere
 blurCube
 blurTetrahedron
