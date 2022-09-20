@@ -102,16 +102,14 @@ function chooseStuff(stuff, val) {
 }
 
 function xaosStuff(stuff, val) {
-  let hashVal = hash(JSON.stringify(stuff));
-
   let total = 0;
   for(let i = 0; i < stuff.length; i++) {
     total += stuff[i][1][0];
   }
   let at = 0;
   let first = false;
-  if(val.hasOwnProperty(hashVal)){
-    at = val[hashVal];
+  if(stuff.hasOwnProperty('at')){
+    at = stuff.at;
     first = true;
   }
   else {
@@ -132,7 +130,7 @@ function xaosStuff(stuff, val) {
     if(!first){
       val = loopStuff(stuff[at][3], val);
       if(!first && stuff[at][1][1]) {
-        val[hashVal] = at;
+        stuff.at = at;
         return val;
       }
     }
