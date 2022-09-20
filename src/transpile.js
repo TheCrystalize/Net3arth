@@ -1338,6 +1338,13 @@ function parseEverything(code) {
                   j = 0;
                   i++;
                   if(i >= code.length) {
+                    editor.getSession().setAnnotations([{
+                      row: start[0],
+                      column: start[1],
+                      text: 'unexpected end of input; unclosed "{"',
+                      type: "error"
+                    }]);
+                    consolelog(err, 'red');
                     throw err;
                   }
                   words = lineToWords(code[i]);
@@ -1484,6 +1491,13 @@ function parseEverything(code) {
                   j = 0;
                   i++;
                   if(i >= code.length) {
+                    editor.getSession().setAnnotations([{
+                      row: start[0],
+                      column: start[1],
+                      text: 'unexpected end of input; unclosed "("',
+                      type: "error"
+                    }]);
+                    consolelog(err, 'red');
                     throw err;
                   }
                   words = lineToWords(code[i]);
@@ -1536,7 +1550,7 @@ function parseEverything(code) {
 
               parseState[0].items.push([jsCode]);
             } else {
-              newError('JavaScript function');
+              newError('"("');
             }
 
             switch (parseState[0].is) {
@@ -2006,6 +2020,7 @@ function compile3arthLang(code) {
     autoFormatCode();
   } catch (e) {
     console.error(e);
+    //consolelog(e, "red");
     runButton.innerText = 'Run';
     compileButton.innerText = 'Compile';
     throw ('Compile error');

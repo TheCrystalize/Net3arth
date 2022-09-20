@@ -29,8 +29,8 @@ transform farey():
         1:_:[0,1,1,1]:
           scale(0.5)
           -> translate(0, -Math.sqrt(3)/2);
-        1:o:[0,0,0,1]:
-          scale(1);
+        1:o:[1,0,0,0]:
+          identity();
       }
       -> mobius(1,1,-1,1)
       -> hypershift(0.5)
@@ -39,8 +39,8 @@ transform farey():
     0.25:_:[0,1,1,1]:
       rotate(180)
       -> scale(2-Math.sqrt(3));
-    1:o:[0,0,0,1]:
-      scale(1);
+    1:o:[1,0,0,0]:
+      identity();
   };
 
 body:

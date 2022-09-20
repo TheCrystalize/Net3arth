@@ -96,8 +96,8 @@ body:
       -> rotate(90)
       -> splits(1.05, 0)
       -> ApophysisGrad(0.5);
-    1:o:[0,0,0,1]:
-      scale(1);
+    1:o:[1,0,0,0]:
+      identity();
   };
 
 camera:
