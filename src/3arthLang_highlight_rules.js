@@ -440,6 +440,11 @@ var EarthLangHighlightRules = function(options) {
                 next: "earthLangXaos"
             },
             {
+                token: "keyword.control",
+                regex: "(switch)\\b",
+                next: "earthLangSwitch"
+            },
+            {
                 token: "variable.language",
                 regex: "(?:" + StandardLibNames + ")\\b"
             },
@@ -481,6 +486,40 @@ var EarthLangHighlightRules = function(options) {
                 regex : /--|\+\+|\.{3}|===|==|=|!=|!==|<+=?|>+=?|!|&&|\|\||\?:|[!$%&*+\-~\/^]=?/
             },
         ],
+
+        "earthLangSwitch": [
+          comments("earthLangSwitch"),
+          {
+            token: "empty",
+            regex: "{",
+          },
+          {
+            token: "keyword.control",
+            regex: "(case)\\b",
+          },
+          {
+            token: "keyword.control",
+            regex: "(default)\\b",
+          },
+          {
+            token: "empty",
+            regex: "\\(",
+            push: "earthLangSwitch",
+            next: "startjs"
+          },
+          {
+            token: "empty",
+            regex: "}",
+            next: "earthLangTransformPost"
+          },
+          {
+            token: "keyword.control",
+            regex: ":",
+            push: "earthLangSwitch",
+            next: "earthLangTransform"
+          }
+        ],
+
         "earthLangXaos": [
             comments("earthLangXaos"),
             {
@@ -1016,18 +1055,18 @@ var EarthLangHighlightRules = function(options) {
 
     if (!options || !options.noES6) {
         this.$rules.no_regex.unshift({
-            regex: "[{}]", onMatch: function(val, state, stack) {
-                this.next = val == "{" ? this.nextState : "";
-                if (val == "{" && stack.length) {
+            regex: "[{}()]", onMatch: function(val, state, stack) {
+                this.next = (val == "{" || val == "(") ? this.nextState : "";
+                if ((val == "{" || val == "(") && stack.length) {
                     stack.unshift("js", state);
                 }
-                else if (val == "}" && stack.length) {
+                else if ((val == "}" || val == ")") && stack.length) {
                     stack.shift();
                     this.next = stack.shift();
                     if (this.next.indexOf("string") != -1 || this.next.indexOf("jsx") != -1)
                         return "paren.quasi.end";
                 }
-                return val == "{" ? "paren.lparen" : "paren.rparen";
+                return (val == "{" || val == "(") ? "paren.lparen" : "paren.rparen";
             },
             nextState: "startjs"
         }, {

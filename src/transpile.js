@@ -172,6 +172,9 @@ function getTypeOfWord(word) {
     case (word === 'camera'):
     case (word === 'shader'):
     case (word === 'choose'):
+    case (word === 'switch'):
+    case (word === 'case'):
+    case (word === 'default'):
     case (word === 'xaos'):
     case (word === 'sum'):
     case (word === 'sumColor'):
@@ -1459,6 +1462,97 @@ function parseEverything(code) {
               newError('JavaScript function');
             }
             break;
+          case 'condition':
+            if(word === '(') {
+              j++;
+              if(j >= words.length) {
+                j = 0;
+                i++;
+                if(i >= code.length) {
+                  throw err;
+                }
+                words = lineToWords(code[i]);
+              }
+              let err = 'unexpected end of input; unclosed "("\n' +
+                `Line ${i}:${words[j].at}\n` +
+                `${code[i]}\n${new Array(words[j].at).fill(' ').join('')}^`;
+              let start = [i, words[j].at];
+              let bracketDepth = 1;
+              while(bracketDepth > 0) {
+                j++;
+                while(j >= words.length) {
+                  j = 0;
+                  i++;
+                  if(i >= code.length) {
+                    throw err;
+                  }
+                  words = lineToWords(code[i]);
+                }
+                if(words[j].word === '(') {
+                  bracketDepth++;
+                }
+                if(words[j].word === ')') {
+                  bracketDepth--;
+                }
+              }
+              parseState.shift();
+
+              let jsCode = '';
+
+              if(start[0] === i) {
+                jsCode = code[i].slice(start[1], words[j].at);
+              } else {
+                jsCode = code[start[0]].slice(start[1]) + '\n';
+                for(let l = start[0] + 1; l < i; l++) {
+                  jsCode += code[l] + '\n';
+                }
+                jsCode += code[i].slice(0, words[j].at);
+              }
+
+              jsCode = jsCode.replace(/console\.log/g, 'consolelog');
+              jsCode = jsCode.replace(/console\.log/g, 'consolelog');
+
+              let match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i\b/);
+              while(match) {
+                jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]})` + jsCode.slice(match.index + match[0].length);
+                match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-][0-9]+[0-9.]*)i\b/);
+              }
+
+              match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-])i\b/);
+              while(match) {
+                jsCode = jsCode.slice(0, match.index) + `C(${match[1]},${match[2]}1)` + jsCode.slice(match.index + match[0].length);
+                match = jsCode.match(/([+-]?[0-9]+[0-9.]*)([+-]+)i\b/);
+              }
+
+              match = jsCode.match(/([-]?[0-9]+[0-9.]*)i\b/);
+              while(match) {
+                jsCode = jsCode.slice(0, match.index) + `C(0,${match[1]})` + jsCode.slice(match.index + match[0].length);
+                match = jsCode.match(/([-]?[0-9]+[0-9.]*)i\b/);
+              }
+
+              if(verbose) {
+                console.log(jsCode);
+              }
+
+              parseState[0].items.push([jsCode]);
+            } else {
+              newError('JavaScript function');
+            }
+
+            switch (parseState[0].is) {
+              case 'switch case':
+                parseState.unshift({
+                  is: 'transform',
+                  transforms: []
+                });
+                parseState.unshift({
+                  is: ':'
+                });
+                break;
+              default:
+                newGeneralError(`Unhandeled state transition after "condition" to "${parseState[0].is}"`, parseState);
+            }
+            break;
           case 'transform':
             switch (wordType) {
               case 'sum':
@@ -1468,6 +1562,15 @@ function parseEverything(code) {
               case 'choose':
                 parseState.unshift({
                   is: `${wordType} items`,
+                  items: [wordType]
+                });
+                parseState.unshift({
+                  is: '{'
+                });
+                break;
+              case 'switch':
+                parseState.unshift({
+                  is: `${wordType} case`,
                   items: [wordType]
                 });
                 parseState.unshift({
@@ -1620,6 +1723,11 @@ function parseEverything(code) {
                     parseState.shift();
                     parseState.shift();
                     break;
+                  case 'switch case':
+                    parseState[2].items[parseState[2].items.length - 1].push(parseState[1].transforms);
+                    parseState.shift();
+                    parseState.shift();
+                    break;
                   case 'xaos items':
                     parseState[2].items.push([parseState[2].mainWeight, parseState[2].enterOut, parseState[2].weight, parseState[1].transforms]);
                     delete parseState[2].mainWeight;
@@ -1685,6 +1793,40 @@ function parseEverything(code) {
                 break;
               default:
                 newError('weight value or "}"');
+            }
+            break;
+          case 'switch case':
+            switch (wordType) {
+              case 'case':
+                parseState.unshift({
+                  is: 'condition'
+                });
+                break;
+              case 'default':
+                parseState[0].items.push(['true']);
+                parseState.unshift({
+                  is: 'transform',
+                  transforms: []
+                });
+                parseState.unshift({
+                  is: ':'
+                });
+                break;
+              case '}':
+                switch (parseState[1].is) {
+                  case 'transform':
+                    parseState[1].transforms.push(parseState[0].items);
+                    parseState.shift();
+                    parseState.unshift({
+                      is: 'after transform'
+                    });
+                    break;
+                  default:
+                    newGeneralError(`Unhandeled state transition from "${parseState[0].is}" to "${parseState[1].is}"`, parseState);
+                }
+                break;
+              default:
+                newError('case or "}"');
             }
             break;
           case 'xaos items':

@@ -86,7 +86,7 @@ function productStuffColor(stuff, val) {
   };
 }
 
-function switchStuff(stuff, val) {
+function chooseStuff(stuff, val) {
   let total = 0;
   for(let i = 1; i < stuff.length; i++) {
     total += stuff[i][0];
@@ -150,6 +150,15 @@ function xaosStuff(stuff, val) {
   }
 }
 
+function switchStuff(stuff, val) {
+  for(let i = 0; i < stuff.length; i++) {
+    if(stuff[i][0](val)){
+      return loopStuff(stuff[i][1], val);
+    }
+  }
+  return val;
+}
+
 function loopStuff(stuff, val) {
   //console.log(stuff);
   //console.log(val);
@@ -168,9 +177,11 @@ function loopStuff(stuff, val) {
       case 'productColor':
         return productStuffColor(stuff, val);
       case 'choose':
-        return switchStuff(stuff, val);
+        return chooseStuff(stuff, val);
       case 'xaos':
         return xaosStuff(stuff.slice(1), val);
+      case 'switch':
+        return switchStuff(stuff.slice(1), val);
     }
   }
 
@@ -196,8 +207,15 @@ function consolelog() {}
 
 function consoleclear() {}
 
+function populateFunctionsChoose(job) {
+  for(let i = 1; i < job.length; i++) {
+    populateFunctions(job[i][1]);
+  }
+}
+
 function populateFunctionsSwitch(job) {
   for(let i = 1; i < job.length; i++) {
+    job[i][0] = new Function('z', 'return ' + job[i][0]);
     populateFunctions(job[i][1]);
   }
 }
@@ -209,11 +227,12 @@ function populateFunctionsXaos(job) {
 }
 
 const ITERATORY_FUNCTIONS = {
-  'sum': populateFunctionsSwitch,
-  'sumColor': populateFunctionsSwitch,
-  'product': populateFunctionsSwitch,
-  'productColor': populateFunctionsSwitch,
-  'choose': populateFunctionsSwitch,
+  'sum': populateFunctionsChoose,
+  'sumColor': populateFunctionsChoose,
+  'product': populateFunctionsChoose,
+  'productColor': populateFunctionsChoose,
+  'choose': populateFunctionsChoose,
+  'switch': populateFunctionsSwitch,
   'xaos': populateFunctionsXaos,
 };
 
