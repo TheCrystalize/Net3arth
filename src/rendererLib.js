@@ -103,18 +103,18 @@ function chooseStuff(stuff, val) {
 
 function xaosStuff(stuff, val) {
   let total = 0;
-  for(let i = 0; i < stuff.length; i++) {
+  for(let i = 0; i < stuff.length - 1; i++) {
     total += stuff[i][1][0];
   }
   let at = 0;
   let first = false;
-  if(stuff.hasOwnProperty('at')){
-    at = stuff.at;
+  if(val.hasOwnProperty(stuff[stuff.length - 1])) {
+    at = val[stuff[stuff.length - 1]];
     first = true;
   }
   else {
     let rand = Math.random() * total;
-    for(let i = 0; i < stuff.length; i++) {
+    for(let i = 0; i < stuff.length - 1; i++) {
       at += stuff[i][1][0];
       if(rand < at) {
         at = i;
@@ -130,7 +130,7 @@ function xaosStuff(stuff, val) {
     if(!first){
       val = loopStuff(stuff[at][3], val);
       if(!first && stuff[at][1][1]) {
-        stuff.at = at;
+        val[stuff[stuff.length - 1]] = at;
         return val;
       }
     }
@@ -222,6 +222,7 @@ function populateFunctionsXaos(job) {
   for(let i = 1; i < job.length; i++) {
     populateFunctions(job[i][3]);
   }
+  job.push(Math.random());
 }
 
 const ITERATORY_FUNCTIONS = {
