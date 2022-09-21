@@ -156,7 +156,16 @@ function runCode() {
       threads[i].terminate();
     }
     compile3arthLang(editor.getValue());
-    let newCode = JSON.stringify([stuffToDo.customFunctions, stuffToDo.body, stuffToDo.camera]);
+
+    let custom = [];
+    for(let i = 0; i < stuffToDo.customFunctions.length; i++){
+      if(JSON.stringify(stuffToDo.body).indexOf('"'+stuffToDo.customFunctions[i].name+'"') > 0 ||
+        JSON.stringify(stuffToDo.camera).indexOf('"'+stuffToDo.customFunctions[i].name+'"') > 0) {
+        custom.push(stuffToDo.customFunctions[i]);
+      }
+    }
+
+    let newCode = JSON.stringify([custom, stuffToDo.body, stuffToDo.camera]);
 
     if(newCode != oldCode) {
       run3arthLang(editor.getValue());
