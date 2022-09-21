@@ -66,10 +66,14 @@ let loads = 0;
 let samples = 0;
 let loadAnimation = "/-\\|";
 
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 function incrementAnimation() {
   loads = (loads + 1) % loadAnimation.length;
   htmlConsole.children.item(htmlConsole.children.length - 1).innerText =
-    `Sample Level: ${Math.floor(Math.log2(samples / WIDTH / HEIGHT) * 1000) / 1000}\nrendering ${loadAnimation[loads]}`;
+    `${numberWithCommas(samples)} samples\nSample Level: ${Math.floor(Math.log2(samples / WIDTH / HEIGHT) * 1000) / 1000}\nrendering ${loadAnimation[loads]}`;
 }
 
 function updateImage(msg) {
@@ -130,7 +134,7 @@ function refreshRender(refreshCanvas = true) {
     threads[i] = new Worker('src/worker.js');
     threads[i].postMessage(['start', [i, stuffToDo, spc, WIDTH, HEIGHT]]);
     threads[i].onmessage = workerMessage;
-    spc *= 1.3;
+    //spc *= 1.3;
     threads[i].postMessage(['data']);
   }
 }

@@ -9,6 +9,7 @@ let img;
 let canvas;
 let ctx;
 let queue = 0;
+let start = true;
 
 function getBrightest() {
   let brightest = 0;
@@ -31,6 +32,8 @@ function refreshRender(width, height) {
   HEIGHT = height;
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
+
+  start = true;
 
   mainBuffer = [
     new Float32Array(WIDTH * HEIGHT),
@@ -94,13 +97,14 @@ async function updateImage(msg) {
   m[3] = undefined;
 
   // draw onto canvas
-  if(queue > 1){
+  if(queue > 1 || id !== 0){
     console.log(`${id} | SKIP`);
     queue--;
     return;
   }
   console.log(`${id} | WAIT`);
-  await sleep(100);
+  await sleep(start ? 100 : 1000);
+  start = false;
   await resolvePromises();
   console.log(`${id} | RENDER STARTING`);
   //const brightest = getBrightest();

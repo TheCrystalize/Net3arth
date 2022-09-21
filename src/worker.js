@@ -128,7 +128,12 @@ function run() {
     steps: samples
   });
 
-  stepsPerFrame = Math.min(stepsPerFrame * 4, 1e9);
+  if(stepsPerFrame < 2e6){
+    stepsPerFrame = stepsPerFrame * 2;
+  }
+  else{
+    stepsPerFrame = Math.min(stepsPerFrame * 1.2, 1e9);
+  }
 
   setTimeout(run, 1);
 }
