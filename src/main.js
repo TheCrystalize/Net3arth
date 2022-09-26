@@ -95,6 +95,13 @@ function numberWithCommas(x) {
 
 let renderedFrames = 0;
 
+function terminateThreads() {
+  for(let i = 0; i < threads.length; i++) {
+    threads[i].terminate();
+  }
+  threads = [];
+}
+
 function incrementAnimation() {
   loads = (loads + 1) % loadAnimation.length;
 
@@ -105,9 +112,7 @@ function incrementAnimation() {
         `Done rendering animation.`;
 
       try {
-        for(let i = 0; i < threads.length; i++) {
-          threads[i].terminate();
-        }
+        terminateThreads();
       } catch (e) {}
       compileButton.innerText = 'Compile';
       runButton.innerText = 'Run';
@@ -157,9 +162,7 @@ function workerMessage(msg) {
 }
 
 function refreshRender(refreshCanvas = true) {
-  for(let i = 0; i < threads.length; i++) {
-    threads[i].terminate();
-  }
+  terminateThreads();
 
   THREADS = parseInt(threadsUI.value);
   RENDER = renderUI.checked;
@@ -226,9 +229,7 @@ function runCode() {
   try {
     consoleclear();
     compileButton.innerText = 'Pause';
-    for(let i = 0; i < threads.length; i++) {
-      threads[i].terminate();
-    }
+    terminateThreads();
     compile3arthLang(editor.getValue());
 
     let custom = [];
@@ -256,9 +257,7 @@ function runCode() {
 
 function stopCode() {
   try {
-    for(let i = 0; i < threads.length; i++) {
-      threads[i].terminate();
-    }
+    terminateThreads();
     if(compileButton.innerText === 'Compile') {
       consoleclear();
       oldCode = '';
