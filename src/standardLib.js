@@ -1,4 +1,6 @@
 let promises = [];
+let frame = 0;
+let frames = 1;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -13,6 +15,15 @@ async function resolvePromises() {
 /*buffers*/
 //default buffer
 function buffer(oldBuffer, newBuffer) {
+  return {
+    red: oldBuffer.red + newBuffer.red * newBuffer.alpha,
+    green: oldBuffer.green + newBuffer.green * newBuffer.alpha,
+    blue: oldBuffer.blue + newBuffer.blue * newBuffer.alpha,
+    z: 0
+  }
+}
+
+function defaultBuffer(oldBuffer, newBuffer) {
   return {
     red: oldBuffer.red + newBuffer.red * newBuffer.alpha,
     green: oldBuffer.green + newBuffer.green * newBuffer.alpha,

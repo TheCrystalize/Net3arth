@@ -1,3 +1,5 @@
+importScripts('transpileWorker.js');
+
 function populateFunctionParams(params) {
   for(let i = 0; i < params.length; i++){
     if(typeof params[i] === 'object' && params[i].hasOwnProperty('functionCode')) {
@@ -265,6 +267,7 @@ function populateFunctions(job) {
 }
 
 function loadPreCompute(stuff) {
+  globalThis.buffer = defaultBuffer;
   for(let thing in stuff) {
     switch (stuff[thing].is) {
       case '_function':

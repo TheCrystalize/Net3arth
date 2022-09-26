@@ -11,6 +11,14 @@ let ctx;
 let queue = 0;
 let start = true;
 
+let threads = 1;
+let seenThreads = 0;
+
+let render = false;
+frame = 0;
+frames = 1;
+let code;
+
 function getBrightest() {
   let brightest = 0;
   for(let i = WIDTH * HEIGHT; i >= 0; i--) {
@@ -96,12 +104,15 @@ async function updateImage(msg) {
   m[2] = undefined;
   m[3] = undefined;
 
+  seenThreads++;
   // draw onto canvas
-  if(queue > 1 || id !== 0){
+  if(seenThreads < threads){
     console.log(`${id} | SKIP`);
     queue--;
     return;
   }
+  seenThreads = 0;
+
   console.log(`${id} | WAIT`);
   await sleep(start ? 100 : 1000);
   start = false;
@@ -126,12 +137,32 @@ async function updateImage(msg) {
     img.data[i * 4] = shaderResult.red * 255 >> 0;
     img.data[i * 4 + 1] = shaderResult.green * 255 >> 0;
     img.data[i * 4 + 2] = shaderResult.blue * 255 >> 0;
+    img.data[i * 4 + 3] = shaderResult.alpha * 255 >> 0;
   }
   ctx.putImageData(img, 0, 0);
   console.log(`${id} | RENDERED`);
   await sleep(100);
   postMessage(0);
   queue--;
+
+  if(render) {
+    frame++;
+    stuffToDo = parseEverything(code);
+    loadPreCompute(stuffToDo.preCompute);
+    populateFunctions(stuffToDo.shader);
+
+    mainBuffer = [
+      new Float32Array(WIDTH * HEIGHT),
+      new Float32Array(WIDTH * HEIGHT),
+      new Float32Array(WIDTH * HEIGHT),
+    ];
+    mainZBuffer = new Float64Array(WIDTH * HEIGHT);
+
+    img = new ImageData(WIDTH, HEIGHT);
+    for(let i = 3; i < WIDTH * HEIGHT * 4; i += 4) {
+      img.data[i] = 255;
+    }
+  }
 }
 
 onmessage = async function(msg) {
@@ -143,6 +174,11 @@ onmessage = async function(msg) {
 
     ctx.imageSmoothingQuality = "high";
   } else if(msg.data.hasOwnProperty('width')) {
+    render = msg.data.render;
+    frames = msg.data.frames;
+    threads = msg.data.threads;
+    code = msg.data.code;
+    seenThreads = 0;
     refreshRender(msg.data.width, msg.data.height);
     stuffToDo = msg.data.stuffToDo;
 
@@ -151,6 +187,9 @@ onmessage = async function(msg) {
     populateFunctions(stuffToDo.shader);
     await resolvePromises();
   } else if(msg.data.hasOwnProperty('stuffToDo')) {
+    render = false;
+    threads = msg.data.threads;
+    seenThreads = 0;
     stuffToDo = msg.data.stuffToDo;
 
     customFunctions = stuffToDo.customFunctions;

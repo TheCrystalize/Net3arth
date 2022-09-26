@@ -27,9 +27,13 @@
       <div id="topBar"><button onclick="runCode()" class="inp"  id="run">Run</button>
         <button onclick="stopCode()" class="inp" id="compile">Compile</button>
         <a href='gallery' target="_blank"><button class="inp">Gallery</button></a>
-        <input type="number" placeholder="threads" id="threads" name="Threads" min="0" max="32" value="4"/>
-        <input type="number" placeholder="Width" id="width" name="Width" min="0" max="8000" value="1280"/>
-        <input type="number" placeholder="Height" id="height" name="Height" min="0" max="8000" value="720"/>
+        <input type="number" placeholder="threads" id="threads" name="Threads" min="0" max="32" value="4" step="1" data-toggle="tooltip" title="number of theads to use"/>
+        <input type="number" placeholder="Width" id="width" name="Width" min="0" max="8000" value="1280" step="1" data-toggle="tooltip" title="Width in pixels"/>
+        <input type="number" placeholder="Height" id="height" name="Height" min="0" max="8000" value="720" step="1" data-toggle="tooltip" title="Height in pixels"/><br>
+        <label for="Save Render" style='color:white' data-toggle="tooltip" title="toggle animation rendering (PNG sequence)">Animation</label>
+        <input type="checkbox" id="render" name="Save Render" data-toggle="tooltip" title="toggle animation rendering (PNG sequence)">
+        <input type="number" placeholder="Frames" id="frames" name="Frames" min="1" max="1e8" value="1" step="1" style="display:none" data-toggle="tooltip" title="Total animation frames"/>
+        <input type="number" placeholder="Sample Level" id="sampleLevel" name="Sample Level" min="0" max="25" value="5" style="display:none" data-toggle="tooltip" title="Sample Level"/>
         <!--<input type="checkbox" id="autoFormat" name="Auto Format" onchange="autoFormat = !autoFormat">-->
         <!--<label for="Auto Format" style='color:white'>Auto Format</label>-->
       </div>

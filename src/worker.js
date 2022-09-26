@@ -6,6 +6,11 @@ let samples = 0;
 let scl = [];
 let mainBuffer;
 
+let render = false;
+frame = 0;
+frames = 1;
+let code;
+
 function drawCamera(z) {
   let val = loopStuff(scl, z);
   if(val.alpha > 0 && val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
@@ -128,20 +133,33 @@ function run() {
     steps: samples
   });
 
-  if(stepsPerFrame < 2e6){
-    stepsPerFrame = stepsPerFrame * 2;
+  if(render) {
+    frame++;
+    stuffToDo = parseEverything(code);
+
+    loadPreCompute(stuffToDo.preCompute);
+    populateFunctions(stuffToDo.body);
+    populateFunctions(stuffToDo.camera);
   }
   else{
-    stepsPerFrame = Math.min(stepsPerFrame * 1.2, 1e9);
+    if(stepsPerFrame < 2e6){
+      stepsPerFrame = stepsPerFrame * 2;
+    }
+    else{
+      stepsPerFrame = Math.min(stepsPerFrame * 1.2, 1e9);
+    }
+    setTimeout(run, 1);
   }
-
-  setTimeout(run, 1);
 }
 
-function initialize(id, job, spf, width, height) {
+function initialize(id, job, spf, width, height, _render, _frames, _code) {
   ID = id;
   WIDTH = width;
   HEIGHT = height;
+  render = _render;
+  frame = 0;
+  frames = _frames;
+  code = _code;
   pointer = {
     re: 0.001,
     im: 0.001,
@@ -167,6 +185,9 @@ self.onmessage = async function(msg) {
       break;
     case "data":
       await resolvePromises();
+      run();
+      break;
+    case "frame":
       run();
       break;
     default:
