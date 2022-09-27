@@ -14,7 +14,7 @@ let start = true;
 let threads = 1;
 let seenThreads = 0;
 
-let render = false;
+render = false;
 frame = 0;
 frames = 1;
 let code;
@@ -56,10 +56,6 @@ function refreshRender(width, height) {
   }
 
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function updateImage(msg) {

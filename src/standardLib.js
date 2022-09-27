@@ -1,6 +1,7 @@
 let promises = [];
 let frame = 0;
 let frames = 1;
+let render = false;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));

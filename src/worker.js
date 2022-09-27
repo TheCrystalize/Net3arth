@@ -6,12 +6,28 @@ let samples = 0;
 let scl = [];
 let mainBuffer;
 
-let render = false;
+render = false;
 frame = 0;
 frames = 1;
 let code;
 
+let ready = false;
+
+let postQueue = [];
+
+async function postData() {
+  while(render && !ready) {
+    await sleep(100);
+  }
+  ready = false;
+  postMessage(...postQueue.shift());
+  postMessage(...postQueue.shift());
+}
+
 function drawCamera(z) {
+  if(render && frame >= frames) {
+    return;
+  }
   let val = loopStuff(scl, z);
   if(val.alpha > 0 && val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
     samples++;
@@ -30,7 +46,7 @@ function drawCamera(z) {
   }
 
   if(samples >= stepsPerFrame){
-    postMessage([
+    postQueue.push([[
         ID,
         mainBuffer[0].buffer,
         mainBuffer[1].buffer,
@@ -42,10 +58,34 @@ function drawCamera(z) {
         mainBuffer[1].buffer,
         mainBuffer[2].buffer,
         mainBuffer[3].buffer
-      ]);
-    postMessage({
+      ]]);
+    postQueue.push([{
       steps: samples
-    });
+    }]);
+    postData();
+
+    samples = 0;
+
+    if(render) {
+      frame++;
+      stuffToDo = parseEverything(code);
+
+      loadPreCompute(stuffToDo.preCompute);
+      populateFunctions(stuffToDo.body);
+      populateFunctions(stuffToDo.camera);
+
+      if(frame >= frames) {
+        return;
+      }
+    }
+    else{
+      if(stepsPerFrame < 2e6){
+        stepsPerFrame = stepsPerFrame * 2;
+      }
+      else{
+        stepsPerFrame = Math.min(stepsPerFrame * 1.2, 1e9);
+      }
+    }
 
     mainBuffer = [
       new Float32Array(WIDTH * HEIGHT),
@@ -53,9 +93,6 @@ function drawCamera(z) {
       new Float32Array(WIDTH * HEIGHT),
       new Float64Array(WIDTH * HEIGHT)
     ];
-
-    stepsPerFrame = Math.min(stepsPerFrame * 4, 1e9);
-    samples = 0;
   }
 }
 
@@ -99,6 +136,10 @@ function run() {
     let val = loopStuff(stuffToDo.camera, pointer);
     val = loopStuff(scl, val);
 
+    if(frame >= frames) {
+      return;
+    }
+
     if(val.alpha > 0 && val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
       samples++;
       let index = ((val.re + 0.5) * WIDTH >> 0) + ((val.im + 0.5) * HEIGHT >> 0) * WIDTH;
@@ -116,7 +157,7 @@ function run() {
     }
   }
 
-  postMessage([
+  postQueue.push([[
       ID,
       mainBuffer[0].buffer,
       mainBuffer[1].buffer,
@@ -128,13 +169,19 @@ function run() {
       mainBuffer[1].buffer,
       mainBuffer[2].buffer,
       mainBuffer[3].buffer
-    ]);
-  postMessage({
+    ]]);
+  postQueue.push([{
     steps: samples
-  });
+  }]);
+  postData();
 
   if(render) {
     frame++;
+
+    if(frame >= frames) {
+      return;
+    }
+
     stuffToDo = parseEverything(code);
 
     loadPreCompute(stuffToDo.preCompute);
@@ -148,8 +195,13 @@ function run() {
     else{
       stepsPerFrame = Math.min(stepsPerFrame * 1.2, 1e9);
     }
-    setTimeout(run, 1);
   }
+
+  if(frame >= frames) {
+    return;
+  }
+
+  setTimeout(run, 1);
 }
 
 function initialize(id, job, spf, width, height, _render, _frames, _code) {
@@ -185,10 +237,11 @@ self.onmessage = async function(msg) {
       break;
     case "data":
       await resolvePromises();
+      ready = true;
       run();
       break;
     case "frame":
-      run();
+      ready = true;
       break;
     default:
       //console.log('bad request:');
