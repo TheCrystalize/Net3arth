@@ -17,7 +17,7 @@ let postQueue = [];
 
 async function postData() {
   while(render && !ready) {
-    await sleep(100);
+    await sleep(5);
   }
   ready = false;
   postMessage(...postQueue.shift());
@@ -25,9 +25,6 @@ async function postData() {
 }
 
 function drawCamera(z) {
-  if(render && frame >= frames) {
-    return;
-  }
   let val = loopStuff(scl, z);
   if(val.alpha > 0 && val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
     samples++;
@@ -44,7 +41,7 @@ function drawCamera(z) {
     mainBuffer[2][index] = result.blue;
     mainBuffer[3][index] = result.z;
   }
-
+/*
   if(samples >= stepsPerFrame){
     postQueue.push([[
         ID,
@@ -94,6 +91,7 @@ function drawCamera(z) {
       new Float64Array(WIDTH * HEIGHT)
     ];
   }
+*/
 }
 
 function drawBody(z) {
@@ -104,12 +102,25 @@ function drawBody(z) {
 }
 
 function run() {
-  mainBuffer = [
-    new Float32Array(WIDTH * HEIGHT),
-    new Float32Array(WIDTH * HEIGHT),
-    new Float32Array(WIDTH * HEIGHT),
-    new Float64Array(WIDTH * HEIGHT)
-  ];
+  if(postQueue.length > 0) {
+    setTimeout(run, 1000);
+    return;
+  }
+
+  try{
+    mainBuffer = [
+      new Float32Array(WIDTH * HEIGHT),
+      new Float32Array(WIDTH * HEIGHT),
+      new Float32Array(WIDTH * HEIGHT),
+      new Float64Array(WIDTH * HEIGHT)
+    ];
+  }
+  catch(e) {
+    console.log(`${ID} | no memory`);
+    mainBuffer = null;
+    setTimeout(run, 1000);
+    return;
+  }
   scl = [];
   if(WIDTH > HEIGHT) {
     scl = [scale2(
@@ -135,10 +146,6 @@ function run() {
     //console.log(`do post: ${stuffToDo.post}`);
     let val = loopStuff(stuffToDo.camera, pointer);
     val = loopStuff(scl, val);
-
-    if(frame >= frames) {
-      return;
-    }
 
     if(val.alpha > 0 && val.re + 0.5 > 0 && val.re + 0.5 < 1 && val.im + 0.5 > 0 && val.im + 0.5 < 1) {
       samples++;
@@ -197,11 +204,7 @@ function run() {
     }
   }
 
-  if(frame >= frames) {
-    return;
-  }
-
-  setTimeout(run, 1);
+  setTimeout(run, 10);
 }
 
 function initialize(id, job, spf, width, height, _render, _frames, _code) {

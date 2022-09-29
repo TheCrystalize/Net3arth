@@ -95,10 +95,10 @@ async function updateImage(msg) {
     }
   }
 
-  m[0] = undefined;
-  m[1] = undefined;
-  m[2] = undefined;
-  m[3] = undefined;
+  m[0] = null;
+  m[1] = null;
+  m[2] = null;
+  m[3] = null;
 
   seenThreads++;
   // draw onto canvas
@@ -153,11 +153,6 @@ async function updateImage(msg) {
       new Float32Array(WIDTH * HEIGHT),
     ];
     mainZBuffer = new Float64Array(WIDTH * HEIGHT);
-
-    img = new ImageData(WIDTH, HEIGHT);
-    for(let i = 3; i < WIDTH * HEIGHT * 4; i += 4) {
-      img.data[i] = 255;
-    }
   }
 }
 

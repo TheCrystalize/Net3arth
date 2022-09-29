@@ -1780,5 +1780,3 @@ function parseEverything(code) {
     at: code[code.length - 2].length - 1
   }, code.length - 1, code[code.length - 2])('unexpected end of input');
 }
-
-let autoFormat = false;
