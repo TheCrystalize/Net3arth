@@ -61,7 +61,7 @@ shader:
         1:
           product{
             1:
-              ambientOcclusion(10, 1);
+              ambientOcclusion2(48, 100, 1);
             1:
               sum{
               0.5: gamma(2.2);

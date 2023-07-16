@@ -4563,6 +4563,114 @@ function ambientOcclusionBig(steps, sz) {
   }
 }
 
+function ambientOcclusion2(vectors, steps, sz) {
+  let slopeVectors = [];
+  for(let i = 0; i < vectors; i++) {
+    slopeVectors.push([Math.sin(i / vectors * Math.PI * 2), Math.cos(i / vectors * Math.PI * 2)]);
+  }
+  return z => {
+    let s = sz / Math.min(z.width, z.height);
+    if(z.z === 0 && z.red === 0 && z.green === 0 && z.blue === 0) {
+      return {
+        ...z,
+        red: 0,
+        blue: 0,
+        green: 0
+      };
+    }
+
+    let sum = 0;
+
+    for(let j = 0; j < slopeVectors.length; j++) {
+      let bestSlope = Number.MIN_SAFE_INTEGER;
+      for(let i = 1; i < steps; i++) {
+        let x = slopeVectors[j][0];
+        let y = slopeVectors[j][1];
+
+        let X = Math.round(z.re + i * x);
+        let Y = Math.round(z.im + i * y);
+        if(X < 0 || X >= z.width || Y < 0 || Y >= z.height) {
+          i = steps;
+          continue;
+        }
+        let N = X + Y * z.width;
+        if(z.zBuffer[N] === 0 && z.mainBuffer[0][N] === 0 && z.mainBuffer[1][N] === 0 && z.mainBuffer[2][N] === 0) {
+          i = steps;
+          continue;
+        }
+        let d = Math.sqrt(Math.round(i * x) ** 2 + Math.round(i * y) ** 2) * s;
+        let slope = (z.z - z.zBuffer[N]) / d;
+        if(slope > bestSlope) {
+          bestSlope = slope;
+        }
+      }
+      sum += Math.atan(bestSlope);
+    }
+
+    sum /= Math.PI / 2 * slopeVectors.length;
+
+    if(sum < 0) {
+      sum = 0;
+    }
+
+    return {
+      ...z,
+      red: 1 - sum,
+      blue: 1 - sum,
+      green: 1 - sum
+    };
+  }
+}
+
+function edgeDetection(sensitivityColor, sensitivityZ) {
+  const neighbors = [
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 0],
+    [1, 1]
+  ];
+  return z => {
+    if(z.re === 0 || z.re === z.width - 1 || z.im === 0 || z.im === z.height - 1) {
+      return {
+        ...z,
+        red: 1,
+        green: 1,
+        blue: 1
+      };
+    }
+
+    let sum = 0;
+
+    const at = z.re + z.im * z.width;
+    const r = z.mainBuffer[0][at];
+    const g = z.mainBuffer[1][at];
+    const b = z.mainBuffer[2][at];
+    const zz = z.zBuffer[at];
+
+    for(let [x, y] of neighbors) {
+      sum += Math.abs(z.mainBuffer[0][at + x + y * z.width] - r) * sensitivityColor;
+      sum += Math.abs(z.mainBuffer[1][at + x + y * z.width] - g) * sensitivityColor;
+      sum += Math.abs(z.mainBuffer[2][at + x + y * z.width] - b) * sensitivityColor;
+      sum += Math.abs(z.zBuffer[at + x + y * z.width] - zz) * 40 * sensitivityZ;
+    }
+
+    sum /= 24;
+
+    if(sum > 1) sum = 1;
+
+    return {
+      ...z,
+      red: 1 - sum,
+      blue: 1 - sum,
+      green: 1 - sum
+    };
+  }
+}
+
 function reflect(vector, normal) {
   // v - 2 * (v dot n) * n
   return vectorSum(vector, vectorTimes(normal, -2 * (vector[0] * normal[0] + vector[1] * normal[1] + vector[2] * normal[2])));
@@ -5494,7 +5602,9 @@ const BUILT_IN_TRANSFORMS = {
   paletteMod: paletteMod,
   gamma: gamma,
   ambientOcclusion: ambientOcclusion,
+  ambientOcclusion2: ambientOcclusion2,
   ambientOcclusionBig: ambientOcclusionBig,
+  edgeDetection: edgeDetection,
   specular: specular,
   specularOrth: specularOrth,
   normalMap: normalMap,
@@ -5744,12 +5854,34 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 1
   }],
+  ambientOcclusion2: [{
+    name: "vectors",
+    type: "number",
+    default: 48
+  }, {
+    name: "steps",
+    type: "number",
+    default: 10
+  }, {
+    name: "size",
+    type: "number",
+    default: 1
+  }],
   ambientOcclusionBig: [{
     name: "steps",
     type: "number",
     default: 10
   }, {
     name: "size",
+    type: "number",
+    default: 1
+  }],
+  edgeDetection: [{
+    name: "sensitivityColor",
+    type: "number",
+    default: 1
+  }, {
+    name: "sensitivityZ",
     type: "number",
     default: 1
   }],

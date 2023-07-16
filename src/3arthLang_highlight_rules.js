@@ -126,6 +126,8 @@ advancedLighting
 advancedLightingOrth
 ambientOcclusion
 ambientOcclusionBig
+ambientOcclusion2
+edgeDetection
 specular
 specularOrth`.split('\n');
 
