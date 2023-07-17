@@ -111,10 +111,10 @@ function shaderPass(transform) {
       ...z,
       zBuffer: newZBuffer,
       mainBuffer: newBuffer,
-      red: newBuffer[0][(z.re - 1) + z.im * z.width],
-      green: newBuffer[1][(z.re - 1) + z.im * z.width],
-      blue: newBuffer[2][(z.re - 1) + z.im * z.width],
-      z: newZBuffer[(z.re - 1) + z.im * z.width],
+      red: newBuffer[0][z.re + z.im * z.width],
+      green: newBuffer[1][z.re + z.im * z.width],
+      blue: newBuffer[2][z.re + z.im * z.width],
+      z: newZBuffer[z.re + z.im * z.width],
     };
   }
 }
@@ -4563,7 +4563,7 @@ function ambientOcclusionBig(steps, sz) {
   }
 }
 
-function ambientOcclusion2(vectors, steps, sz) {
+function ambientOcclusion2(vectors, steps, sz, stepSize) {
   let slopeVectors = [];
   for(let i = 0; i < vectors; i++) {
     slopeVectors.push([Math.sin(i / vectors * Math.PI * 2), Math.cos(i / vectors * Math.PI * 2)]);
@@ -4583,28 +4583,32 @@ function ambientOcclusion2(vectors, steps, sz) {
 
     for(let j = 0; j < slopeVectors.length; j++) {
       let bestSlope = Number.MIN_SAFE_INTEGER;
-      for(let i = 1; i < steps; i++) {
+      let bestD = steps * stepSize;
+      let bestN = 1e10;
+      for(let i = stepSize; i < steps * stepSize; i += stepSize) {
         let x = slopeVectors[j][0];
         let y = slopeVectors[j][1];
 
         let X = Math.round(z.re + i * x);
         let Y = Math.round(z.im + i * y);
         if(X < 0 || X >= z.width || Y < 0 || Y >= z.height) {
-          i = steps;
+          i = Infinity;
           continue;
         }
         let N = X + Y * z.width;
         if(z.zBuffer[N] === 0 && z.mainBuffer[0][N] === 0 && z.mainBuffer[1][N] === 0 && z.mainBuffer[2][N] === 0) {
-          i = steps;
+          i = Infinity;
           continue;
         }
-        let d = Math.sqrt(Math.round(i * x) ** 2 + Math.round(i * y) ** 2) * s;
+        let d = Math.round(i * x) ** 2 + Math.round(i * y) ** 2;
         let slope = (z.z - z.zBuffer[N]) / d;
         if(slope > bestSlope) {
           bestSlope = slope;
+          bestN = z.z - z.zBuffer[N];
+          bestD = d;
         }
       }
-      sum += Math.atan(bestSlope);
+      sum += Math.atan(bestN / (Math.sqrt(bestD) * s));
     }
 
     sum /= Math.PI / 2 * slopeVectors.length;
@@ -5864,6 +5868,10 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     default: 10
   }, {
     name: "size",
+    type: "number",
+    default: 1
+  }, {
+    name: "stepSize",
     type: "number",
     default: 1
   }],

@@ -1,7 +1,7 @@
 let WIDTH = 1280;
 let HEIGHT = 720;
 let THREADS = (Math.max(navigator.hardwareConcurrency, 8) - 4) || 4;
-let STEPS_PER_CALL = WIDTH * HEIGHT / 2;
+let STEPS_PER_CALL = WIDTH * HEIGHT / THREADS / 8;
 let RENDER = false;
 let FRAMES = 1;
 let SAMPLE_LEVEL = 5;
@@ -98,8 +98,8 @@ let renderedFrames = 0;
 function terminateThreads() {
   for(let i = 0; i < threads.length; i++) {
     threads[i].terminate();
+    threads[i] = new Worker('src/worker.js');
   }
-  threads = [];
 }
 
 function incrementAnimation() {
@@ -161,9 +161,17 @@ function workerMessage(msg) {
   }
 }
 
-function refreshRender(refreshCanvas = true) {
-  terminateThreads();
+for(let i = 0; i < THREADS; i++) {
+  threads[i] = new Worker('src/worker.js');
+}
 
+renderUI.addEventListener('change', _ => {
+  while(threads.length < parseInt(threadsUI.value)) {
+    threads.push(new Worker('src/worker.js'));
+  }
+});
+
+function refreshRender(refreshCanvas = true) {
   THREADS = parseInt(threadsUI.value);
   RENDER = renderUI.checked;
 
@@ -176,7 +184,7 @@ function refreshRender(refreshCanvas = true) {
     samples = 0;
     WIDTH = parseInt(widthUI.value);
     HEIGHT = parseInt(heightUI.value);
-    STEPS_PER_CALL = WIDTH * HEIGHT / THREADS;
+    STEPS_PER_CALL = WIDTH * HEIGHT / THREADS / 8;
 
     if(RENDER) {
       STEPS_PER_CALL = WIDTH * HEIGHT * Math.pow(2, SAMPLE_LEVEL) / THREADS;
@@ -208,7 +216,6 @@ function refreshRender(refreshCanvas = true) {
   let spc = STEPS_PER_CALL;
 
   for(let i = 0; i < THREADS; i++) {
-    threads[i] = new Worker('src/worker.js');
     threads[i].postMessage(['start', [i, stuffToDo, spc, WIDTH, HEIGHT, RENDER, FRAMES, editor.getValue()]]);
     threads[i].onmessage = workerMessage;
     //spc *= 1.3;
@@ -229,7 +236,6 @@ function runCode() {
   try {
     consoleclear();
     compileButton.innerText = 'Pause';
-    terminateThreads();
     compile3arthLang(editor.getValue());
 
     let custom = [];
