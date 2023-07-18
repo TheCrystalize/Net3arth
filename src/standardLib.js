@@ -1072,6 +1072,24 @@ function lagrangian(poly) {
 }
 
 
+function phiD(dimensions, iterations) {
+  let x = 2;
+  for(i = 0; i < iterations; i++) {
+    x = Math.pow(1 + x, 1 / (dimensions + 1));
+  }
+  return x;
+}
+
+function getIrrationals(dimensions) {
+  let phi = phiD(dimensions, 100);
+  let ans = [];
+  for(let i = 1; i <= dimensions; i++) {
+    ans.push(Math.pow(1 / phi, i) % 1);
+  }
+  return ans;
+}
+
+
 /*transforms*/
 
 function schwarzChristoffelInverseMap(n) {
@@ -1148,14 +1166,21 @@ function bent(real, imaginary) {
 }
 
 function blurCircle() {
+  const [ax, ay] = getIrrationals(2);
+  let atx = Math.random();
+  let aty = Math.random();
   return z => {
-    let a = Math.random() * Math.PI * 2,
-      r = Math.sqrt(Math.random());
+
+    do {
+      atx = (atx + ax) % 1;
+      aty = (aty + ay) % 1;
+    } while((atx - 0.5) ** 2 + (aty - 0.5) ** 2 > 0.25);
+
     return {
       ...z,
-      re: Math.cos(a) * r,
-      im: Math.sin(a) * r,
-      z: 0,
+      re: atx * 2 - 1,
+      im: aty * 2 - 1,
+      z: 0
     }
   }
 }
@@ -1236,14 +1261,43 @@ function blurSine(pow) {
 }
 
 function blurSquare() {
+  const [ax, ay] = getIrrationals(2);
+  let atx = Math.random();
+  let aty = Math.random();
   return z => {
+    atx = (atx + ax) % 1;
+    aty = (aty + ay) % 1;
+
     return {
       ...z,
-      re: Math.random() - 0.5,
-      im: Math.random() - 0.5,
+      re: atx - 0.5,
+      im: aty - 0.5,
       z: 0,
     }
   }
+}
+
+function squircleDistance(z, r) {
+    if(z.im > -r && z.im < r) {
+      if(z.re < -r) {
+        return -r - z.re;
+      }
+      if(z.re > r) {
+        return z.re - r;
+      }
+      return 0;
+    }
+    if(z.re > -r && z.re < r) {
+      if(z.im < -r) {
+        return -r - z.im;
+      }
+      if(z.im > r) {
+        return z.im - r;
+      }
+      return 0;
+    }
+
+    return Math.hypot(Math.abs(z.re) - r, Math.abs(z.im) - r);
 }
 
 function blurTriangle(a, b, c) {
@@ -3560,9 +3614,12 @@ function getNormal(z) {
 }
 
 function blurSphere() {
+  const [ax, ay] = getIrrationals(2);
+  let u = Math.random();
+  let v = Math.random();
   return z => {
-    let u = Math.random();
-    let v = Math.random();
+    u = (u + ax) % 1;
+    v = (v + ay) % 1;
     let theta = 2 * Math.PI * u;
     let phi = Math.acos(2 * v - 1);
     return {
@@ -3575,10 +3632,15 @@ function blurSphere() {
 }
 
 function blurCube() {
+  const [ax, ay] = getIrrationals(2);
+  let atx = Math.random();
+  let aty = Math.random();
   return z => {
+    atx = (atx + ax) % 1;
+    aty = (aty + ay) % 1;
     let face = Math.random() * 6 >> 0;
-    let x = Math.random() - 0.5;
-    let y = Math.random() - 0.5;
+    let x = atx - 0.5;
+    let y = aty - 0.5;
     switch (face) {
       case 0:
         return {
@@ -3623,6 +3685,46 @@ function blurCube() {
             z: y
         };
     }
+  }
+}
+
+function blurCubeVolume() {
+  const [ax, ay, az] = getIrrationals(3);
+  let atx = Math.random();
+  let aty = Math.random();
+  let atz = Math.random();
+  return z => {
+    atx = (atx + ax) % 1;
+    aty = (aty + ay) % 1;
+    atz = (atz + az) % 1;
+
+    return {
+      ...z,
+      re: atx - 0.5,
+      im: aty - 0.5,
+      z: atz - 0.5
+    };
+  }
+}
+
+function blurSphereVolume() {
+  const [ax, ay, az] = getIrrationals(3);
+  let atx = Math.random();
+  let aty = Math.random();
+  let atz = Math.random();
+  return z => {
+    do {
+      atx = (atx + ax) % 1;
+      aty = (aty + ay) % 1;
+      atz = (atz + az) % 1;
+    } while((atx - 0.5) ** 2 + (aty - 0.5) ** 2 + (atz - 0.5) ** 2 > 0.25);
+
+    return {
+      ...z,
+      re: atx * 2 - 1,
+      im: aty * 2 - 1,
+      z: atz * 2 - 1
+    };
   }
 }
 
@@ -5169,6 +5271,9 @@ function blurImage(url, x, y, w, h) {
     promises.shift();
   });
   promises.push(p);
+  const [ax, ay] = getIrrationals(2);
+  let Xr = Math.random();
+  let Yr = Math.random();
   return z => {
     if(!img) {
       return {
@@ -5183,8 +5288,8 @@ function blurImage(url, x, y, w, h) {
     }
     let Xr, Yr, X, Y;
     do {
-      Xr = Math.random();
-      Yr = Math.random();
+      Xr = (Xr + ax) % 1;
+      Yr = (Yr + ay) % 1;
       X = Math.floor(Xr * img.width);
       Y = Math.floor(Yr * img.height);
     } while(img.data[(X + Y * img.width) * 4 + 3] === 0)
@@ -5635,7 +5740,9 @@ const BUILT_IN_TRANSFORMS = {
   unbubble3D: unbubble3D,
   matrix3D: matrix3D,
   blurSphere: blurSphere,
+  blurSphereVolume: blurSphereVolume,
   blurCube: blurCube,
+  blurCubeVolume: blurCubeVolume,
   scale3D: scale3D,
   scale3D3: scale3D3,
   translate3D: translate3D,
@@ -5725,7 +5832,7 @@ const BUILT_IN_TRANSFORMS = {
 };
 
 const BUILT_IN_TRANSFORMS_PARAMS = {
-  identity: identity,
+  identity: [],
   draw: [],
   dither: [{
     name: "matrix size",
@@ -6165,7 +6272,9 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   trigTanh3D: [],
   unbubble3D: [],
   blurSphere: [],
+  blurSphereVolume: [],
   blurCube: [],
+  blurCubeVolume: [],
   scale3D: [{
     name: "scale",
     type: "number",
@@ -6324,12 +6433,12 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   blurTriangle: [{
       name: "a",
       type: "complex",
-      default: "C(-0.5, -Math.sqrt(3)*0.5))",
+      default: "C(-0.5, -Math.sqrt(3)*0.5)",
     },
     {
       name: "b",
       type: "complex",
-      default: "C(-0.5, Math.sqrt(3)*0.5))",
+      default: "C(-0.5, Math.sqrt(3)*0.5)",
     },
     {
       name: "c",

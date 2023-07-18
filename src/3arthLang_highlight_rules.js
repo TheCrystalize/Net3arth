@@ -3,6 +3,8 @@ const StandardLibNamesArray =
 draw
 blurSphere
 blurCube
+blurSphereVolume
+blurCubeVolume
 blurTetrahedron
 blurNormalCube
 blurOctahedron
@@ -138,6 +140,8 @@ hslToRgb
 conj
 div
 divScalar
+getIrrationals
+squircleDistance
 add
 neg
 sub
