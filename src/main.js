@@ -249,6 +249,9 @@ function runCode() {
     let newCode = JSON.stringify([custom, stuffToDo.body, stuffToDo.camera]);
 
     if(newCode != oldCode) {
+      if(runButton.innerText === 'restart') {
+        terminateThreads();
+      }
       run3arthLang(editor.getValue());
       consolelog('Running...', 'limegreen');
       oldCode = newCode;
