@@ -50,6 +50,30 @@
         <div id='console'></div>
       </div>
     </div>
+    <div id="functionPreview" style="width: 300px;">
+      <canvas id="previewCanvas" width="300" height="300"></canvas>
+      <hr>
+      <div id="previewFunctionOptions">
+        <select id="previewFunctionTemplate" name="Template">
+          <optgroup>
+            <option value="Checker">Checkers</option>
+            <option value="3D Teapot">3D Teapot</option>
+          </optgroup>
+        </select><br>
+        <select id="previewFunctionFunction">
+          <optgroup>
+          </optgroup>
+        </select>
+        <hr>
+        <div style="margin-left: 10%;">
+          <div id="previewFunctionParameters" style="text-align: left;"></div>
+        </div>
+        <hr>
+        <div style="padding-left: 1em; padding-right: 1em;">
+          <p id="previewFunctionDescription" style="color: white;text-align:left;">The identity function returns its input.</p>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/mode-javascript.js" type="text/javascript" charset="utf-8"></script>
@@ -63,6 +87,7 @@
   <script src="src/transpile.js" type="text/javascript" charset="utf-8"></script>
   <script src="src/tutorial.js" type="text/javascript" charset="utf-8"></script>
   <script src="src/main.js" type="text/javascript" charset="utf-8"></script>
+  <script src="src/preview.js" type="text/javascript" charset="utf-8"></script>
 </body>
 
 </html>

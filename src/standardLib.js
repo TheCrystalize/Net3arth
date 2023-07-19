@@ -5854,11 +5854,11 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   torus: [{
     name: "Major Radius",
     type: "number",
-    default: 0.75
+    default: 0.7
   }, {
     name: "Minor Radius",
     type: "number",
-    default: 0.25
+    default: 0.3
   }],
   umbilicTorus: [{
     name: "mode",
@@ -5883,7 +5883,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0
     },
     {
-      name: "_z",
+      name: "z",
       type: "number",
       default: 0
     },
@@ -5904,7 +5904,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0
     },
     {
-      name: "_z",
+      name: "z",
       type: "number",
       default: 0
     },
@@ -6124,7 +6124,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   mist: [{
     name: "startZ",
     type: "number",
-    default: 0,
+    default: 1.5,
   }, {
     name: "halfLength",
     type: "number",
@@ -6132,11 +6132,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   }, {
     name: "mistColor",
     type: "object",
-    default: {
-      red: 0.7,
-      green: 0.7,
-      blue: 0.8
-    },
+    default: 'colorRGB(0.7, 0.7, 0.8)'
   }],
   //3D transforms
   mobius3D: [{
@@ -6236,7 +6232,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
       default: 0
     },
     {
-      name: "_z",
+      name: "z",
       type: "number",
       default: 0
     }
@@ -6590,10 +6586,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   hypershift: [{
     name: "p",
     type: "complex",
-    default: {
-      re: 0,
-      im: 0
-    }
+    default: "C(0, 0)"
   }],
   hypertile3: [{
       name: "p",
@@ -6677,67 +6670,43 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   mobius: [{
       name: "a",
       type: "complex",
-      default: {
-        re: 1,
-        im: 0
-      }
+      default: "C(1, 0)"
     },
     {
       name: "b",
       type: "complex",
-      default: {
-        re: 0,
-        im: 0
-      }
+      default: "C(0, 0)"
     },
     {
       name: "c",
       type: "complex",
-      default: {
-        re: 0,
-        im: 0
-      }
+      default: "C(0, 0)"
     },
     {
       name: "d",
       type: "complex",
-      default: {
-        re: 1,
-        im: 0
-      }
+      default: "C(1, 0)"
     }
   ],
   multiMobius: [{
       name: "a",
       type: "complex",
-      default: {
-        re: 1,
-        im: 0
-      }
+      default: "C(1, 0)"
     },
     {
       name: "b",
       type: "complex",
-      default: {
-        re: 0,
-        im: 0
-      }
+      default: "C(0, 0)"
     },
     {
       name: "c",
       type: "complex",
-      default: {
-        re: 0,
-        im: 0
-      }
+      default: "C(0, 0)"
     },
     {
       name: "d",
       type: "complex",
-      default: {
-        re: 1,
-        im: 0
-      }
+      default: "C(1, 0)"
     },
     {
       name: "iterations",
@@ -6967,7 +6936,7 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   weierstrassElliptic: [{
       name: "w2",
       type: "complex",
-      default: {re: 0, im: 1}
+      default: "C(0, 1)"
   }],
   //color transforms
   brighten: [{
@@ -7097,4 +7066,687 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     type: "number",
     default: 0.5
   }],
+};
+
+const BUILT_IN_TRANSFORMS_DESCRIPTIONS = {
+  identity: 'The identity function returns its input.',
+  draw: 'Draws immediately. Useful for drawing multiple points per loop',
+  dither: '(Shader only) Applies a Bayer dither to the image.',
+  //3D models
+  stl: 'renders a 3D model from an STL file encoded as a Base64 string',
+  blurTetrahedron: 'Makes a unit radius tetrahedron',
+  blurNormalCube: 'Makes a unit radius cube',
+  blurOctahedron: 'Makes a unit radius octahedron',
+  blurIcosahedron: 'Makes a unit radius icosahedron',
+  blurDodecahedron: 'Makes a unit radius dodecahedron',
+  blurTeapot: 'Makes a teapot',
+  torus: 'Makes a 3D torus',
+  umbilicTorus: 'TODO',
+  //shaders
+  shaderPass: '(Shader only) Calls the function passed for all pixels.',
+  normalizeColors: '(Shader only) Normalizes the colors based on the brightest pixel',
+  rainbowCirc: 'TODO',
+  rainbowCircAdd: 'TODO',
+  paletteMod: 'TODO',
+  gamma: 'Applies a gamma to the color',
+  ambientOcclusion: '(Shader only) gets the ambientOcclusion of a 3D scene',
+  ambientOcclusion2: '(Shader only) gets the ambientOcclusion of a 3D scene',
+  ambientOcclusionBig: '(Shader only) gets the ambientOcclusion of a 3D scene',
+  edgeDetection: '(Shader only) shades the images based on edge detection',
+  specular: '(Shader only) gets the specular lighting of a 3D scene',
+  specularOrth: '(Shader only) gets the specular lighting of an orthographic 3D scene',
+  normalMap: '(Shader only) gets a normal map of a 3D scene',
+  heightMap: '(Shader only) gets a height map of a 3D scene',
+  basicLighting: '(Shader only) applies very basic lighting to a 3D scene',
+  basicEnvironment: '(Shader only) shades a 3D scene with basic enviormental lighting',
+  basicEnvironmentOrth: '(Shader only) shades an orthographic 3D scene with basic enviormental lighting',
+  advancedLighting: '(Shader only) shades a 3D scene with basic enviormental lighting',
+  advancedLightingOrth: '(Shader only) shades an orthographic 3D scene with basic enviormental lighting',
+  mist: '(Shader only) applies a volumetric mist effect to a 3D scene',
+  //3D transforms
+  mobius3D: 'TODO',
+  hypershift3D: 'TODO',
+  bubble3D: 'TODO',
+  julian3D: 'TODO',
+  juliaq3D: 'TODO',
+  parabola3D: 'TODO',
+  sphereInv: 'TODO',
+  trigCosh3D: 'TODO',
+  trigExp3D: 'TODO',
+  trigLog3D: 'TODO',
+  trigSinh3D: 'TODO',
+  trigTanh3D: 'TODO',
+  unbubble3D: 'TODO',
+  matrix3D: 'TODO',
+  blurSphere: 'Makes a unit radius sphere',
+  blurSphereVolume: 'Makes a unit radius filled sphere',
+  blurCube: 'Makes a unit width cube',
+  blurCubeVolume: 'Makes a unit width filled cube',
+  scale3D: 'scales uniformly in 3D',
+  scale3D3: 'scales in 3D',
+  translate3D: 'translates in 3D',
+  rotate3D: 'rotates in 3D',
+  perspective3D: 'applies a perspective transformation',
+  viewBox: 'TODO',
+  viewSphere: 'TODO',
+  //Images
+  blurImage: 'draws an image from a url',
+  setImage: 'sets color based on an image from a url',
+  //2D transforms
+  reset: 'resets the pointer',
+  arcsinh: 'TODO',
+  arctanh: 'TODO',
+  bent: 'TODO',
+  blurCircle: 'draws a unit radius circle',
+  blurGasket: 'TODO',
+  blurGaussian: 'TODO',
+  blurNgon: 'draws a unit radius N-gon',
+  blurSine: 'TODO',
+  blurSquare: 'draws a unit width square',
+  blurTriangle: 'draws a triangle',
+  bTransform: 'TODO',
+  bubble: 'TODO',
+  circleInv: 'TODO',
+  cpow: 'TODO',
+  cylinder: 'TODO',
+  dc_poincareDisc: 'TODO',
+  disc: 'TODO',
+  dragon: 'TODO',
+  ePush: 'TODO',
+  eRotate: 'TODO',
+  flipX: 'TODO',
+  flipY: 'TODO',
+  hypershape: 'TODO',
+  hypershift: 'TODO',
+  hypertile3: 'TODO',
+  jac_cd: 'TODO',
+  jac_cn: 'TODO',
+  jac_dn: 'TODO',
+  jac_elk: 'TODO',
+  jac_sn: 'TODO',
+  julian: 'TODO',
+  juliaq: 'TODO',
+  juliascope: 'TODO',
+  mobius: 'TODO',
+  multiMobius: 'TODO',
+  murl2: 'TODO',
+  nSplit: 'TODO',
+  pdj: 'TODO',
+  pointSymmetry: 'TODO',
+  rotate: 'rotates in 2D',
+  scale: 'scales uniformly in 2D',
+  scale2: 'scales in 2D',
+  schwarzChristoffelMap: 'TODO',
+  schwarzChristoffelInverseMap: 'TODO',
+  schwarzTriangle: 'TODO',
+  sinusoidal: 'TODO',
+  skew: 'TODO',
+  smartcrop: 'TODO',
+  smartshape: 'TODO',
+  splits: 'TODO',
+  tileHelp: 'TODO',
+  tileLog: 'TODO',
+  translate: 'translates in 2D',
+  trigCosh: 'TODO',
+  trigExp: 'TODO',
+  trigLog: 'TODO',
+  trigSinh: 'TODO',
+  trigTanh: 'TODO',
+  unbubble: 'TODO',
+  weierstrassElliptic: 'TODO',
+  //color transfomrs
+  brighten: 'TODO',
+  color: 'sets the color',
+  gradient: 'TODO',
+  repeatingGradient: 'TODO',
+  hslShift: 'shifts the Hue/Saturation/Lightness by a given amount',
+  lerpColor: 'blends towards a given color',
+  lerpHSL: 'blends towards a given color in HSL',
+  lerpRGB: 'blends towards a given color in RGB',
+  normalizeColor: 'normalizes color to be maximally bright',
+  setHue: 'sets the hue',
+  setAlpha: 'sets the alpha',
+  setSaturation: 'sets the saturation',
+  setLightness: 'sets the lightness',
+};
+
+const BUILT_IN_TRANSFORMS_PREVIEW_CODE = {
+  identity: {
+    type: 'any',
+    default: 'Checkers'
+  },
+  draw: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  dither: {
+    type: 'shader',
+    default: 'Dark Gray Shader'
+  },
+  //3D models
+  stl: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurTetrahedron: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurNormalCube: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurOctahedron: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurIcosahedron: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurDodecahedron: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurTeapot: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  torus: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  umbilicTorus: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  //shaders
+  shaderPass: {
+    type: 'shader',
+    default: 'Checkers Shader'
+  },
+  normalizeColors: {
+    type: 'shader',
+    default: 'Checkers Shader'
+  },
+  rainbowCirc: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  rainbowCircAdd: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  paletteMod: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  gamma: {
+    type: 'shader',
+    default: 'Checkers Shader'
+  },
+  ambientOcclusion: {
+    type: 'shader',
+    default: '3D Teapot Shader'
+  },
+  ambientOcclusion2: {
+    type: 'shader',
+    default: '3D Teapot Shader'
+  },
+  ambientOcclusionBig: {
+    type: 'shader',
+    default: '3D Teapot Shader'
+  },
+  edgeDetection: {
+    type: 'shader',
+    default: '3D Teapot Shader'
+  },
+  specular: {
+    type: 'shader',
+    default: '3D Teapot Shader'
+  },
+  specularOrth: {
+    type: 'shader',
+    default: '3D Teapot Orth Shader'
+  },
+  normalMap: {
+    type: 'shader',
+    default: '3D Teapot Orth Shader'
+  },
+  heightMap: {
+    type: 'shader',
+    default: '3D Teapot Orth Shader'
+  },
+  basicLighting: {
+    type: 'shader',
+    default: '3D Teapot Shader'
+  },
+  basicEnvironment: {
+    type: 'shader',
+    default: '3D Teapot Shader'
+  },
+  basicEnvironmentOrth: {
+    type: 'shader',
+    default: '3D Teapot Orth Shader'
+  },
+  advancedLighting: {
+    type: 'shader',
+    default: '3D Teapot Shader'
+  },
+  advancedLightingOrth: {
+    type: 'shader',
+    default: '3D Teapot Orth Shader'
+  },
+  mist: {
+    type: 'shader',
+    default: '3D Teapot Shader'
+  },
+  //3D transforms
+  mobius3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  hypershift3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  bubble3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  julian3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  juliaq3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  parabola3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  sphereInv: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  trigCosh3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  trigExp3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  trigLog3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  trigSinh3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  trigTanh3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  unbubble3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  matrix3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurSphere: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurSphereVolume: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurCube: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  blurCubeVolume: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  scale3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  scale3D3: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  translate3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  rotate3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  perspective3D: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  viewBox: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  viewSphere: {
+    type: 'normal',
+    default: '3D Teapot'
+  },
+  //Images
+  blurImage: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  setImage: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  //2D transforms
+  reset: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  arcsinh: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  arctanh: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  bent: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  blurCircle: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  blurGasket: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  blurGaussian: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  blurNgon: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  blurSine: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  blurSquare: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  blurTriangle: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  bTransform: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  bubble: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  circleInv: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  cpow: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  cylinder: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  dc_poincareDisc: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  disc: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  dragon: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  ePush: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  eRotate: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  flipX: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  flipY: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  hypershape: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  hypershift: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  hypertile3: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  jac_cd: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  jac_cn: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  jac_dn: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  jac_elk: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  jac_sn: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  julian: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  juliaq: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  juliascope: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  mobius: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  multiMobius: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  murl2: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  nSplit: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  pdj: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  pointSymmetry: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  rotate: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  scale: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  scale2: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  schwarzChristoffelMap: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  schwarzChristoffelInverseMap: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  schwarzTriangle: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  sinusoidal: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  skew: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  smartcrop: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  smartshape: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  splits: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  tileHelp: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  tileLog: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  translate: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  trigCosh: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  trigExp: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  trigLog: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  trigSinh: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  trigTanh: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  unbubble: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  weierstrassElliptic: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  //color transfomrs
+  brighten: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  color: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  gradient: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  repeatingGradient: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  hslShift: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  lerpColor: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  lerpHSL: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  lerpRGB: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  normalizeColor: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  setHue: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  setAlpha: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  setSaturation: {
+    type: 'normal',
+    default: 'Checkers'
+  },
+  setLightness: {
+    type: 'normal',
+    default: 'Checkers'
+  },
 };
