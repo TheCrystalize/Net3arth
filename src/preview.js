@@ -28,11 +28,11 @@ prendererThread.postMessage({
 }, [poffscreenCanvas]);
 
 let examplePrograms = {
-  normal: ['Checkers', '3D Teapot'],
-  shader: ['Checkers Shader', '3D Teapot Shader', '3D Teapot Orth Shader', 'Dark Gray Shader']
+  normal: ['Checkered', 'Checkered Plane', '3D Teapot'],
+  shader: ['Checkered Shader', 'Checkered Plane Shader', '3D Teapot Shader', '3D Teapot Orth Shader', 'Dark Gray Shader']
 };
 
-previewFunctions.addEventListener('change', _ => {
+function updatePreviewData() {
   let txt = '';
   for(let i = 0; i < BUILT_IN_TRANSFORMS_PARAMS[previewFunctions.value].length; i++) {
     switch(BUILT_IN_TRANSFORMS_PARAMS[previewFunctions.value][i].type) {
@@ -73,11 +73,14 @@ previewFunctions.addEventListener('change', _ => {
   previewTemplate.value = BUILT_IN_TRANSFORMS_PREVIEW_CODE[previewFunctions.value].default;
 
   updatePreview();
-})
+}
 
-updatePreview();
+previewFunctions.addEventListener('change', updatePreviewData);
 
 previewFunctionTemplate.addEventListener('change', updatePreview);
+
+updatePreviewData();
+updatePreview();
 
 function updatePreview() {
   try {
@@ -98,6 +101,42 @@ function getPreviewParams() {
 function getPreviewCode() {
   let params = getPreviewParams().join(',');
   switch(previewTemplate.value) {
+    case('Checkered Plane'):
+return `
+checker() {
+return z => {
+if((z.re + 1) % 1 > 0.5 ^ (z.im + 1) % 1 > 0.5) {
+return {
+  ...z,
+  red: 1,
+  green: 1,
+  blue: 0.3
+};
+}
+
+return {
+...z,
+red: 0.3,
+green: 0.1,
+blue: 0
+}
+}
+}
+
+body:
+blurSquare()
+-> checker()
+-> tileLog(4)
+-> rotate(90)
+-> tileLog(4)
+-> ${previewFunctions.value}(${params});
+
+camera:
+scale(1 / 5);
+
+shader:
+normalizeColors()
+-> gamma(2.2);`;
     case('3D Teapot'):
 return `
 buffer() {
@@ -125,7 +164,7 @@ productColor{
   };
   1: ambientOcclusion(10, 1);
 } -> gamma(2.2);`;
-    case('Checkers Shader'):
+    case('Checkered Shader'):
 return `
 checker() {
 return z => {
@@ -159,6 +198,42 @@ normalizeColors()
 -> gamma(2.2)
 -> ${previewFunctions.value}(${params});
 `;
+    case('Checkered Plane Shader'):
+return `
+checker() {
+return z => {
+if((z.re + 1) % 1 > 0.5 ^ (z.im + 1) % 1 > 0.5) {
+return {
+...z,
+red: 1,
+green: 1,
+blue: 0.3
+};
+}
+
+return {
+...z,
+red: 0.3,
+green: 0.1,
+blue: 0
+}
+}
+}
+
+body:
+blurSquare()
+-> checker()
+-> tileLog(4)
+-> rotate(90)
+-> tileLog(4);
+
+camera:
+scale(1 / 5);
+
+shader:
+normalizeColors()
+-> gamma(2.2)
+-> ${previewFunctions.value}(${params});`;
     case('3D Teapot Shader'):
       return `
 buffer() {
@@ -199,42 +274,20 @@ rotate3D(40, 0, 0)
 shader:
 ${previewFunctions.value}(${params});`;
     case('Dark Gray Shader'):
-return `
+      return `
+buffer() {
+  return averageBuffer();
+}
+
 body:
 blurSquare()
 -> gradient([
-  colorRGB(1.000, 1.000, 1.000),
-
-  colorRGB(0.068, 0.068, 0.068),
-  colorRGB(0.066, 0.066, 0.066),
-  colorRGB(0.064, 0.064, 0.064),
-  colorRGB(0.062, 0.062, 0.062),
-  colorRGB(0.060, 0.060, 0.060),
-  colorRGB(0.058, 0.058, 0.058),
-  colorRGB(0.056, 0.056, 0.056),
-  colorRGB(0.054, 0.054, 0.054),
-  colorRGB(0.052, 0.052, 0.052),
-  colorRGB(0.050, 0.050, 0.050),
-  colorRGB(0.048, 0.048, 0.048),
-  colorRGB(0.046, 0.046, 0.046),
-  colorRGB(0.044, 0.044, 0.044),
-  colorRGB(0.042, 0.042, 0.042),
-  colorRGB(0.040, 0.040, 0.040),
-  colorRGB(0.038, 0.038, 0.038),
-  colorRGB(0.036, 0.036, 0.036),
-  colorRGB(0.034, 0.034, 0.034),
-  colorRGB(0.032, 0.032, 0.032),
-  colorRGB(0.030, 0.030, 0.030),
-  colorRGB(0.028, 0.028, 0.028),
-  colorRGB(0.026, 0.026, 0.026),
+  colorRGB(0.13, 0.13, 0.13),
+  colorRGB(0.1, 0.1, 0.1),
 ]);
 
-camera:
-scale2(0.1, 2/3);
-
 shader:
-normalizeColors()
--> ${previewFunctions.value}(${params});
+${previewFunctions.value}(${params});
 `;
     default:
       return `

@@ -6815,17 +6815,17 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
     }
   ],
   schwarzTriangle: [{
-      name: "_alph",
+      name: "alpha",
       type: "number",
       default: 60
     },
     {
-      name: "_bet",
+      name: "beta",
       type: "number",
       default: 60
     },
     {
-      name: "_gam",
+      name: "gamma",
       type: "number",
       default: 60
     }
@@ -7213,11 +7213,11 @@ const BUILT_IN_TRANSFORMS_DESCRIPTIONS = {
 const BUILT_IN_TRANSFORMS_PREVIEW_CODE = {
   identity: {
     type: 'any',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   draw: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   dither: {
     type: 'shader',
@@ -7263,27 +7263,27 @@ const BUILT_IN_TRANSFORMS_PREVIEW_CODE = {
   //shaders
   shaderPass: {
     type: 'shader',
-    default: 'Checkers Shader'
+    default: 'Checkered Shader'
   },
   normalizeColors: {
     type: 'shader',
-    default: 'Checkers Shader'
+    default: 'Checkered Shader'
   },
   rainbowCirc: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   rainbowCircAdd: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   paletteMod: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   gamma: {
     type: 'shader',
-    default: 'Checkers Shader'
+    default: 'Checkered Shader'
   },
   ambientOcclusion: {
     type: 'shader',
@@ -7445,308 +7445,308 @@ const BUILT_IN_TRANSFORMS_PREVIEW_CODE = {
   //Images
   blurImage: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   setImage: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   //2D transforms
   reset: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   arcsinh: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   arctanh: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   bent: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   blurCircle: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   blurGasket: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   blurGaussian: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   blurNgon: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   blurSine: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   blurSquare: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   blurTriangle: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   bTransform: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   bubble: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   circleInv: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   cpow: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   cylinder: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   dc_poincareDisc: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   disc: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   dragon: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   ePush: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   eRotate: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   flipX: {
     type: 'normal',
-    default: 'Checkers'
+    default: '3D Teapot'
   },
   flipY: {
     type: 'normal',
-    default: 'Checkers'
+    default: '3D Teapot'
   },
   hypershape: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   hypershift: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   hypertile3: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   jac_cd: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   jac_cn: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   jac_dn: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   jac_elk: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   jac_sn: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   julian: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   juliaq: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   juliascope: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   mobius: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   multiMobius: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   murl2: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   nSplit: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   pdj: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   pointSymmetry: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   rotate: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   scale: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   scale2: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   schwarzChristoffelMap: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   schwarzChristoffelInverseMap: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   schwarzTriangle: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   sinusoidal: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   skew: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   smartcrop: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   smartshape: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   splits: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   tileHelp: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   tileLog: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   translate: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   trigCosh: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   trigExp: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   trigLog: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   trigSinh: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   trigTanh: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   unbubble: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   weierstrassElliptic: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   //color transfomrs
   brighten: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   color: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   gradient: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   repeatingGradient: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered Plane'
   },
   hslShift: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   lerpColor: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   lerpHSL: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   lerpRGB: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   normalizeColor: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   setHue: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   setAlpha: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   setSaturation: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
   setLightness: {
     type: 'normal',
-    default: 'Checkers'
+    default: 'Checkered'
   },
 };
