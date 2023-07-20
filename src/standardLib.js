@@ -7267,7 +7267,7 @@ const BUILT_IN_TRANSFORMS_PREVIEW_CODE = {
   },
   normalizeColors: {
     type: 'shader',
-    default: 'Checkered Shader'
+    default: 'Dark Gray Shader'
   },
   rainbowCirc: {
     type: 'normal',

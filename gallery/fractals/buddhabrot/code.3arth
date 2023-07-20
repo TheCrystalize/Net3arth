@@ -114,11 +114,8 @@ findEscaping() {
 }
 
 body:
-xaos{
-  1:e:[1]:
-    findEscaping()
-    -> iterate();
-};
+  findEscaping()
+  -> iterate();
 
 camera:
 scale(1/4)

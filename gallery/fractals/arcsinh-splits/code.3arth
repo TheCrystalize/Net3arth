@@ -106,4 +106,8 @@ camera:
   -> circleInv();
 
 shader:
-  gamma(1.5);
+productColor{
+  60:
+    normalizeColors()
+    -> gamma(1.5);
+};
