@@ -28,8 +28,8 @@ prendererThread.postMessage({
 }, [poffscreenCanvas]);
 
 let examplePrograms = {
-  normal: ['Checkered', 'Checkered Plane', '3D Teapot'],
-  shader: ['Checkered Shader', 'Checkered Plane Shader', '3D Teapot Shader', '3D Teapot Orth Shader', 'Dark Gray Shader']
+  normal: ['Checkered', 'Checkered Plane', 'XOR', '3D Teapot'],
+  shader: ['Checkered Shader', 'Checkered Plane Shader', 'XOR Shader', '3D Teapot Shader', '3D Teapot Orth Shader', 'Dark Gray Shader']
 };
 
 function updatePreviewData() {
@@ -137,6 +137,31 @@ scale(1 / 5);
 shader:
 normalizeColors()
 -> gamma(2.2);`;
+    case('XOR'):
+return `
+xor() {
+  return z => {
+    let x = (z.re + 0.5) * 256;
+    let y = (z.im + 0.5) * 256;
+    return {
+      ...z,
+      red: x,
+      green: y,
+      blue: 256 - x ^ y
+    }
+  }
+}
+
+body:
+blurSquare()
+-> xor()
+-> ${previewFunctions.value}(${params});
+
+camera:
+scale(2/3);
+
+shader:
+normalizeColors();`;
     case('3D Teapot'):
 return `
 buffer() {
@@ -233,6 +258,31 @@ scale(1 / 5);
 shader:
 normalizeColors()
 -> gamma(2.2)
+-> ${previewFunctions.value}(${params});`;
+    case('XOR Shader'):
+return `
+xor() {
+  return z => {
+    let x = (z.re + 0.5) * 256;
+    let y = (z.im + 0.5) * 256;
+    return {
+      ...z,
+      red: x,
+      green: y,
+      blue: 256 - x ^ y
+    }
+  }
+}
+
+body:
+blurSquare()
+-> xor();
+
+camera:
+scale(2/3);
+
+shader:
+normalizeColors()
 -> ${previewFunctions.value}(${params});`;
     case('3D Teapot Shader'):
       return `
