@@ -119,6 +119,7 @@ setAlpha
 setSaturation
 setLightness
 normalMap
+matcap
 heightMap
 mist
 basicLighting

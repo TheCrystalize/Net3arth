@@ -5305,6 +5305,43 @@ function blurImage(url, x, y, w, h) {
   }
 }
 
+function matcap(url) {
+  let img = false;
+  let p = getImage(url);
+  p.then(ans=>{
+      img = ans;
+      promises.shift();
+    }
+  );
+  promises.push(p);
+  return z=>{
+    if(z.z === 0) {
+      return z;
+    }
+    if (!img) {
+      return {
+        ...z,
+        red: 0,
+        green: 0,
+        blue: 0,
+        alpha: 0,
+        re: Infinity,
+        im: Infinity
+      };
+    }
+    let normal = getNormal(z);
+    let X = Math.floor((normal[0] + 1) / 2 * img.width);
+    let Y = Math.floor((1 - normal[1]) / 2 * img.height);
+
+    return {
+      ...z,
+      red: img.data[(X + Y * img.width) * 4] / 255,
+      green: img.data[(X + Y * img.width) * 4 + 1] / 255,
+      blue: img.data[(X + Y * img.width) * 4 + 2] / 255,
+    };
+  }
+}
+
 /*3D models*/
 function decodeSTL(stl) {
   let file = Uint8Array.from(atob(stl), v => v.charCodeAt(0));
@@ -5718,6 +5755,7 @@ const BUILT_IN_TRANSFORMS = {
   specularOrth: specularOrth,
   normalMap: normalMap,
   heightMap: heightMap,
+  matcap: matcap,
   basicLighting: basicLighting,
   basicEnvironment: basicEnvironment,
   basicEnvironmentOrth: basicEnvironmentOrth,
@@ -6044,6 +6082,13 @@ const BUILT_IN_TRANSFORMS_PARAMS = {
   }],
   normalMap: [],
   heightMap: [],
+  matcap: [
+    {
+      name: "url",
+      type: "string",
+      default: "'/gold.png'"
+    }
+  ],
   basicLighting: [{
     name: "theta",
     type: "number",
@@ -7096,6 +7141,7 @@ const BUILT_IN_TRANSFORMS_DESCRIPTIONS = {
   specular: '(Shader only) gets the specular lighting of a 3D scene',
   specularOrth: '(Shader only) gets the specular lighting of an orthographic 3D scene',
   normalMap: '(Shader only) gets a normal map of a 3D scene',
+  matcap: '(Shader only) shades the scene using a given matcap image based on surface normals',
   heightMap: '(Shader only) gets a height map of a 3D scene',
   basicLighting: '(Shader only) applies very basic lighting to a 3D scene',
   basicEnvironment: '(Shader only) shades a 3D scene with basic enviormental lighting',
@@ -7310,6 +7356,10 @@ const BUILT_IN_TRANSFORMS_PREVIEW_CODE = {
     default: '3D Teapot Orth Shader'
   },
   normalMap: {
+    type: 'shader',
+    default: '3D Teapot Orth Shader'
+  },
+  matcap: {
     type: 'shader',
     default: '3D Teapot Orth Shader'
   },
