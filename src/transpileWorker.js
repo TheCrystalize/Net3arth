@@ -695,7 +695,6 @@ function parseEverything(code) {
                 }
                 parseState[0].value = ans;
                 return start;
-                return;
               default:
                 newGeneralError("Unexpected token ':'");
                 return;

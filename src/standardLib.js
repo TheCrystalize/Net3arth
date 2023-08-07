@@ -5286,7 +5286,7 @@ function blurImage(url, x, y, w, h) {
         im: Infinity
       };
     }
-    let Xr, Yr, X, Y;
+    let X, Y;
     do {
       Xr = (Xr + ax) % 1;
       Yr = (Yr + ay) % 1;
