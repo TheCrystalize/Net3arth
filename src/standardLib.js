@@ -7361,7 +7361,7 @@ const BUILT_IN_TRANSFORMS_PREVIEW_CODE = {
   },
   matcap: {
     type: 'shader',
-    default: '3D Teapot Orth Shader'
+    default: '3D Teapot Shader'
   },
   heightMap: {
     type: 'shader',
