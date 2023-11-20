@@ -1,0 +1,129 @@
+// This is a modified Inverse Mandelbrot Set
+// https://en.wikipedia.org/wiki/Mandelbrot_set
+
+buffer() {
+  return averageBuffer();
+}
+
+const varient = 0; // 0 or 1
+// 0 has more detail
+// 1 is more pure
+
+//const gradientSpeed = 100;
+//const gradientOffset = 0;
+//const gradientPower = 1;
+//const gradientPowerOffset = 0;
+
+// +0.05, 0.3) * 40
+
+const gradientSpeed = 200;
+const gradientOffset = 0;
+const gradientPower = 0.3;
+const gradientPowerOffset = 0.05;
+
+
+mandelbrot(number x, number y, number s, number iterations) {
+  let X, Y, A, B;
+  let cinv = circleInv();
+  return z => {
+    X = x + z.re * s;
+    Y = -y + z.im * s;
+
+    Z = [X, Y];
+    if(Z[0]*Z[0] + Z[1]*Z[1] > 4) {
+      count++;
+      let c = cinv({re:Z[0]/2,im:Z[1]/2});
+      Z = [c.re*2, c.im*2];
+      X = Z[0];
+      Y = Z[1];
+    }
+
+    var count = 0;
+    for(let i = 0; i < iterations; i++) {
+      if(Z[0]*Z[0] + Z[1]*Z[1] > 4) {
+        count++;
+        let c = cinv({re:Z[0]/2,im:Z[1]/2});
+        Z = [c.re*2, c.im*2];
+
+        if(varient === 1) {
+          c = cinv({re:X/2, im: Y/2});
+          X = c.re * 2,
+          Y = c.im * 2;
+        }
+      }
+
+      Z = [
+        Z[0]*Z[0] - Z[1]*Z[1] + X,
+        Z[0] * Z[1] * 2 + Y
+      ];
+    }
+    if(count === 0) {
+      return {
+        ...z,
+        red: 0,
+        green: 1,
+        blue: 0
+      };
+    }
+    return {
+      ...z,
+      red: count/iterations,
+      green: 0,
+      blue: 0
+    };
+  };
+}
+
+body:
+blurSquare()
+-> scale2(16/9, 1)
+-> mandelbrot(5, 0, 13.5, 100);// full set
+//-> mandelbrot(2, -1.9, 1.5, 100);// largest minibrot
+
+colorGradient() {
+  const colors = [
+    colorRGB( 25 / 255,   7 / 255,  26 / 255),
+    colorRGB(  9 / 255,   1 / 255,  47 / 255),
+    colorRGB(  4 / 255,   4 / 255,  73 / 255),
+    colorRGB(  0 / 255,   7 / 255, 100 / 255),
+    colorRGB( 12 / 255,  44 / 255, 138 / 255),
+    colorRGB( 24 / 255,  82 / 255, 177 / 255),
+    colorRGB( 57 / 255, 125 / 255, 209 / 255),
+    colorRGB(134 / 255, 181 / 255, 229 / 255),
+    colorRGB(211 / 255, 236 / 255, 248 / 255),
+    colorRGB(241 / 255, 233 / 255, 191 / 255),
+    colorRGB(248 / 255, 201 / 255,  95 / 255),
+    colorRGB(255 / 255, 170 / 255,   0 / 255),
+    colorRGB(204 / 255, 128 / 255,   0 / 255),
+    colorRGB(153 / 255,  87 / 255,   0 / 255),
+    colorRGB(106 / 255,  52 / 255,   3 / 255),
+    colorRGB( 66 / 255,  30 / 255,  15 / 255),
+  ];
+  return z => {
+    let c = Math.pow(z.red+gradientPowerOffset, gradientPower) * gradientSpeed+gradientOffset;
+    let col = (c % colors.length) >> 0;
+    return {
+      ...z,
+      ...lerp(
+        lerp(
+          colors[col],
+          colors[(col + 1) % colors.length],
+          c % 1
+        ),
+        colorRGB(0, 0, 0), z.green),
+      alpha: 255
+    };
+  };
+}
+
+redz(object z) {
+  return {
+    ...z,
+    z: 1-z.red
+  };
+}
+
+shader:
+shaderPass(redz)
+-> colorGradient()
+-> dither(5);
