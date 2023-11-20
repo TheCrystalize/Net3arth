@@ -9,13 +9,6 @@ const varient = 0; // 0 or 1
 // 0 has more detail
 // 1 is more pure
 
-//const gradientSpeed = 100;
-//const gradientOffset = 0;
-//const gradientPower = 1;
-//const gradientPowerOffset = 0;
-
-// +0.05, 0.3) * 40
-
 const gradientSpeed = 200;
 const gradientOffset = 0;
 const gradientPower = 0.3;
@@ -26,19 +19,18 @@ mandelbrot(number x, number y, number s, number iterations) {
   let X, Y, A, B;
   let cinv = circleInv();
   return z => {
+    let count = 0;
     X = x + z.re * s;
     Y = -y + z.im * s;
-
     Z = [X, Y];
+
     if(Z[0]*Z[0] + Z[1]*Z[1] > 4) {
-      count++;
       let c = cinv({re:Z[0]/2,im:Z[1]/2});
       Z = [c.re*2, c.im*2];
       X = Z[0];
       Y = Z[1];
     }
 
-    var count = 0;
     for(let i = 0; i < iterations; i++) {
       if(Z[0]*Z[0] + Z[1]*Z[1] > 4) {
         count++;
